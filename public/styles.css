@@ -122,6 +122,8 @@ body { background: var(--bg); color: var(--text); }
 .card-answer { font-size: 0.95rem; line-height: 1.6; flex: 1; }
 .card-diagram { margin-top: 12px; }
 .card-diagram svg { max-width: 100%; height: auto; border-radius: 8px; }
+.card-diagram .diagram-img { max-width: 100%; height: auto; border-radius: 8px;
+  background: #fff; padding: 8px; margin-top: 8px; }
 .card-diagram pre { background: var(--surface2); padding: 10px; border-radius: 8px;
   font-size: 0.7rem; overflow-x: auto; white-space: pre; color: var(--text-muted); line-height: 1.4; }
 .card-source { font-size: 0.65rem; color: var(--text-dim); margin-top: 8px; text-align: right; }

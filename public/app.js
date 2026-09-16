@@ -224,7 +224,9 @@
 
     // Diagram
     const diagramEl = $("card-diagram");
-    if (card.diagram) {
+    if (card.diagram_svg) {
+      diagramEl.innerHTML = `<img src="${card.diagram_svg}" alt="Architecture diagram" class="diagram-img">`;
+    } else if (card.diagram) {
       diagramEl.innerHTML = `<pre>${escapeHtml(card.diagram)}</pre>`;
     } else {
       diagramEl.innerHTML = "";
@@ -297,6 +299,7 @@
           <div class="card-question">${escapeHtml(card.front)}</div>
           <div class="card-hint">Tap to reveal</div>
           <div class="card-answer">${escapeHtml(card.back)}${
+            card.diagram_svg ? `<img src="${card.diagram_svg}" alt="Diagram" class="diagram-img" style="margin-top:12px;max-width:100%;border-radius:8px;background:#fff">` :
             card.diagram ? `<pre style="margin-top:12px;font-size:0.7rem;color:var(--text-muted)">${escapeHtml(card.diagram)}</pre>` : ""
           }</div>
         </div>
