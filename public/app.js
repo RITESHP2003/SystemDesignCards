@@ -1,5 +1,5 @@
 /**
- * SystemDesignCards v10 — IndexedDB + Export/Import + Swipe Down=Hard
+ * SystemDesignCards v14 — Quiz Mode
  * 1. Swipe gestures on study cards (LEFT=Forgot, DOWN=Hard, RIGHT=Good, UP=Easy)
  * 2. Category progress in study mode
  * 3. Better empty states
@@ -8,6 +8,7 @@
  * 6. Better read mode — bottom controls + swipe
  * 7. IndexedDB persistence (migrated from localStorage)
  * 8. Export / Import progress
+ * 9. Quiz Mode: Practice MCQ + Timed Test with level unlocking
  */
 (function(){
 "use strict";
@@ -25,13 +26,17 @@ var MOTIVATIONAL_MESSAGES=[
   "⭐ Another day of growth in the books. You're getting sharper!"
 ];
 
-var allCards=[],cardState={},gam={xp:0,streak:0,lastStudyDate:null,unlockedLevels:[1,2],seenMilestones:[]},settings={theme:"dark",newPerDay:10};
+var allCards=[],cardState={},gam={xp:0,streak:0,lastStudyDate:null,unlockedLevels:[1,2],seenMilestones:[],quizUnlockedLevels:[1]},settings={theme:"dark",newPerDay:10};
 var studyQueue=[],studyIndex=0,sessionStats={reviewed:0,correct:0,xpEarned:0},selectedLevel="all",savedCards=new Set();
 var readBook="vol1",readPage=1,readManifests={},readInit=false;
 var sessionSeenCategories={};
 var db=null;
 var DB_NAME="SystemDesignCardsDB";
 var DB_VERSION=1;
+
+// ═══ QUIZ STATE ═══
+var quizLevel=1,quizMode="practice",quizQuestions=[],quizIndex=0,quizCorrect=0,quizXP=0,quizWrong=[],quizAnswered=false;
+var quizTimerInterval=null,quizTimeLeft=60,quizTimeTaken=0,quizStartTime=0;
 
 // ═══ INDEXEDDB WRAPPER ═══
 function openDB(){
@@ -790,6 +795,209 @@ function renderStats(){
   $("badges-section").innerHTML='<h3 style="margin:16px 0 8px;font-size:.85rem">🏅 Badges</h3><div class="badges-row">'+badges.map(function(b){return'<span class="badge'+(b.earned?" earned":"")+'">'+b.label+'</span>'}).join("")+'</div>';
 }
 
+// ═══ QUIZ MODE ═══
+function initQuizHome(){
+  $("quiz-home").classList.remove("hidden");$("quiz-area").classList.add("hidden");$("quiz-score").classList.add("hidden");
+  updateQuizLevelButtons();
+}
+function updateQuizLevelButtons(){
+  var btns=document.querySelectorAll(".quiz-level-btn");
+  for(var i=0;i<btns.length;i++){
+    var l=parseInt(btns[i].dataset.level);
+    btns[i].classList.toggle("locked",gam.quizUnlockedLevels.indexOf(l)===-1);
+    btns[i].classList.toggle("active",l===quizLevel&&gam.quizUnlockedLevels.indexOf(l)!==-1);
+  }
+}
+function getKeySentence(text){
+  if(!text)return"";
+  var sentences=text.split(/[.!?]+/).map(function(s){return s.trim()}).filter(function(s){return s.length>10});
+  return sentences.length?sentences[0]+".":text.substring(0,80)+"…";
+}
+function generateQuizQuestions(level){
+  var pool=allCards.filter(function(c){return c.level===level});
+  if(pool.length<4)return[];
+  var shuffled=pool.slice().sort(function(){return Math.random()-.5});
+  var picked=shuffled.slice(0,Math.min(10,pool.length));
+  var questions=[];
+  for(var i=0;i<picked.length;i++){
+    var card=picked[i];
+    var correctAnswer=getKeySentence(card.back);
+    // Pick 3 distractors from other cards in same level
+    var others=pool.filter(function(c){return c.id!==card.id}).sort(function(){return Math.random()-.5}).slice(0,3);
+    var distractors=others.map(function(c){return getKeySentence(c.back)});
+    // Ensure we have 3 unique distractors
+    while(distractors.length<3)distractors.push("None of the above");
+    var options=[correctAnswer].concat(distractors);
+    // Shuffle options
+    options.sort(function(){return Math.random()-.5});
+    questions.push({card:card,question:card.front,correct:correctAnswer,options:options,explanation:card.back.substring(0,200)+(card.back.length>200?"…":"")});
+  }
+  return questions;
+}
+function startQuiz(mode){
+  quizMode=mode;
+  var questions=generateQuizQuestions(quizLevel);
+  if(questions.length<4){alert("Not enough cards for level "+quizLevel+" (need at least 4).");return}
+  quizQuestions=questions;quizIndex=0;quizCorrect=0;quizXP=0;quizWrong=[];quizAnswered=false;
+  $("quiz-home").classList.add("hidden");$("quiz-area").classList.remove("hidden");$("quiz-score").classList.add("hidden");
+  if(mode==="timed"){
+    quizTimeLeft=60;quizStartTime=Date.now();
+    $("quiz-timer").classList.remove("hidden");
+    $("quiz-timer").classList.remove("urgent");
+    $("quiz-timer").textContent="⏱ 60";
+    quizTimerInterval=setInterval(function(){
+      quizTimeLeft--;
+      $("quiz-timer").textContent="⏱ "+quizTimeLeft;
+      if(quizTimeLeft<=10)$("quiz-timer").classList.add("urgent");
+      if(quizTimeLeft<=0){clearInterval(quizTimerInterval);quizTimerInterval=null;quizAutoAdvance()}
+    },1000);
+  }else{
+    $("quiz-timer").classList.add("hidden");
+    if(quizTimerInterval){clearInterval(quizTimerInterval);quizTimerInterval=null}
+  }
+  showQuizQuestion();
+}
+function quizAutoAdvance(){
+  // Time ran out for current question — mark wrong and advance
+  if(!quizAnswered){
+    quizAnswered=true;
+    var q=quizQuestions[quizIndex];
+    quizWrong.push({question:q.question,correct:q.correct,cardId:q.card.id});
+    // Show correct answer briefly then move on
+    var btns=document.querySelectorAll(".quiz-option");
+    for(var i=0;i<btns.length;i++){
+      btns[i].classList.add("disabled");
+      if(btns[i].textContent===q.correct)btns[i].classList.add("show-correct");
+    }
+  }
+  quizIndex++;
+  if(quizIndex>=quizQuestions.length){finishQuiz();return}
+  quizAnswered=false;
+  showQuizQuestion();
+  // Restart timer for next question
+  quizTimeLeft=60;quizStartTime=Date.now();
+  $("quiz-timer").classList.remove("urgent");
+  $("quiz-timer").textContent="⏱ 60";
+  if(!quizTimerInterval){
+    quizTimerInterval=setInterval(function(){
+      quizTimeLeft--;
+      $("quiz-timer").textContent="⏱ "+quizTimeLeft;
+      if(quizTimeLeft<=10)$("quiz-timer").classList.add("urgent");
+      if(quizTimeLeft<=0){clearInterval(quizTimerInterval);quizTimerInterval=null;quizAutoAdvance()}
+    },1000);
+  }
+}
+function showQuizQuestion(){
+  if(quizIndex>=quizQuestions.length){finishQuiz();return}
+  quizAnswered=false;
+  var q=quizQuestions[quizIndex];
+  $("quiz-counter").textContent=(quizIndex+1)+"/"+quizQuestions.length;
+  $("quiz-score-live").textContent="⚡ "+quizXP;
+  $("quiz-progress-fill").style.width=(quizIndex/quizQuestions.length*100)+"%";
+  $("quiz-q-level").textContent="L"+q.card.level;
+  $("quiz-q-level").className="quiz-q-level";
+  var levelColors={1:"rgba(52,211,153,.12)",2:"rgba(251,191,36,.12)",3:"rgba(251,146,60,.12)",4:"rgba(248,113,113,.12)"};
+  var levelTextColors={1:"var(--green)",2:"var(--yellow)",3:"var(--orange)",4:"var(--red)"};
+  $("quiz-q-level").style.background=levelColors[q.card.level]||"";
+  $("quiz-q-level").style.color=levelTextColors[q.card.level]||"";
+  $("quiz-q-category").textContent=q.card.category;
+  $("quiz-q-text").textContent=q.question;
+  $("quiz-explanation").classList.add("hidden");
+  $("quiz-next-btn").classList.add("hidden");
+  var optContainer=$("quiz-options");optContainer.innerHTML="";
+  for(var i=0;i<q.options.length;i++){
+    var btn=document.createElement("button");
+    btn.className="quiz-option";
+    btn.textContent=q.options[i];
+    btn.addEventListener("click",function(opt){return function(){selectQuizOption(opt)}}(q.options[i]));
+    optContainer.appendChild(btn);
+  }
+}
+function selectQuizOption(selected){
+  if(quizAnswered)return;
+  quizAnswered=true;
+  var q=quizQuestions[quizIndex];
+  var isCorrect=selected===q.correct;
+  var btns=document.querySelectorAll(".quiz-option");
+  for(var i=0;i<btns.length;i++){
+    btns[i].classList.add("disabled");
+    if(btns[i].textContent===q.correct)btns[i].classList.add("correct");
+    if(btns[i].textContent===selected&&!isCorrect)btns[i].classList.add("wrong");
+  }
+  if(isCorrect){
+    quizCorrect++;
+    var xpGain=quizMode==="timed"?5:3;
+    quizXP+=xpGain;
+    gam.xp+=xpGain;save();
+    $("xp-popup").textContent="+"+xpGain+" XP";$("xp-popup").classList.remove("dismissed");
+    setTimeout(function(){$("xp-popup").classList.add("dismissed")},600);
+    if(navigator.vibrate)navigator.vibrate(30);
+  }else{
+    quizWrong.push({question:q.question,correct:q.correct,cardId:q.card.id});
+    if(navigator.vibrate)navigator.vibrate([50,30,50]);
+  }
+  // Show explanation
+  $("quiz-explanation-text").textContent=q.explanation;
+  $("quiz-explanation").classList.remove("hidden");
+  $("quiz-score-live").textContent="⚡ "+quizXP;
+  // In practice mode, show Next button. In timed, auto-advance after 2s
+  if(quizMode==="practice"){
+    $("quiz-next-btn").classList.remove("hidden");
+  }else{
+    setTimeout(function(){
+      quizIndex++;
+      if(quizIndex>=quizQuestions.length){finishQuiz()}else{showQuizQuestion()}
+    },2000);
+  }
+}
+function finishQuiz(){
+  if(quizTimerInterval){clearInterval(quizTimerInterval);quizTimerInterval=null}
+  $("quiz-area").classList.add("hidden");$("quiz-score").classList.remove("hidden");
+  var total=quizQuestions.length;
+  var pct=Math.round(quizCorrect/total*100);
+  $("quiz-score-big").textContent=quizCorrect+"/"+total;
+  var icon=pct>=90?"🏆":pct>=70?"🎉":pct>=50?"👍":"📚";
+  $("quiz-score-icon").textContent=icon;
+  var title=pct>=90?"Outstanding!":pct>=70?"Great Job!":pct>=50?"Good Effort!":"Keep Studying!";
+  $("quiz-score-title").textContent=title;
+  var details="Score: "+pct+"%<br>XP Earned: ⚡"+quizXP;
+  if(quizMode==="timed"){
+    var elapsed=Math.round((Date.now()-quizStartTime)/1000);
+    details+="<br>Time: "+elapsed+"s";
+  }
+  $("quiz-score-details").innerHTML=details;
+  // Wrong answers list
+  var wHtml="";
+  if(quizWrong.length>0){
+    wHtml='<div style="font-size:.72rem;color:var(--text-muted);margin:8px 0 4px;font-weight:600">❌ Review these:</div>';
+    for(var i=0;i<quizWrong.length;i++){
+      wHtml+='<div class="quiz-wrong-item"><div class="qw-q">'+esc(quizWrong[i].question)+'</div><div class="qw-a">✓ '+esc(quizWrong[i].correct)+'</div></div>';
+      // Feed wrong answers back to study loop
+      if(cardState[quizWrong[i].cardId]){
+        cardState[quizWrong[i].cardId].status="new";
+        cardState[quizWrong[i].cardId].nextReview=null;
+        cardState[quizWrong[i].cardId].repetitions=0;
+      }
+    }
+    save();
+  }
+  $("quiz-wrong-list").innerHTML=wHtml;
+  // Update streak and daily
+  updateStreak();recordStudyDay();incDailyCount();updateDailyGoal();updateTopBar();
+  // Check quiz level unlock: 7+/10 unlocks next level
+  if(quizCorrect>=7){
+    var nextLevel=quizLevel+1;
+    if(nextLevel<=4&&gam.quizUnlockedLevels.indexOf(nextLevel)===-1){
+      gam.quizUnlockedLevels.push(nextLevel);save();
+      var names={2:"Core Patterns",3:"Real Systems",4:"Expert"};
+      $("toast-text").textContent="🧪 Quiz Level "+nextLevel+": "+names[nextLevel]+" Unlocked!";
+      $("level-toast").classList.remove("dismissed");
+      setTimeout(function(){$("level-toast").classList.add("dismissed")},3000);
+    }
+  }
+  if(pct>=70)fireConfetti();
+}
+
 // ═══ EVENTS ═══
 function setupEvents(){
   $("flashcard").addEventListener("click",function(e){if(!e.target.closest(".flip-back-btn")&&!e.target.closest(".swipe-indicator"))flipCard()});
@@ -818,7 +1026,7 @@ function setupEvents(){
   for(var j=0;j<modeTabs.length;j++){(function(t){t.addEventListener("click",function(){
     for(var k=0;k<modeTabs.length;k++)modeTabs[k].classList.remove("active");t.classList.add("active");
     var m=t.dataset.mode;
-    var views=["study-view","reels-view","read-view"];
+    var views=["study-view","reels-view","quiz-view","read-view"];
     for(var v=0;v<views.length;v++){
       var vEl=$(views[v]);
       var shouldShow=(views[v]===m+"-view");
@@ -829,7 +1037,7 @@ function setupEvents(){
         vEl.style.animation="";
       }
     }
-    if(m==="reels")initReels();if(m==="study")updateAll();if(m==="read")initRead();
+    if(m==="reels")initReels();if(m==="study")updateAll();if(m==="read")initRead();if(m==="quiz")initQuizHome();
   })})(modeTabs[j])}
   var levelBtns=document.querySelectorAll(".level-btn");
   for(var lb=0;lb<levelBtns.length;lb++){(function(b){b.addEventListener("click",function(){if(b.classList.contains("locked"))return;var all=document.querySelectorAll(".level-btn");for(var x=0;x<all.length;x++)all[x].classList.remove("active");b.classList.add("active");selectedLevel=b.dataset.level;updateSummary()})})(levelBtns[lb])}
@@ -851,6 +1059,19 @@ function setupEvents(){
   initSearch();
   setupSwipeGestures();
   setupExportImport();
+
+  // Quiz events
+  $("btn-quiz-practice").addEventListener("click",function(){startQuiz("practice")});
+  $("btn-quiz-timed").addEventListener("click",function(){startQuiz("timed")});
+  $("quiz-next-btn").addEventListener("click",function(){quizIndex++;showQuizQuestion()});
+  $("btn-quiz-retry").addEventListener("click",function(){startQuiz(quizMode)});
+  $("btn-quiz-home").addEventListener("click",function(){initQuizHome()});
+  var quizLevelBtns=document.querySelectorAll(".quiz-level-btn");
+  for(var ql=0;ql<quizLevelBtns.length;ql++){(function(b){b.addEventListener("click",function(){
+    if(b.classList.contains("locked"))return;
+    var all=document.querySelectorAll(".quiz-level-btn");for(var x=0;x<all.length;x++)all[x].classList.remove("active");
+    b.classList.add("active");quizLevel=parseInt(b.dataset.level);
+  })})(quizLevelBtns[ql])}
 }
 function closePanels(){$("profile-panel").classList.add("hidden");$("overlay").classList.add("dismissed")}
 function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}

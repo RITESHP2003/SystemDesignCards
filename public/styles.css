@@ -251,3 +251,63 @@ body.theme-dark{background:linear-gradient(160deg,#0a0a14 0%,#0d0d1f 40%,#121228
 .mode-tabs{top:calc(48px + env(safe-area-inset-top))}
 .view{top:calc(88px + env(safe-area-inset-top))}
 }
+
+/* ══ QUIZ MODE ══ */
+.quiz-home{display:flex;flex-direction:column;align-items:center;gap:14px;padding-top:20px;text-align:center}
+.quiz-home-icon{font-size:3rem}
+.quiz-home-title{font-size:1.3rem;font-weight:700}
+.quiz-home-desc{font-size:.82rem;color:var(--text-muted);max-width:280px}
+.quiz-mode-buttons{display:flex;flex-direction:column;gap:10px;width:100%;max-width:300px}
+.quiz-level-btn{padding:7px 14px;border:1px solid var(--glass-border);border-radius:14px;background:var(--glass);color:var(--text-muted);font-size:.75rem;cursor:pointer;touch-action:manipulation;min-height:34px;backdrop-filter:blur(6px);transition:all .2s}
+.quiz-level-btn.active{background:var(--accent);color:#fff;border-color:var(--accent);box-shadow:0 2px 12px var(--accent-glow)}
+.quiz-level-btn.locked{opacity:.35;pointer-events:none}.quiz-level-btn.locked::after{content:' 🔒'}
+
+/* Quiz area */
+.quiz-area{display:flex;flex-direction:column;align-items:center;gap:10px;height:100%;overflow-y:auto;padding-bottom:20px}
+.quiz-top-row{width:100%;max-width:420px;display:flex;align-items:center;justify-content:space-between;gap:8px}
+.quiz-counter{font-size:.78rem;color:var(--text-muted);font-weight:600}
+.quiz-timer{font-size:.82rem;font-weight:700;color:var(--yellow);background:rgba(251,191,36,.12);padding:4px 12px;border-radius:10px;backdrop-filter:blur(4px)}
+.quiz-timer.urgent{color:var(--red);background:rgba(248,113,113,.15);animation:pulse 0.5s infinite}
+.quiz-score-live{font-size:.78rem;color:var(--accent2);font-weight:600}
+.quiz-progress-bar{width:100%;max-width:420px;height:4px;background:var(--surface2);border-radius:2px;overflow:hidden}
+.quiz-progress-fill{height:100%;background:linear-gradient(90deg,var(--accent),var(--accent2));border-radius:2px;transition:width .4s;width:0%}
+
+/* Quiz question card */
+.quiz-question-card{width:100%;max-width:420px;border-radius:20px;padding:20px;
+  background:var(--surface);border:1px solid var(--glass-border);
+  box-shadow:0 8px 32px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.05);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px)}
+.quiz-q-level{font-size:.62rem;font-weight:700;padding:3px 9px;border-radius:8px;display:inline-block;margin-bottom:6px;backdrop-filter:blur(4px)}
+.quiz-q-category{font-size:.68rem;color:var(--text-muted);margin-bottom:10px;text-transform:uppercase;letter-spacing:1.2px}
+.quiz-q-text{font-size:1rem;font-weight:600;line-height:1.55}
+
+/* Quiz option buttons */
+.quiz-options{width:100%;max-width:420px;display:flex;flex-direction:column;gap:8px}
+.quiz-option{width:100%;padding:14px 16px;border:1px solid var(--glass-border);border-radius:14px;
+  background:var(--glass);backdrop-filter:blur(8px);-webkit-backdrop-filter:blur(8px);
+  color:var(--text);font-size:.85rem;text-align:left;cursor:pointer;touch-action:manipulation;
+  transition:all .2s;line-height:1.5}
+.quiz-option:active{transform:scale(.97)}
+.quiz-option.correct{background:rgba(52,211,153,.15);border-color:var(--green);color:var(--green);box-shadow:0 0 20px rgba(52,211,153,.2)}
+.quiz-option.wrong{background:rgba(248,113,113,.15);border-color:var(--red);color:var(--red);box-shadow:0 0 20px rgba(248,113,113,.2)}
+.quiz-option.disabled{pointer-events:none;opacity:.6}
+.quiz-option.show-correct{background:rgba(52,211,153,.1);border-color:var(--green);color:var(--green)}
+
+/* Quiz explanation */
+.quiz-explanation{width:100%;max-width:420px;border-radius:16px;padding:16px;
+  background:var(--surface);border:1px solid var(--glass-border);
+  backdrop-filter:blur(12px);-webkit-backdrop-filter:blur(12px);
+  box-shadow:0 4px 20px rgba(0,0,0,.15)}
+.quiz-explanation-header{font-size:.72rem;font-weight:700;color:var(--accent2);margin-bottom:8px;text-transform:uppercase;letter-spacing:.5px}
+.quiz-explanation-text{font-size:.82rem;color:var(--text-muted);line-height:1.6}
+
+/* Quiz score screen */
+.quiz-score{display:flex;flex-direction:column;align-items:center;justify-content:center;gap:12px;height:100%;text-align:center;overflow-y:auto;padding-bottom:20px}
+.quiz-score-icon{font-size:4rem;animation:bounceIn .6s}
+.quiz-score-title{font-size:1.3rem;font-weight:700}
+.quiz-score-big{font-size:3rem;font-weight:800;background:linear-gradient(135deg,var(--accent),var(--accent2));-webkit-background-clip:text;-webkit-text-fill-color:transparent;background-clip:text}
+.quiz-score-details{color:var(--text-muted);font-size:.85rem;line-height:1.8}
+.quiz-wrong-list{width:100%;max-width:380px;text-align:left}
+.quiz-wrong-item{padding:10px;border-radius:12px;background:var(--glass);border:1px solid rgba(248,113,113,.15);margin-bottom:6px;font-size:.78rem}
+.quiz-wrong-item .qw-q{font-weight:600;color:var(--text);margin-bottom:4px}
+.quiz-wrong-item .qw-a{color:var(--green);font-size:.72rem}

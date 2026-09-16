@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=13">
+    <link rel="stylesheet" href="styles.css?v=14">
 </head>
 <body class="theme-dark">
     <!-- Onboarding (first launch only) -->
@@ -71,6 +71,7 @@
     <nav id="mode-tabs" class="mode-tabs">
         <button class="mode-tab active" data-mode="study">🃏 Study</button>
         <button class="mode-tab" data-mode="reels">🔀 Reels</button>
+        <button class="mode-tab" data-mode="quiz">🧪 Quiz</button>
         <button class="mode-tab" data-mode="read">📖 Read</button>
     </nav>
 
@@ -173,6 +174,64 @@
         <div id="reels-container" class="reels-container"></div>
     </main>
 
+    <!-- Quiz mode -->
+    <main id="quiz-view" class="view hidden">
+        <!-- Quiz home: mode select + level select -->
+        <div id="quiz-home" class="quiz-home">
+            <div class="quiz-home-icon">🧪</div>
+            <h2 class="quiz-home-title">Quiz Mode</h2>
+            <p class="quiz-home-desc">Test your knowledge with multiple choice questions</p>
+
+            <div class="quiz-mode-buttons">
+                <button id="btn-quiz-practice" class="btn-primary">📝 Practice Quiz</button>
+                <button id="btn-quiz-timed" class="btn-secondary">⏱ Timed Test (60s)</button>
+            </div>
+
+            <div id="quiz-level-selector" class="level-selector" style="margin-top:16px">
+                <button class="quiz-level-btn active" data-level="1">🟢 L1</button>
+                <button class="quiz-level-btn" data-level="2">🟡 L2</button>
+                <button class="quiz-level-btn" data-level="3">🟠 L3</button>
+                <button class="quiz-level-btn" data-level="4">🔴 L4</button>
+            </div>
+        </div>
+
+        <!-- Quiz question area -->
+        <div id="quiz-area" class="quiz-area hidden">
+            <div class="quiz-top-row">
+                <span id="quiz-counter" class="quiz-counter">1/10</span>
+                <span id="quiz-timer" class="quiz-timer hidden">⏱ 60</span>
+                <span id="quiz-score-live" class="quiz-score-live">⚡ 0</span>
+            </div>
+            <div class="quiz-progress-bar"><div id="quiz-progress-fill" class="quiz-progress-fill"></div></div>
+
+            <div id="quiz-question-card" class="quiz-question-card">
+                <div class="quiz-q-level" id="quiz-q-level">L1</div>
+                <div class="quiz-q-category" id="quiz-q-category">Scaling</div>
+                <div class="quiz-q-text" id="quiz-q-text">Question text here</div>
+            </div>
+
+            <div id="quiz-options" class="quiz-options"></div>
+
+            <div id="quiz-explanation" class="quiz-explanation hidden">
+                <div class="quiz-explanation-header">💡 Explanation</div>
+                <div id="quiz-explanation-text" class="quiz-explanation-text"></div>
+            </div>
+
+            <button id="quiz-next-btn" class="btn-primary hidden" style="margin-top:12px">Next →</button>
+        </div>
+
+        <!-- Quiz score screen -->
+        <div id="quiz-score" class="quiz-score hidden">
+            <div class="quiz-score-icon">🏆</div>
+            <div id="quiz-score-title" class="quiz-score-title">Quiz Complete!</div>
+            <div id="quiz-score-big" class="quiz-score-big">8/10</div>
+            <div id="quiz-score-details" class="quiz-score-details"></div>
+            <div id="quiz-wrong-list" class="quiz-wrong-list"></div>
+            <button id="btn-quiz-retry" class="btn-primary" style="margin-top:16px">Try Again</button>
+            <button id="btn-quiz-home" class="btn-secondary" style="margin-top:8px">Back to Quiz Home</button>
+        </div>
+    </main>
+
     <!-- Read mode -->
     <main id="read-view" class="view hidden">
         <div id="read-container" class="read-container">
@@ -244,7 +303,7 @@
 
     <div id="overlay" class="overlay dismissed"></div>
 
-    <script src="app.js?v=13"></script>
+    <script src="app.js?v=14"></script>
     <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>
