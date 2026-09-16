@@ -3089,5 +3089,735 @@
     "back": "Pessimistic locking acquires a lock before reading/writing \u2014 guarantees no conflicts but blocks other transactions (reduces throughput). Used when conflicts are frequent (e.g., seat booking, inventory). Optimistic locking reads without locking, then checks a version number at write time \u2014 if it changed, retry. Higher throughput when conflicts are rare. Used in CMS, collaborative editing, most web apps. Choose pessimistic when conflicts are expensive, optimistic when they're rare.",
     "diagram": null,
     "source": "System Design Primer / common knowledge"
+  },
+  {
+    "id": "L1P-001",
+    "level": 1,
+    "category": "DNS",
+    "type": "concept",
+    "front": "What does DNS do and why is it called the 'phonebook of the internet'?",
+    "back": "DNS (Domain Name System) translates human-readable domain names like google.com into IP addresses like 216.58.214.206. Just like a phonebook maps names to phone numbers, DNS maps domain names to the server IP addresses that computers use to communicate.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-002",
+    "level": 1,
+    "category": "DNS",
+    "type": "concept",
+    "front": "What are the four main DNS record types and what does each do?",
+    "back": "A record: maps a domain to an IPv4 address. AAAA record: maps a domain to an IPv6 address. CNAME record: maps a domain to another domain name (alias). MX record: directs email to a mail server. NS records delegate a DNS zone to authoritative name servers.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-003",
+    "level": 1,
+    "category": "DNS",
+    "type": "concept",
+    "front": "What is TTL in DNS and why does it matter for system design?",
+    "back": "TTL (Time To Live) tells DNS resolvers how long to cache a record before re-querying. A low TTL (e.g. 60s) means faster propagation of changes but more DNS queries. A high TTL (e.g. 86400s) reduces DNS load but means changes take longer to propagate. During migrations, you lower TTL first so the switch is fast.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-004",
+    "level": 1,
+    "category": "DNS",
+    "type": "concept",
+    "front": "What is the DNS resolution path from browser to IP address?",
+    "back": "Browser checks its local cache \u2192 OS resolver cache \u2192 recursive DNS resolver (usually ISP) \u2192 root name server \u2192 TLD name server (.com, .org) \u2192 authoritative name server for the domain. Each level caches results according to TTL to speed up future lookups.",
+    "diagram": "graph LR\n  Browser --> OS_Cache --> Recursive_Resolver --> Root_NS --> TLD_NS --> Authoritative_NS",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-005",
+    "level": 1,
+    "category": "DNS",
+    "type": "tradeoff",
+    "front": "How can DNS become a bottleneck or single point of failure?",
+    "back": "If your DNS provider goes down, no one can resolve your domain \u2014 your site is unreachable even if servers are healthy. DNS lookups add latency to every new connection. Mitigation: use multiple DNS providers, set appropriate TTLs, and use DNS-based load balancing services like Route 53 or Cloudflare.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-006",
+    "level": 1,
+    "category": "DNS",
+    "type": "concept",
+    "front": "How is DNS used for load balancing and traffic management?",
+    "back": "DNS can return different IP addresses for the same domain using round-robin, weighted, latency-based, or geolocation routing. Services like AWS Route 53 use health checks to remove unhealthy endpoints. This provides a simple first layer of traffic distribution before requests even reach your load balancer.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-007",
+    "level": 1,
+    "category": "DNS",
+    "type": "comparison",
+    "front": "What is the difference between a CNAME record and an A record?",
+    "back": "An A record maps a domain directly to an IP address (example.com \u2192 93.184.216.34). A CNAME maps a domain to another domain name (blog.example.com \u2192 example.com), creating an alias. CNAMEs cannot be used at the zone apex (root domain) \u2014 that requires an A record or provider-specific ALIAS records.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-008",
+    "level": 1,
+    "category": "CAP Theorem",
+    "type": "concept",
+    "front": "What is the CAP theorem and what does it state?",
+    "back": "The CAP theorem states that a distributed system can only guarantee two of three properties simultaneously: Consistency (every read gets the most recent write), Availability (every request gets a response), and Partition Tolerance (the system works despite network failures between nodes). Since network partitions are inevitable, you must choose between CP or AP.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-009",
+    "level": 1,
+    "category": "CAP Theorem",
+    "type": "comparison",
+    "front": "What is a CP system vs an AP system? Give a real example of each.",
+    "back": "A CP system sacrifices availability for consistency \u2014 during a partition, it refuses requests rather than return stale data. Example: HBase, MongoDB (default config), bank account balances. An AP system sacrifices consistency for availability \u2014 it returns data even if it might be stale. Example: Cassandra, DynamoDB, social media feeds.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-010",
+    "level": 1,
+    "category": "CAP Theorem",
+    "type": "concept",
+    "front": "Why can't you have all three of CAP at once in a distributed system?",
+    "back": "Network partitions are unavoidable in distributed systems \u2014 cables break, switches fail, data centers lose connectivity. When a partition occurs, you must choose: either stop serving requests to maintain consistency (CP), or keep serving potentially stale data to maintain availability (AP). Without a partition, you can have both C and A.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-011",
+    "level": 1,
+    "category": "CAP Theorem",
+    "type": "tradeoff",
+    "front": "When would you choose a CP system over an AP system?",
+    "back": "Choose CP when incorrect data is worse than no data: financial transactions, inventory management, distributed locks, leader election. A banking system must never show a wrong balance, so it's better to reject a request during a partition than to process it with stale data.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-012",
+    "level": 1,
+    "category": "CAP Theorem",
+    "type": "tradeoff",
+    "front": "When would you choose an AP system over a CP system?",
+    "back": "Choose AP when availability matters more than perfect accuracy: social media timelines, product catalog browsing, DNS, shopping cart (before checkout). It's acceptable if a user briefly sees a slightly stale feed or product count, as long as the system stays responsive.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-013",
+    "level": 1,
+    "category": "CAP Theorem",
+    "type": "concept",
+    "front": "What is 'partition tolerance' in CAP and why is it non-negotiable?",
+    "back": "Partition tolerance means the system continues to operate despite messages being dropped or delayed between nodes. It's non-negotiable because network failures WILL happen in any distributed system \u2014 switches fail, cables get cut, data centers lose connectivity. You can't choose CA without P in a real distributed system.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-014",
+    "level": 1,
+    "category": "CAP Theorem",
+    "type": "concept",
+    "front": "What does the PACELC theorem add beyond CAP?",
+    "back": "PACELC extends CAP: during a Partition, choose Availability or Consistency; Else (no partition), choose Latency or Consistency. This captures real-world tradeoffs better \u2014 even without partitions, there's a tension between low latency and strong consistency due to replication delays.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-015",
+    "level": 1,
+    "category": "Consistency Patterns",
+    "type": "concept",
+    "front": "What is weak consistency and when is it acceptable?",
+    "back": "With weak consistency, after a write, reads may or may not see it \u2014 there's no guarantee. The system makes a best effort but doesn't promise when or if all nodes will reflect the update. Acceptable for: real-time video chat (losing a few frames is fine), VoIP calls, multiplayer game state where approximate positions are OK.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-016",
+    "level": 1,
+    "category": "Consistency Patterns",
+    "type": "concept",
+    "front": "What is eventual consistency and give a real-world example?",
+    "back": "With eventual consistency, after a write, reads will eventually see it \u2014 the system guarantees convergence but not when. Replicas may return stale data temporarily. Examples: DNS propagation (changes take minutes to hours), social media like counts, Amazon product reviews, email delivery. Most AP systems use eventual consistency.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-017",
+    "level": 1,
+    "category": "Consistency Patterns",
+    "type": "concept",
+    "front": "What is strong consistency and give a real-world example?",
+    "back": "With strong consistency, after a write completes, all subsequent reads will return that value. This requires coordination between nodes (e.g., synchronous replication or consensus protocols like Raft/Paxos). Examples: bank account transfers, inventory stock counts, distributed locks. It costs higher latency due to coordination overhead.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-018",
+    "level": 1,
+    "category": "Consistency Patterns",
+    "type": "comparison",
+    "front": "Compare weak, eventual, and strong consistency in terms of latency and correctness.",
+    "back": "Weak: lowest latency, no correctness guarantee \u2014 may lose writes. Eventual: low latency, reads may be stale temporarily but system converges. Strong: highest latency (requires coordination), every read reflects the latest write. Most systems use eventual consistency and reserve strong consistency only for critical paths like payments.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-019",
+    "level": 1,
+    "category": "Consistency Patterns",
+    "type": "concept",
+    "front": "What is read-your-writes consistency and why is it useful?",
+    "back": "Read-your-writes (also called read-after-write) consistency guarantees that a user always sees their own updates immediately, even if other users may see stale data. Example: after updating your profile photo, you always see the new one, but friends might briefly see the old one. It's a practical middle ground between eventual and strong consistency.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-020",
+    "level": 1,
+    "category": "Consistency Patterns",
+    "type": "tradeoff",
+    "front": "Why do most large-scale systems default to eventual consistency?",
+    "back": "Strong consistency requires coordinating all replicas on every write, which increases latency and reduces throughput \u2014 it doesn't scale well across regions. Eventual consistency allows replicas to accept writes independently and sync later, enabling low latency and high availability. For most use cases (feeds, catalogs, analytics), brief staleness is acceptable.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-021",
+    "level": 1,
+    "category": "Consistency Patterns",
+    "type": "concept",
+    "front": "What are quorum reads and writes, and how do they relate to consistency?",
+    "back": "In a system with N replicas, a quorum write requires W replicas to acknowledge, and a quorum read queries R replicas. If W + R > N, you're guaranteed to read at least one up-to-date replica (strong consistency). Tuning W and R lets you trade between consistency and latency \u2014 e.g., W=1, R=N is fast writes but slow reads.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-022",
+    "level": 1,
+    "category": "Availability Patterns",
+    "type": "concept",
+    "front": "What is active-passive failover and how does it work?",
+    "back": "In active-passive (master-standby) failover, only the active server handles traffic. The passive server monitors the active one via heartbeats. If the active server fails, the passive takes over its IP/role. Downside: the passive server is idle (wasted resources) and there's a brief downtime during switchover.",
+    "diagram": "graph LR\n  Client --> Active_Server\n  Active_Server -.heartbeat.-> Passive_Server\n  Passive_Server -.takes over on failure.-> Client",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-023",
+    "level": 1,
+    "category": "Availability Patterns",
+    "type": "concept",
+    "front": "What is active-active failover and how does it differ from active-passive?",
+    "back": "In active-active, both servers handle traffic simultaneously, spreading the load. If one fails, the other absorbs all traffic. Advantages: better resource utilization and no idle standby. Challenges: requires data synchronization between servers and may need conflict resolution (e.g., last-write-wins) if both process the same data.",
+    "diagram": "graph LR\n  Client --> LB[Load Balancer]\n  LB --> Server_A\n  LB --> Server_B\n  Server_A <-.sync.-> Server_B",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-024",
+    "level": 1,
+    "category": "Availability Patterns",
+    "type": "comparison",
+    "front": "Compare active-passive and active-active failover: when would you use each?",
+    "back": "Active-passive: simpler, no data conflicts, good when you can tolerate brief downtime (databases, legacy systems). Active-active: better resource use, near-zero downtime, good for stateless services or when you need horizontal scaling. Active-active is harder to implement when state must be shared (requires conflict resolution strategies).",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-025",
+    "level": 1,
+    "category": "Availability Patterns",
+    "type": "concept",
+    "front": "What is replication in the context of availability, and what are the two main types?",
+    "back": "Replication copies data across multiple servers so the system survives server failures. Master-slave (leader-follower): one node accepts writes and replicates to read-only followers. Master-master (multi-leader): multiple nodes accept writes and sync with each other. Master-slave is simpler; master-master offers better write availability but has conflict resolution complexity.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-026",
+    "level": 1,
+    "category": "Availability Patterns",
+    "type": "tradeoff",
+    "front": "What are the tradeoffs of synchronous vs asynchronous replication?",
+    "back": "Synchronous: write waits until all replicas confirm \u2014 strong consistency, but higher latency and lower availability (one slow replica blocks everything). Asynchronous: write returns after the primary persists \u2014 low latency, but replicas may lag and you risk data loss if the primary fails before replication completes.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-027",
+    "level": 1,
+    "category": "Availability Patterns",
+    "type": "concept",
+    "front": "What does 'nines of availability' mean? What is the difference between 99.9% and 99.99%?",
+    "back": "Availability is measured in 'nines': 99.9% (three nines) allows ~8.7 hours of downtime per year. 99.99% (four nines) allows ~52 minutes per year. 99.999% (five nines) allows ~5 minutes per year. Each additional nine is exponentially harder and more expensive to achieve, requiring redundancy at every layer.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-028",
+    "level": 1,
+    "category": "Availability Patterns",
+    "type": "concept",
+    "front": "How do you calculate overall system availability when components are in series vs parallel?",
+    "back": "In series (both must work): multiply availabilities. Two 99.9% components in series = 99.9% \u00d7 99.9% = 99.8%. In parallel (either can work): 1 - (1-A\u2081)(1-A\u2082). Two 99.9% components in parallel = 1 - (0.001 \u00d7 0.001) = 99.9999%. This is why redundancy dramatically improves availability.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-029",
+    "level": 1,
+    "category": "Networking Basics",
+    "type": "concept",
+    "front": "What happens step by step when you type a URL in your browser and press Enter?",
+    "back": "1) Browser does DNS lookup to get the server's IP. 2) Browser opens a TCP connection (3-way handshake). 3) If HTTPS, TLS handshake negotiates encryption. 4) Browser sends an HTTP request. 5) Server processes the request and sends an HTTP response. 6) Browser renders the HTML, fetching additional resources (CSS, JS, images) as needed.",
+    "diagram": "graph LR\n  Browser -->|DNS lookup| DNS\n  Browser -->|TCP + TLS| Server\n  Browser -->|HTTP Request| Server\n  Server -->|HTTP Response| Browser",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-030",
+    "level": 1,
+    "category": "Networking Basics",
+    "type": "concept",
+    "front": "What is the TCP/IP model and what are its four layers?",
+    "back": "The TCP/IP model has four layers: Application (HTTP, DNS, FTP \u2014 what apps use), Transport (TCP/UDP \u2014 reliable or fast delivery), Internet (IP \u2014 addressing and routing packets across networks), and Link (Ethernet, WiFi \u2014 physical transmission). Each layer adds headers to data as it travels down, and strips them going up.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-031",
+    "level": 1,
+    "category": "Networking Basics",
+    "type": "comparison",
+    "front": "What is the difference between TCP and UDP? When would you use each?",
+    "back": "TCP: connection-oriented, guarantees delivery and ordering, uses acknowledgments and retransmission. Used for web pages, APIs, file transfers, email. UDP: connectionless, no delivery guarantee, no ordering \u2014 but much faster with less overhead. Used for video streaming, online gaming, DNS lookups, VoIP where speed matters more than perfect delivery.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-032",
+    "level": 1,
+    "category": "Networking Basics",
+    "type": "concept",
+    "front": "What is the difference between HTTP and HTTPS?",
+    "back": "HTTP sends data in plaintext \u2014 anyone on the network can read it. HTTPS wraps HTTP in TLS (Transport Layer Security) encryption, so data is encrypted in transit. HTTPS requires an SSL/TLS certificate and adds a TLS handshake step, adding slight latency. Today, HTTPS is the default for all web traffic due to security and SEO benefits.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-033",
+    "level": 1,
+    "category": "Networking Basics",
+    "type": "concept",
+    "front": "What is the TCP three-way handshake and why is it needed?",
+    "back": "Before data flows, TCP establishes a connection: 1) Client sends SYN (synchronize). 2) Server responds with SYN-ACK (synchronize-acknowledge). 3) Client sends ACK (acknowledge). This ensures both sides are ready and agree on sequence numbers for reliable, ordered delivery. It adds one round-trip of latency before data transfer begins.",
+    "diagram": "graph LR\n  Client -->|1. SYN| Server\n  Server -->|2. SYN-ACK| Client\n  Client -->|3. ACK| Server\n  Client -->|Data| Server",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-034",
+    "level": 1,
+    "category": "Networking Basics",
+    "type": "concept",
+    "front": "What are HTTP methods GET, POST, PUT, and DELETE used for?",
+    "back": "GET: retrieve data (should be idempotent, no side effects). POST: create a new resource or trigger an action. PUT: update/replace an entire resource (idempotent). DELETE: remove a resource (idempotent). PATCH: partial update. These map to CRUD operations and form the basis of RESTful API design.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-035",
+    "level": 1,
+    "category": "Networking Basics",
+    "type": "concept",
+    "front": "What are HTTP status code families and key codes to know?",
+    "back": "2xx = success (200 OK, 201 Created, 204 No Content). 3xx = redirection (301 Moved Permanently, 304 Not Modified). 4xx = client error (400 Bad Request, 401 Unauthorized, 403 Forbidden, 404 Not Found, 429 Too Many Requests). 5xx = server error (500 Internal Error, 502 Bad Gateway, 503 Service Unavailable).",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-036",
+    "level": 1,
+    "category": "Proxies",
+    "type": "concept",
+    "front": "What is a forward proxy and what are its use cases?",
+    "back": "A forward proxy sits between clients and the internet, making requests on behalf of clients. The server sees the proxy's IP, not the client's. Use cases: corporate firewalls (block certain sites), anonymity (hide client IP), caching (reduce bandwidth), access control (restrict what employees can access). VPNs are a common form.",
+    "diagram": "graph LR\n  Client --> Forward_Proxy --> Internet/Server",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-037",
+    "level": 1,
+    "category": "Proxies",
+    "type": "concept",
+    "front": "What is a reverse proxy and what are its use cases?",
+    "back": "A reverse proxy sits in front of servers, receiving requests from clients and forwarding them to backend servers. Clients don't know about the backend servers. Use cases: load balancing, SSL termination, caching, compression, serving static content, protecting backend servers from direct exposure. Examples: Nginx, HAProxy, Cloudflare.",
+    "diagram": "graph LR\n  Client --> Reverse_Proxy --> Server_A\n  Reverse_Proxy --> Server_B\n  Reverse_Proxy --> Server_C",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-038",
+    "level": 1,
+    "category": "Proxies",
+    "type": "comparison",
+    "front": "What is the key difference between a forward proxy and a reverse proxy?",
+    "back": "A forward proxy acts on behalf of CLIENTS \u2014 the server doesn't know the real client. A reverse proxy acts on behalf of SERVERS \u2014 the client doesn't know the real server. Forward proxy: client-side, often for privacy/filtering. Reverse proxy: server-side, often for load balancing/security. Both are intermediaries, but they protect different sides.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-039",
+    "level": 1,
+    "category": "Proxies",
+    "type": "concept",
+    "front": "How does a reverse proxy enable SSL termination, and why is that useful?",
+    "back": "SSL termination means the reverse proxy handles all HTTPS encryption/decryption, then forwards plain HTTP to backend servers. Benefits: backend servers don't need SSL certificates or spend CPU on encryption, certificate management is centralized in one place, and internal traffic on a trusted network can be unencrypted for better performance.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-040",
+    "level": 1,
+    "category": "Proxies",
+    "type": "tradeoff",
+    "front": "What are the disadvantages of using a reverse proxy?",
+    "back": "Single point of failure if not redundant (mitigate with multiple proxy instances). Adds latency (an extra network hop). Increases complexity (another component to configure, monitor, and maintain). Can become a bottleneck if under-provisioned. However, the benefits (security, flexibility, load balancing) usually outweigh the costs for any serious deployment.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-041",
+    "level": 1,
+    "category": "Proxies",
+    "type": "concept",
+    "front": "What is an API Gateway and how does it relate to a reverse proxy?",
+    "back": "An API Gateway is a specialized reverse proxy for APIs. Beyond basic proxying, it handles: authentication, rate limiting, request routing to different microservices, request/response transformation, API versioning, and analytics. Examples: Kong, AWS API Gateway, Apigee. Think of it as a reverse proxy with API-specific middleware built in.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-042",
+    "level": 1,
+    "category": "Microservices",
+    "type": "concept",
+    "front": "What are microservices and how do they differ from a monolith?",
+    "back": "Microservices decompose an application into small, independent services, each owning its own data and deployed separately. A monolith is a single deployable unit containing all functionality. Microservices enable independent scaling, different tech stacks per service, and smaller team ownership \u2014 but add complexity in networking, data consistency, and operational overhead.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-043",
+    "level": 1,
+    "category": "Microservices",
+    "type": "tradeoff",
+    "front": "When should you use microservices vs a monolith?",
+    "back": "Start with a monolith when: team is small, domain is unclear, speed of initial development matters. Move to microservices when: team grows (independent deployment by separate teams), parts need independent scaling, you need technology diversity, or deploy frequency differs across components. Premature microservices add complexity without benefiting small teams.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-044",
+    "level": 1,
+    "category": "Microservices",
+    "type": "concept",
+    "front": "What is service discovery and why is it needed in microservices?",
+    "back": "In microservices, services scale dynamically \u2014 instances come and go with IP addresses changing. Service discovery lets services find each other without hardcoded addresses. Client-side discovery: services query a registry (e.g., Consul, Eureka) to find endpoints. Server-side discovery: a load balancer or DNS handles routing (e.g., Kubernetes DNS, AWS ELB).",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-045",
+    "level": 1,
+    "category": "Microservices",
+    "type": "concept",
+    "front": "What is an API Gateway in a microservices architecture?",
+    "back": "An API Gateway is a single entry point for all client requests. It routes requests to the appropriate microservice, handles cross-cutting concerns (auth, rate limiting, logging), can aggregate responses from multiple services, and translates protocols. Without it, clients would need to know about and call every service directly, creating tight coupling.",
+    "diagram": "graph LR\n  Client --> API_Gateway\n  API_Gateway --> Auth_Service\n  API_Gateway --> User_Service\n  API_Gateway --> Order_Service",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-046",
+    "level": 1,
+    "category": "Microservices",
+    "type": "tradeoff",
+    "front": "What are the main challenges of microservices?",
+    "back": "Distributed system complexity (network failures, latency). Data consistency across services (no shared database). Operational overhead (deploying and monitoring many services). Debugging distributed traces across services. Testing integration between services. Team coordination and API contracts. These costs are why microservices should be adopted when complexity justifies them, not as a default.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-047",
+    "level": 1,
+    "category": "Microservices",
+    "type": "concept",
+    "front": "What communication patterns do microservices use?",
+    "back": "Synchronous: REST (HTTP/JSON) or gRPC (binary, fast, typed) \u2014 service calls another and waits. Asynchronous: message queues (RabbitMQ, SQS) or event streaming (Kafka) \u2014 service publishes a message and doesn't wait. Sync is simpler but creates coupling; async is more resilient but adds complexity in ordering and error handling.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-048",
+    "level": 1,
+    "category": "Microservices",
+    "type": "concept",
+    "front": "What is the circuit breaker pattern in microservices?",
+    "back": "A circuit breaker prevents cascading failures. If a downstream service is failing, the circuit breaker 'opens' and immediately returns an error or fallback without calling the failing service. After a timeout, it 'half-opens' and lets a test request through. If it succeeds, the circuit 'closes' and normal traffic resumes. This prevents one failure from taking down the whole system.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-049",
+    "level": 1,
+    "category": "Async Processing",
+    "type": "concept",
+    "front": "What is a message queue and why is it useful in system design?",
+    "back": "A message queue is a buffer between producers (senders) and consumers (processors). Producers add messages; consumers pull and process them independently. Benefits: decouples services, smooths traffic spikes (absorbs bursts), enables retry on failure, and allows producer and consumer to scale independently. Examples: RabbitMQ, Amazon SQS, Redis queues.",
+    "diagram": "graph LR\n  Producer -->|enqueue| Queue -->|dequeue| Consumer",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-050",
+    "level": 1,
+    "category": "Async Processing",
+    "type": "concept",
+    "front": "What is a task queue and how does it differ from a message queue?",
+    "back": "A task queue distributes units of work (tasks) to worker processes. While a message queue delivers messages between services, a task queue specifically schedules and tracks work completion (with features like retries, priorities, and result tracking). Examples: Celery (Python), Sidekiq (Ruby). Think of it as a message queue with a job management layer on top.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-051",
+    "level": 1,
+    "category": "Async Processing",
+    "type": "concept",
+    "front": "What is the publish-subscribe (pub/sub) pattern?",
+    "back": "In pub/sub, publishers send messages to a topic (not directly to consumers). Subscribers register interest in topics and receive all messages published to them. Unlike a queue where each message goes to one consumer, pub/sub delivers each message to ALL subscribers. Examples: Kafka topics, AWS SNS, Google Pub/Sub, Redis Pub/Sub.",
+    "diagram": "graph LR\n  Publisher -->|publish| Topic\n  Topic -->|deliver| Subscriber_A\n  Topic -->|deliver| Subscriber_B\n  Topic -->|deliver| Subscriber_C",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-052",
+    "level": 1,
+    "category": "Async Processing",
+    "type": "comparison",
+    "front": "What is the difference between a message queue and pub/sub?",
+    "back": "Message queue: each message is consumed by exactly ONE consumer (competing consumers pattern) \u2014 used for distributing work. Pub/sub: each message is delivered to ALL subscribers \u2014 used for broadcasting events. A queue is 'pull one and process'; pub/sub is 'notify everyone who cares'. Many systems (Kafka, Redis Streams) support both patterns.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-053",
+    "level": 1,
+    "category": "Async Processing",
+    "type": "concept",
+    "front": "What is back pressure and why does it matter?",
+    "back": "Back pressure is when a consumer signals to producers to slow down because it can't keep up with the incoming rate. Without back pressure, queues grow unbounded, memory is exhausted, and the system crashes. Strategies: reject new messages (return 429/503), drop oldest messages, use bounded queues that block producers, or dynamically scale consumers.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-054",
+    "level": 1,
+    "category": "Async Processing",
+    "type": "tradeoff",
+    "front": "What are the tradeoffs of synchronous vs asynchronous processing?",
+    "back": "Synchronous: simpler to reason about, immediate feedback, but creates tight coupling and the caller blocks waiting. Asynchronous: better scalability, services are decoupled, handles traffic spikes \u2014 but adds complexity (eventual consistency, idempotency, dead letter queues, monitoring queue depth). Use async for anything that doesn't need an immediate response.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-055",
+    "level": 1,
+    "category": "Async Processing",
+    "type": "concept",
+    "front": "What is a dead letter queue (DLQ) and when is it needed?",
+    "back": "A DLQ is a separate queue where messages that repeatedly fail processing are sent after exceeding a retry limit. Without a DLQ, poison messages (ones that always fail) block the queue forever. The DLQ lets you isolate failures for investigation while the main queue keeps processing. Every production queue system should have a DLQ configured.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-056",
+    "level": 1,
+    "category": "Async Processing",
+    "type": "concept",
+    "front": "Why is idempotency important in async systems and how do you achieve it?",
+    "back": "Messages can be delivered more than once (at-least-once delivery is common). If processing a message twice causes duplicate orders or double charges, the system is broken. Idempotency means processing the same message N times has the same effect as once. Achieve it with: unique message IDs + dedup tracking, database upserts, or designing operations to be naturally idempotent.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-057",
+    "level": 1,
+    "category": "Security Basics",
+    "type": "concept",
+    "front": "What is the difference between encryption at rest and encryption in transit?",
+    "back": "Encryption in transit protects data while it moves between systems (e.g., HTTPS/TLS between browser and server, TLS between microservices). Encryption at rest protects stored data on disk (e.g., AES-256 encrypted database files, encrypted S3 buckets). Both are needed: in transit stops network eavesdropping, at rest stops unauthorized disk access.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-058",
+    "level": 1,
+    "category": "Security Basics",
+    "type": "concept",
+    "front": "What is OAuth 2.0 and what problem does it solve?",
+    "back": "OAuth 2.0 lets a user grant a third-party app limited access to their data without sharing their password. Example: 'Sign in with Google' \u2014 the app gets an access token with specific scopes (read email, read profile) instead of your Google password. Key roles: resource owner (user), client (app), authorization server (Google), resource server (API).",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-059",
+    "level": 1,
+    "category": "Security Basics",
+    "type": "concept",
+    "front": "What is a JWT and how is it used for authentication?",
+    "back": "JWT (JSON Web Token) is a self-contained token with three base64-encoded parts: header (algorithm), payload (user claims like user_id, roles, expiry), and signature (verifies the token wasn't tampered with). The server issues a JWT on login; the client sends it with each request. The server verifies the signature without querying a database \u2014 making it stateless and scalable.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-060",
+    "level": 1,
+    "category": "Security Basics",
+    "type": "comparison",
+    "front": "What is the difference between authentication and authorization?",
+    "back": "Authentication (AuthN) verifies WHO you are \u2014 proving your identity with credentials (password, token, biometrics). Authorization (AuthZ) determines WHAT you can do \u2014 checking permissions after identity is established. Example: logging into GitHub is authentication; whether you can push to a repo is authorization. Authentication always comes first.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-061",
+    "level": 1,
+    "category": "Security Basics",
+    "type": "concept",
+    "front": "How does rate limiting protect a system's security?",
+    "back": "Rate limiting caps the number of requests a client can make in a time window. Security benefits: prevents brute-force login attacks, stops DDoS abuse, limits API scraping, and protects against credential stuffing. Implementations: token bucket, sliding window, or fixed window algorithms. Usually applied at the API gateway or reverse proxy layer (e.g., Nginx, Cloudflare).",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-062",
+    "level": 1,
+    "category": "Security Basics",
+    "type": "concept",
+    "front": "What is TLS and how does the TLS handshake work at a high level?",
+    "back": "TLS (Transport Layer Security) encrypts communication between client and server. Handshake: 1) Client sends supported cipher suites. 2) Server picks a cipher and sends its certificate (contains public key). 3) Client verifies the certificate against trusted CAs. 4) They exchange keys to establish a shared session key. 5) All subsequent data is encrypted with symmetric encryption using that session key.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-063",
+    "level": 1,
+    "category": "Security Basics",
+    "type": "tradeoff",
+    "front": "What are the tradeoffs of session-based auth vs token-based auth (JWT)?",
+    "back": "Session-based: server stores session state, easy to invalidate (delete session), but requires shared session store for horizontal scaling. Token-based (JWT): stateless, scales easily (no server-side storage), but hard to revoke before expiry (need a deny-list). JWTs work better for microservices and APIs; sessions work better for traditional web apps needing instant logout.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-064",
+    "level": 1,
+    "category": "Security Basics",
+    "type": "concept",
+    "front": "What is the principle of least privilege and how does it apply to system design?",
+    "back": "Least privilege means granting only the minimum permissions needed to perform a task. In system design: services should only access the databases they need, API keys should have scoped permissions, IAM roles should be narrow, and users should get the minimum role that covers their job. This limits the blast radius when any component is compromised.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-065",
+    "level": 1,
+    "category": "Monitoring & Logging",
+    "type": "concept",
+    "front": "Why are monitoring and logging essential for production systems?",
+    "back": "Without monitoring, you don't know your system is broken until users tell you. Monitoring provides real-time visibility into system health (latency, error rates, throughput, saturation). Logging provides the detailed history needed to debug issues after they occur. Together they enable: proactive alerting before outages, fast root-cause analysis, capacity planning, and SLA tracking.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-066",
+    "level": 1,
+    "category": "Monitoring & Logging",
+    "type": "concept",
+    "front": "What are the 'Four Golden Signals' of monitoring?",
+    "back": "From Google's SRE book: 1) Latency \u2014 how long requests take (track p50, p95, p99). 2) Traffic \u2014 how much demand is hitting the system (requests/sec). 3) Errors \u2014 rate of failed requests (5xx, timeouts). 4) Saturation \u2014 how full your resources are (CPU, memory, disk, queue depth). If you only monitor four things, monitor these.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-067",
+    "level": 1,
+    "category": "Monitoring & Logging",
+    "type": "concept",
+    "front": "What is the difference between metrics, logs, and traces?",
+    "back": "Metrics: numeric measurements over time (CPU usage, request count, error rate) \u2014 cheap to store, good for dashboards and alerts. Logs: discrete text events with context (timestamps, error messages, stack traces) \u2014 detailed but expensive at scale. Traces: follow a single request across multiple services \u2014 essential for debugging distributed systems. Use all three together.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-068",
+    "level": 1,
+    "category": "Monitoring & Logging",
+    "type": "concept",
+    "front": "What is distributed tracing and why is it needed in microservices?",
+    "back": "Distributed tracing follows a single request as it crosses multiple services, recording timing and status at each hop. Without it, debugging a slow request in a 10-service chain means checking 10 separate log files. A trace ID propagated through headers links all service spans together. Tools: Jaeger, Zipkin, AWS X-Ray, Datadog APT.",
+    "diagram": "graph LR\n  Request -->|trace-id: abc| API_Gateway -->|trace-id: abc| Service_A -->|trace-id: abc| Service_B -->|trace-id: abc| Database",
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-069",
+    "level": 1,
+    "category": "Monitoring & Logging",
+    "type": "concept",
+    "front": "What makes a good alerting strategy? What should you alert on?",
+    "back": "Alert on symptoms (high error rate, high latency), not causes (high CPU) \u2014 high CPU that doesn't affect users is not urgent. Good alerts are: actionable (someone needs to DO something), urgent (it can't wait), and clear (the alert says what's wrong and where to look). Avoid alert fatigue \u2014 too many low-priority alerts train people to ignore all alerts.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-070",
+    "level": 1,
+    "category": "Monitoring & Logging",
+    "type": "concept",
+    "front": "What are percentile latencies (p50, p95, p99) and why do they matter more than averages?",
+    "back": "Percentiles show the latency experienced by a percentage of users. P50 (median): 50% of requests are faster. P95: 95% are faster (slowest 5%). P99: 99% are faster (slowest 1%). Averages hide outliers: if p50 is 100ms but p99 is 5s, 1 in 100 users has a terrible experience. Amazon found that every 100ms of p99 latency costs significant revenue.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-071",
+    "level": 1,
+    "category": "Monitoring & Logging",
+    "type": "tradeoff",
+    "front": "What are the tradeoffs of verbose logging vs minimal logging?",
+    "back": "Verbose: easier debugging with full context, but high storage cost, performance overhead (I/O), risk of logging sensitive data, and harder to find signal in noise. Minimal: cheaper and faster, but may lack context when debugging rare issues. Best practice: use structured JSON logging, log at appropriate levels (DEBUG/INFO/WARN/ERROR), and use sampling for high-volume paths.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-072",
+    "level": 1,
+    "category": "Monitoring & Logging",
+    "type": "concept",
+    "front": "What is structured logging and why is it better than plain text logs?",
+    "back": "Structured logging outputs logs as key-value pairs (usually JSON) instead of free-form text. Example: {\"level\": \"error\", \"service\": \"payment\", \"user_id\": 123, \"latency_ms\": 4500}. Benefits: easy to search/filter/aggregate with tools like Elasticsearch or CloudWatch Insights, consistent format across services, machine-parseable while still human-readable.",
+    "diagram": null,
+    "source": "System Design Primer"
+  },
+  {
+    "id": "L1P-073",
+    "level": 1,
+    "category": "Monitoring & Logging",
+    "type": "concept",
+    "front": "What is a health check endpoint and why should every service have one?",
+    "back": "A health check endpoint (e.g., GET /health) returns the service's status \u2014 whether it's alive and can handle requests. Load balancers use it to route traffic away from unhealthy instances. Kubernetes uses it for liveness/readiness probes. A good health check verifies critical dependencies (database, cache) \u2014 not just that the process is running.",
+    "diagram": null,
+    "source": "System Design Primer"
   }
 ]

@@ -210,6 +210,27 @@ body { background: var(--bg); color: var(--text); }
 .overlay { position: fixed; inset: 0; z-index: 40; background: rgba(0,0,0,0.5); transition: opacity 0.3s; }
 .overlay.hidden { opacity: 0; pointer-events: none; }
 
+/* ── Read mode ── */
+.read-controls { display: flex; align-items: center; justify-content: space-between;
+  padding: 8px 0; gap: 8px; flex-wrap: wrap; }
+.book-select { background: var(--surface); color: var(--text); border: 1px solid var(--surface2);
+  border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; flex: 1; min-width: 160px; }
+.read-nav { display: flex; align-items: center; gap: 8px; }
+.read-page-num { font-size: 0.8rem; color: var(--text-muted); min-width: 70px; text-align: center;
+  font-variant-numeric: tabular-nums; }
+.read-container { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch;
+  display: flex; justify-content: center; padding: 4px 0; touch-action: pan-x pan-y pinch-zoom; }
+.read-page-img { max-width: 100%; height: auto; border-radius: 4px;
+  transition: opacity 0.2s; user-select: none; -webkit-user-select: none; }
+.read-page-img.loading { opacity: 0.3; }
+.read-slider-container { padding: 8px 0; }
+.read-slider { width: 100%; -webkit-appearance: none; appearance: none;
+  height: 4px; background: var(--surface2); border-radius: 2px; outline: none; }
+.read-slider::-webkit-slider-thumb { -webkit-appearance: none; appearance: none;
+  width: 20px; height: 20px; border-radius: 50%; background: var(--accent); cursor: pointer; }
+#read-view { display: flex; flex-direction: column; }
+#read-view.hidden { display: none; }
+
 /* ── Safe area ── */
 @supports (padding-top: env(safe-area-inset-top)) {
   .topbar { padding-top: env(safe-area-inset-top); height: calc(48px + env(safe-area-inset-top)); }

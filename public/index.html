@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=2">
+    <link rel="stylesheet" href="styles.css?v=3">
 </head>
 <body class="theme-dark">
     <!-- ── Loader ── -->
@@ -40,6 +40,7 @@
     <nav id="mode-tabs" class="mode-tabs">
         <button class="mode-tab active" data-mode="study">🃏 Study</button>
         <button class="mode-tab" data-mode="reels">🔀 Reels</button>
+        <button class="mode-tab" data-mode="read">📖 Read</button>
     </nav>
 
     <!-- ── Study mode ── -->
@@ -118,6 +119,27 @@
         </div>
     </main>
 
+    <!-- ── Read mode ── -->
+    <main id="read-view" class="view hidden">
+        <div class="read-controls">
+            <select id="book-select" class="book-select">
+                <option value="vol1">📕 Volume 1 — Alex Xu</option>
+                <option value="vol2">📗 Volume 2 — Xu & Lam</option>
+            </select>
+            <div class="read-nav">
+                <button id="read-prev" class="icon-btn">◀</button>
+                <span id="read-page-num" class="read-page-num">1 / 269</span>
+                <button id="read-next" class="icon-btn">▶</button>
+            </div>
+        </div>
+        <div id="read-container" class="read-container">
+            <img id="read-page-img" class="read-page-img" alt="Book page">
+        </div>
+        <div class="read-slider-container">
+            <input type="range" id="read-slider" class="read-slider" min="1" max="269" value="1">
+        </div>
+    </main>
+
     <!-- ── Stats panel ── -->
     <div id="stats-panel" class="side-panel hidden">
         <div class="panel-header">
@@ -170,7 +192,7 @@
     <!-- ── Overlay ── -->
     <div id="overlay" class="overlay hidden"></div>
 
-    <script src="app.js?v=2"></script>
+    <script src="app.js?v=3"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(() => {});
