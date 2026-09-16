@@ -675,11 +675,11 @@ function setupSwipeGestures(){
     fc.classList.toggle("swipe-right",dx>THRESHOLD/2&&absX>absY);
     fc.classList.toggle("swipe-up",dy<-THRESHOLD/2&&absY>absX);
     fc.classList.toggle("swipe-down",dy>THRESHOLD/2&&absY>absX);
-    e.preventDefault();
+    if(absX>10||absY>10)e.preventDefault(); // Only prevent scroll when actually swiping, not on taps
   },{passive:false});
 
   fc.addEventListener("touchend",function(){
-    if(!isSwiping)return;
+    if(!isSwiping){fc.style.transform="";fc.classList.remove("swipe-left","swipe-right","swipe-up","swipe-down");return}
     isSwiping=false;
     fc.classList.remove("swiping");
     var absX=Math.abs(dx),absY=Math.abs(dy);
