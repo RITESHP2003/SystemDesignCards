@@ -397,6 +397,7 @@
   let readBook = "vol1";
   let readPage = 1;
   let readManifests = {};
+  let readInitialized = false;
 
   async function initRead() {
     const bookSel = $("book-select");
@@ -404,7 +405,6 @@
     const slider = $("read-slider");
     const pageNum = $("read-page-num");
 
-    // Load manifest for selected book
     async function loadManifest(book) {
       if (readManifests[book]) return readManifests[book];
       try {
@@ -418,49 +418,37 @@
 
     async function showPage() {
       const m = await loadManifest(readBook);
-      if (!m) {
-        img.alt = "Book not available";
-        return;
-      }
+      if (!m) { img.alt = "Book not available"; return; }
       const total = m.total_pages;
       readPage = Math.max(1, Math.min(total, readPage));
       slider.max = total;
       slider.value = readPage;
       pageNum.textContent = `${readPage} / ${total}`;
-
       img.classList.add("loading");
-      const src = `book/${readBook}/page-${String(readPage).padStart(3, "0")}.webp`;
       img.onload = () => img.classList.remove("loading");
-      img.src = src;
-
+      img.src = `book/${readBook}/page-${String(readPage).padStart(3, "0")}.webp`;
       localStorage.setItem(`sdc-read-${readBook}`, String(readPage));
     }
 
-    bookSel.addEventListener("change", () => {
-      readBook = bookSel.value;
-      readPage = parseInt(localStorage.getItem(`sdc-read-${readBook}`) || "1", 10);
-      showPage();
-    });
+    // Only bind events once
+    if (!readInitialized) {
+      readInitialized = true;
+      bookSel.addEventListener("change", () => {
+        readBook = bookSel.value;
+        readPage = parseInt(localStorage.getItem(`sdc-read-${readBook}`) || "1", 10);
+        showPage();
+      });
+      $("read-prev").addEventListener("click", () => { readPage--; showPage(); });
+      $("read-next").addEventListener("click", () => { readPage++; showPage(); });
+      slider.addEventListener("input", () => { pageNum.textContent = `${slider.value} / ${slider.max}`; });
+      slider.addEventListener("change", () => { readPage = parseInt(slider.value, 10); showPage(); });
+      document.addEventListener("keydown", (e) => {
+        if ($("read-view").classList.contains("hidden")) return;
+        if (e.key === "ArrowRight") { readPage++; showPage(); }
+        if (e.key === "ArrowLeft") { readPage--; showPage(); }
+      });
+    }
 
-    $("read-prev").addEventListener("click", () => { readPage--; showPage(); });
-    $("read-next").addEventListener("click", () => { readPage++; showPage(); });
-
-    slider.addEventListener("input", () => {
-      pageNum.textContent = `${slider.value} / ${slider.max}`;
-    });
-    slider.addEventListener("change", () => {
-      readPage = parseInt(slider.value, 10);
-      showPage();
-    });
-
-    // Keyboard
-    document.addEventListener("keydown", (e) => {
-      if ($("read-view").classList.contains("hidden")) return;
-      if (e.key === "ArrowRight") { readPage++; showPage(); }
-      if (e.key === "ArrowLeft") { readPage--; showPage(); }
-    });
-
-    // Restore position
     readPage = parseInt(localStorage.getItem(`sdc-read-${readBook}`) || "1", 10);
     showPage();
   }
