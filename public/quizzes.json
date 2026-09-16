@@ -1,0 +1,1655 @@
+[
+  {
+    "id": "Q1-001",
+    "level": 1,
+    "category": "Scaling",
+    "question": "What does vertical scaling (scaling up) mean?",
+    "options": [
+      "Adding more servers to the pool",
+      "Adding more CPU/RAM to an existing server",
+      "Distributing data across multiple shards",
+      "Deploying the application in multiple data centers"
+    ],
+    "correct": 1,
+    "explanation": "Vertical scaling means increasing the power of a single server by adding more CPU, RAM, or storage. It is simpler than horizontal scaling but has hard hardware limits and provides no redundancy \u2014 if that one server goes down, everything goes down.",
+    "relatedCards": [
+      "L1-005",
+      "L1-006"
+    ]
+  },
+  {
+    "id": "Q1-002",
+    "level": 1,
+    "category": "Scaling",
+    "question": "What is the primary disadvantage of vertical scaling?",
+    "options": [
+      "It requires a load balancer",
+      "It has a hard hardware ceiling and no failover",
+      "It cannot handle read-heavy workloads",
+      "It forces you to use NoSQL databases"
+    ],
+    "correct": 1,
+    "explanation": "Vertical scaling is limited by how much CPU and RAM a single physical machine can hold. It also creates a single point of failure \u2014 if that one powerful server goes down, the entire system is unavailable.",
+    "relatedCards": [
+      "L1-006",
+      "L1-005"
+    ]
+  },
+  {
+    "id": "Q1-003",
+    "level": 1,
+    "category": "Scaling",
+    "question": "In a stateful web tier, every request from a user must be routed to the same server. What is this routing technique called?",
+    "options": [
+      "Consistent hashing",
+      "Sticky sessions",
+      "Round-robin routing",
+      "Geographic sharding"
+    ],
+    "correct": 1,
+    "explanation": "Sticky sessions (session affinity) ensure that a client's requests always go to the same server, because that server holds the client's session data in memory. This makes adding or removing servers difficult and is why stateless architectures are preferred.",
+    "relatedCards": [
+      "L1-019",
+      "L1-020"
+    ]
+  },
+  {
+    "id": "Q1-004",
+    "level": 1,
+    "category": "Scaling",
+    "question": "Why does a stateless web tier make horizontal scaling easier?",
+    "options": [
+      "It eliminates the need for a database entirely",
+      "Any server can handle any request since session state is in a shared store",
+      "It removes the need for DNS resolution",
+      "Stateless servers process requests faster than stateful ones"
+    ],
+    "correct": 1,
+    "explanation": "When session data is stored in an external shared store (Redis, Memcached, NoSQL), any web server can handle any request. This means the load balancer can route freely and servers can be added or removed without breaking user sessions.",
+    "relatedCards": [
+      "L1-019",
+      "L1-020",
+      "L1-047"
+    ]
+  },
+  {
+    "id": "Q1-005",
+    "level": 1,
+    "category": "Scaling",
+    "question": "What is the primary role of a message queue in a scaled architecture?",
+    "options": [
+      "Encrypting data between services",
+      "Replacing the database for write-heavy workloads",
+      "Decoupling producers and consumers for asynchronous processing",
+      "Balancing traffic evenly across web servers"
+    ],
+    "correct": 2,
+    "explanation": "A message queue acts as a buffer between components \u2014 producers post messages and consumers process them independently. This decoupling allows each side to scale independently and ensures producers can continue working even if consumers are temporarily down.",
+    "relatedCards": [
+      "L1-023",
+      "L1-024"
+    ]
+  },
+  {
+    "id": "Q1-006",
+    "level": 1,
+    "category": "Scaling",
+    "question": "What does geoDNS do in a multi-data-center architecture?",
+    "options": [
+      "Encrypts DNS queries to prevent spoofing",
+      "Resolves domain names to the IP address of the data center closest to the user",
+      "Caches static assets at the network edge",
+      "Synchronizes databases between data centers"
+    ],
+    "correct": 1,
+    "explanation": "GeoDNS (geographic DNS) directs users to the nearest data center by resolving domain names to IP addresses based on the user's location. This reduces latency and improves the user experience. If one data center goes offline, traffic is redirected to a healthy one.",
+    "relatedCards": [
+      "L1-021",
+      "L1-022"
+    ]
+  },
+  {
+    "id": "Q1-007",
+    "level": 1,
+    "category": "Scaling",
+    "question": "Which is NOT one of the summary principles for scaling a system to millions of users?",
+    "options": [
+      "Keep web tier stateless",
+      "Cache data as much as you can",
+      "Use a single powerful server for simplicity",
+      "Host static assets in CDN"
+    ],
+    "correct": 2,
+    "explanation": "The scaling summary recommends keeping the web tier stateless, building redundancy at every tier, caching aggressively, supporting multiple data centers, using CDN for static assets, sharding data, and monitoring. A single powerful server is the opposite of these principles \u2014 it's a single point of failure with hard limits.",
+    "relatedCards": [
+      "L1-030",
+      "L1-006"
+    ]
+  },
+  {
+    "id": "Q1-008",
+    "level": 1,
+    "category": "Scaling",
+    "question": "Why should the web tier and data tier be deployed on separate servers?",
+    "options": [
+      "To reduce network latency between them",
+      "So they can be scaled independently based on different bottlenecks",
+      "Because databases cannot run on the same machine as web servers",
+      "To comply with data protection regulations"
+    ],
+    "correct": 1,
+    "explanation": "Separating the web tier and data tier allows each to scale independently. You can add more web servers to handle increased traffic without changing the database, or upgrade the database without affecting web servers. This separation of concerns is fundamental to scalable architecture.",
+    "relatedCards": [
+      "L1-045",
+      "L1-001"
+    ]
+  },
+  {
+    "id": "Q1-009",
+    "level": 1,
+    "category": "Load Balancing",
+    "question": "Which load balancing algorithm sends each request to the server with the fewest active connections?",
+    "options": [
+      "Round-robin",
+      "Least connections",
+      "Weighted random",
+      "IP hash"
+    ],
+    "correct": 1,
+    "explanation": "Least connections routes each new request to the server currently handling the fewest active connections. This is more adaptive than round-robin because it accounts for servers that may be processing slow or resource-intensive requests.",
+    "relatedCards": [
+      "L1-007",
+      "L1-008"
+    ]
+  },
+  {
+    "id": "Q1-010",
+    "level": 1,
+    "category": "Load Balancing",
+    "question": "What is the key difference between a Layer 4 and a Layer 7 load balancer?",
+    "options": [
+      "Layer 4 supports HTTPS while Layer 7 does not",
+      "Layer 4 routes based on transport-level info (IP/port); Layer 7 inspects application-level data (URL, headers, cookies)",
+      "Layer 7 is faster because it skips packet inspection",
+      "Layer 4 operates at the application layer and Layer 7 at the transport layer"
+    ],
+    "correct": 1,
+    "explanation": "Layer 4 load balancers make routing decisions based on transport-level information like IP address and TCP port, without examining the packet payload. Layer 7 load balancers operate at the application layer and can route based on HTTP headers, URL paths, cookies, and request content.",
+    "relatedCards": [
+      "L1-007",
+      "L1-008"
+    ]
+  },
+  {
+    "id": "Q1-011",
+    "level": 1,
+    "category": "Load Balancing",
+    "question": "Why do web servers behind a load balancer typically use private IP addresses?",
+    "options": [
+      "Private IPs are faster for internal communication",
+      "So that servers are not directly reachable from the internet, improving security",
+      "Private IPs cost less than public IPs",
+      "The load balancer cannot route to public IPs"
+    ],
+    "correct": 1,
+    "explanation": "Web servers use private IPs so they are not directly reachable from the internet. All traffic goes through the load balancer's public IP, which acts as the single entry point. This improves security by hiding the internal server infrastructure from external users.",
+    "relatedCards": [
+      "L1-007",
+      "L1-008"
+    ]
+  },
+  {
+    "id": "Q1-012",
+    "level": 1,
+    "category": "Load Balancing",
+    "question": "How does a load balancer improve availability when a server goes offline?",
+    "options": [
+      "It restarts the failed server automatically",
+      "It reroutes all traffic to the remaining healthy servers",
+      "It serves a cached version of the failed server's responses",
+      "It promotes a database replica to replace the failed server"
+    ],
+    "correct": 1,
+    "explanation": "When a server goes offline, the load balancer detects this through health checks and redirects all incoming traffic to the remaining healthy servers. A new healthy server can then be added to the pool to rebalance the load.",
+    "relatedCards": [
+      "L1-007",
+      "L1-008"
+    ]
+  },
+  {
+    "id": "Q1-013",
+    "level": 1,
+    "category": "Load Balancing",
+    "question": "Which load balancing algorithm is best suited for maintaining session affinity without relying on server-side session state?",
+    "options": [
+      "Round-robin",
+      "Least connections",
+      "IP hash",
+      "Random selection"
+    ],
+    "correct": 2,
+    "explanation": "IP hash uses a hash of the client's IP address to consistently route requests from the same client to the same server. This provides session affinity without requiring sticky sessions or shared session stores, though it can cause uneven distribution if many clients share IPs (e.g., behind a NAT).",
+    "relatedCards": [
+      "L1-007",
+      "L1-019"
+    ]
+  },
+  {
+    "id": "Q1-014",
+    "level": 1,
+    "category": "Load Balancing",
+    "question": "What is a health check in the context of load balancing?",
+    "options": [
+      "A monitoring tool that measures server CPU and memory usage",
+      "A periodic probe the load balancer sends to servers to verify they can handle requests",
+      "A log analysis process that detects error rate spikes",
+      "A client-side check that pings multiple servers to find the fastest one"
+    ],
+    "correct": 1,
+    "explanation": "A health check is a periodic request (often HTTP or TCP) that the load balancer sends to each backend server. If a server fails to respond correctly, the load balancer stops routing traffic to it until it passes health checks again, ensuring users are never sent to a dead server.",
+    "relatedCards": [
+      "L1-007",
+      "L1-008"
+    ]
+  },
+  {
+    "id": "Q1-015",
+    "level": 1,
+    "category": "Caching",
+    "question": "In the read-through caching strategy, what happens on a cache miss?",
+    "options": [
+      "The client retries the request after a timeout",
+      "The server queries the database, stores the result in cache, then returns it",
+      "The cache automatically fetches data from the database in the background",
+      "The request fails and returns an empty response"
+    ],
+    "correct": 1,
+    "explanation": "In read-through caching, the web server first checks the cache. If the data is not found (cache miss), the server queries the database, writes the result to the cache for future requests, and then returns the data to the client.",
+    "relatedCards": [
+      "L1-012",
+      "L1-013"
+    ]
+  },
+  {
+    "id": "Q1-016",
+    "level": 1,
+    "category": "Caching",
+    "question": "Which cache eviction policy removes the item that has not been accessed for the longest time?",
+    "options": [
+      "FIFO (First In First Out)",
+      "LFU (Least Frequently Used)",
+      "LRU (Least Recently Used)",
+      "TTL-based expiration"
+    ],
+    "correct": 2,
+    "explanation": "LRU (Least Recently Used) evicts the item that was accessed least recently \u2014 the one with the oldest 'last accessed' timestamp. It is the most popular eviction strategy because it approximates the assumption that recently used items are likely to be used again soon.",
+    "relatedCards": [
+      "L1-015",
+      "L1-014"
+    ]
+  },
+  {
+    "id": "Q1-017",
+    "level": 1,
+    "category": "Caching",
+    "question": "When is it NOT appropriate to use a cache?",
+    "options": [
+      "When read operations significantly outnumber write operations",
+      "When data is written frequently and rarely read",
+      "When data must be served with low latency",
+      "When the database is experiencing high read load"
+    ],
+    "correct": 1,
+    "explanation": "Caching is most beneficial when data is read frequently but modified infrequently. If data is written more often than it's read, the cache will be constantly invalidated and re-populated, adding overhead with little benefit. The cache and database must also stay in sync, which is harder with frequent writes.",
+    "relatedCards": [
+      "L1-014",
+      "L1-012"
+    ]
+  },
+  {
+    "id": "Q1-018",
+    "level": 1,
+    "category": "Caching",
+    "question": "What is the main difference between Redis and Memcached?",
+    "options": [
+      "Memcached supports persistence and replication; Redis does not",
+      "Redis supports richer data structures (lists, sets, sorted sets) and persistence; Memcached is a simpler key-value store",
+      "Redis is only for caching; Memcached supports message queues",
+      "Memcached is single-threaded; Redis uses multiple threads by default"
+    ],
+    "correct": 1,
+    "explanation": "Redis supports rich data structures (strings, lists, sets, sorted sets, hashes), persistence to disk, and replication. Memcached is a simpler, purely in-memory key-value cache with multi-threaded performance. Choose Redis for features and durability; choose Memcached for simple, high-throughput caching.",
+    "relatedCards": [
+      "L1-012",
+      "L1-014",
+      "L1-019"
+    ]
+  },
+  {
+    "id": "Q1-019",
+    "level": 1,
+    "category": "Caching",
+    "question": "How do you avoid a single cache server becoming a Single Point of Failure (SPOF)?",
+    "options": [
+      "Set short TTLs so data is always fresh from the database",
+      "Use multiple cache servers across different data centers and overprovision memory",
+      "Write data to both cache and database simultaneously",
+      "Place the cache on the same server as the database for reliability"
+    ],
+    "correct": 1,
+    "explanation": "A single cache server is a potential SPOF \u2014 if it fails, the entire caching layer is lost. Using multiple cache servers spread across data centers provides redundancy. Overprovisioning memory provides a buffer against unexpected usage spikes.",
+    "relatedCards": [
+      "L1-046",
+      "L1-014"
+    ]
+  },
+  {
+    "id": "Q1-020",
+    "level": 1,
+    "category": "Caching",
+    "question": "If a cache expiration time is set too short, what is the primary consequence?",
+    "options": [
+      "The cache will consume too much memory",
+      "Data inconsistency between cache and database",
+      "The system reloads data from the database too frequently, reducing the cache benefit",
+      "Cache entries will never be evicted"
+    ],
+    "correct": 2,
+    "explanation": "A TTL that is too short causes frequent cache misses as entries expire quickly, forcing the server to query the database repeatedly. This negates much of the caching benefit. Conversely, too long a TTL risks serving stale data that no longer matches the database.",
+    "relatedCards": [
+      "L1-014",
+      "L1-013"
+    ]
+  },
+  {
+    "id": "Q1-021",
+    "level": 1,
+    "category": "CDN",
+    "question": "In a pull CDN model, when does the CDN fetch content from the origin server?",
+    "options": [
+      "On a scheduled interval defined by the origin server",
+      "When a user requests content that is not already cached at the CDN edge",
+      "Whenever the origin server pushes an update notification",
+      "Only during off-peak hours to reduce origin load"
+    ],
+    "correct": 1,
+    "explanation": "In a pull CDN model, the CDN does not proactively fetch content. It retrieves content from the origin server only when a user requests something that is not already cached (cache miss). The CDN then caches it according to the TTL header for subsequent requests.",
+    "relatedCards": [
+      "L1-016",
+      "L1-017"
+    ]
+  },
+  {
+    "id": "Q1-022",
+    "level": 1,
+    "category": "CDN",
+    "question": "What are two common strategies for CDN cache invalidation?",
+    "options": [
+      "Database triggers and message queues",
+      "CDN invalidation APIs and object versioning (e.g., image.png?v=2)",
+      "DNS rotation and IP address swapping",
+      "Server-side rendering and client-side caching"
+    ],
+    "correct": 1,
+    "explanation": "You can invalidate CDN content by calling the CDN provider's API to remove or refresh specific objects, or by using object versioning where a version query parameter (e.g., ?v=2) serves as a new cache key, bypassing the stale cached version.",
+    "relatedCards": [
+      "L1-018",
+      "L1-017"
+    ]
+  },
+  {
+    "id": "Q1-023",
+    "level": 1,
+    "category": "CDN",
+    "question": "Why should you avoid caching infrequently used assets on a CDN?",
+    "options": [
+      "CDNs cannot serve files larger than 10 MB",
+      "CDNs charge for data transfer out, so caching rarely-accessed content wastes money",
+      "Infrequently used assets break CDN cache invalidation",
+      "CDN edge servers have limited storage and will crash"
+    ],
+    "correct": 1,
+    "explanation": "CDNs run by third-party providers charge for data transferred. Caching assets that are rarely requested means you're paying for storage and edge distribution without meaningful latency improvement. Only cache content that is frequently requested by users.",
+    "relatedCards": [
+      "L1-018",
+      "L1-016"
+    ]
+  },
+  {
+    "id": "Q1-024",
+    "level": 1,
+    "category": "CDN",
+    "question": "What type of content is a CDN primarily designed to cache and deliver?",
+    "options": [
+      "User authentication tokens and session cookies",
+      "Database query results and API responses",
+      "Static content like images, videos, CSS, and JavaScript files",
+      "Real-time WebSocket messages"
+    ],
+    "correct": 2,
+    "explanation": "CDNs are optimized for caching and delivering static content \u2014 images, videos, CSS, JavaScript, and other files that don't change between users. They are geographically distributed so users get these assets from the nearest edge server, reducing load times significantly.",
+    "relatedCards": [
+      "L1-016",
+      "L1-017"
+    ]
+  },
+  {
+    "id": "Q1-025",
+    "level": 1,
+    "category": "Database",
+    "question": "In a master-slave replication setup, which server handles write operations?",
+    "options": [
+      "Any slave server, chosen by the load balancer",
+      "The master server only",
+      "Both master and slave servers, depending on the query type",
+      "A dedicated write proxy server"
+    ],
+    "correct": 1,
+    "explanation": "In master-slave replication, the master database handles all write operations (insert, update, delete). Slave databases receive replicated copies of data from the master and handle only read operations. This separation works well because most applications have far more reads than writes.",
+    "relatedCards": [
+      "L1-009",
+      "L1-010"
+    ]
+  },
+  {
+    "id": "Q1-026",
+    "level": 1,
+    "category": "Database",
+    "question": "What happens when the master database goes offline in a master-slave replication setup?",
+    "options": [
+      "All writes are queued until the master recovers",
+      "A slave database is promoted to the new master",
+      "The system switches to read-only mode permanently",
+      "All slave databases stop replicating and go offline"
+    ],
+    "correct": 1,
+    "explanation": "When the master goes offline, a slave is promoted to become the new master. All database operations temporarily run on the new master. In practice, this is complex because the slave's data may not be fully up-to-date, requiring data recovery scripts to reconcile any differences.",
+    "relatedCards": [
+      "L1-011",
+      "L1-009"
+    ]
+  },
+  {
+    "id": "Q1-027",
+    "level": 1,
+    "category": "Database",
+    "question": "When should you consider using a NoSQL database over a relational one?",
+    "options": [
+      "When you need complex multi-table JOIN queries",
+      "When your data is unstructured and you need super-low latency at massive scale",
+      "When ACID transactions are critical to your application",
+      "When your data model relies heavily on foreign key relationships"
+    ],
+    "correct": 1,
+    "explanation": "NoSQL is a good fit when your application requires super-low latency, your data is unstructured or has no relational structure, you only need to serialize/deserialize data (JSON, XML, YAML), or you need to store a massive amount of data that would be difficult to manage in a relational database.",
+    "relatedCards": [
+      "L1-003",
+      "L1-004"
+    ]
+  },
+  {
+    "id": "Q1-028",
+    "level": 1,
+    "category": "Database",
+    "question": "What is database sharding?",
+    "options": [
+      "Splitting a database into read and write replicas",
+      "Separating a large database into smaller pieces (shards), each holding unique data with the same schema",
+      "Compressing database tables to reduce storage cost",
+      "Creating full copies of a database in different regions"
+    ],
+    "correct": 1,
+    "explanation": "Sharding is a horizontal scaling technique that divides a database into smaller pieces called shards. Each shard has the same schema but holds a different subset of the data. A sharding key (like user_id) and hash function determine which shard stores each piece of data.",
+    "relatedCards": [
+      "L1-026",
+      "L1-027"
+    ]
+  },
+  {
+    "id": "Q1-029",
+    "level": 1,
+    "category": "Database",
+    "question": "What is the 'celebrity problem' (hotspot key problem) in database sharding?",
+    "options": [
+      "Popular table columns that cause slow full-table scans",
+      "Excessive access concentrated on a specific shard because high-traffic entities hash to it",
+      "Database schema conflicts when a celebrity's data is duplicated across shards",
+      "A bug where sharding keys are assigned alphabetically instead of by hash"
+    ],
+    "correct": 1,
+    "explanation": "The celebrity problem occurs when many highly popular entities (e.g., celebrities on social media) hash to the same shard, creating a hotspot with disproportionate read/write traffic. Solutions include allocating a dedicated shard for each celebrity or further partitioning that shard.",
+    "relatedCards": [
+      "L1-029",
+      "L1-028"
+    ]
+  },
+  {
+    "id": "Q1-030",
+    "level": 1,
+    "category": "Database",
+    "question": "What is the most important criterion when choosing a sharding key?",
+    "options": [
+      "The key should be as long as possible for uniqueness",
+      "The key should evenly distribute data across shards",
+      "The key should always be an auto-incrementing integer",
+      "The key should match the primary key of the master database"
+    ],
+    "correct": 1,
+    "explanation": "The most important factor in choosing a sharding key is that it distributes data evenly across shards. An uneven distribution creates hotspots \u2014 one shard gets overwhelmed while others sit idle. Common sharding keys like user_id tend to distribute well across a hash function.",
+    "relatedCards": [
+      "L1-027",
+      "L1-026"
+    ]
+  },
+  {
+    "id": "Q1-031",
+    "level": 1,
+    "category": "Database",
+    "question": "Why is cross-shard joining difficult and how is it commonly addressed?",
+    "options": [
+      "Shards use different database engines, so SQL dialects conflict; solved by standardizing engines",
+      "Data needed for a join may live on different physical servers; solved by denormalizing so queries hit a single table",
+      "Shard keys are encrypted differently; solved by using a common encryption key",
+      "Network latency makes cross-shard queries slow; solved by co-locating all shards in one rack"
+    ],
+    "correct": 1,
+    "explanation": "When data is distributed across shards, a SQL JOIN that needs rows from multiple shards requires querying separate servers and merging results, which is complex and slow. The common workaround is denormalization \u2014 duplicating data so that each query can be satisfied from a single shard.",
+    "relatedCards": [
+      "L1-028",
+      "L1-026"
+    ]
+  },
+  {
+    "id": "Q1-032",
+    "level": 1,
+    "category": "Database",
+    "question": "What is the key advantage of database replication?",
+    "options": [
+      "It eliminates the need for backups",
+      "It improves read performance by distributing queries across replicas and provides high availability",
+      "It automatically shards data across multiple servers",
+      "It reduces storage costs by compressing data across replicas"
+    ],
+    "correct": 1,
+    "explanation": "Database replication improves performance by distributing read queries across multiple slave databases (enabling more parallel queries), ensures reliability by preserving data across multiple locations, and provides high availability so the system stays operational even if one database server goes offline.",
+    "relatedCards": [
+      "L1-010",
+      "L1-009"
+    ]
+  },
+  {
+    "id": "Q1-033",
+    "level": 1,
+    "category": "Estimation",
+    "question": "Twitter has 300M monthly active users (MAU) with 50% daily active. Each user posts 2 tweets/day. What is the approximate write QPS?",
+    "options": [
+      "~350",
+      "~3,500",
+      "~35,000",
+      "~350,000"
+    ],
+    "correct": 1,
+    "explanation": "DAU = 300M \u00d7 50% = 150M. Total tweets per day = 150M \u00d7 2 = 300M. QPS = 300M / 86,400 seconds \u2248 3,472, which rounds to approximately 3,500 QPS.",
+    "relatedCards": [
+      "L1-036",
+      "L1-050"
+    ]
+  },
+  {
+    "id": "Q1-034",
+    "level": 1,
+    "category": "Estimation",
+    "question": "Twitter generates 500 million tweets per day, each averaging 140 bytes of text. What is the approximate daily text storage?",
+    "options": [
+      "~7 GB",
+      "~70 GB",
+      "~700 GB",
+      "~7 TB"
+    ],
+    "correct": 1,
+    "explanation": "500M tweets \u00d7 140 bytes = 70,000,000,000 bytes = 70 billion bytes \u2248 70 GB. This is text storage only \u2014 with metadata, media attachments, and indexes, actual storage would be much higher.",
+    "relatedCards": [
+      "L1-032",
+      "L1-036"
+    ]
+  },
+  {
+    "id": "Q1-035",
+    "level": 1,
+    "category": "Estimation",
+    "question": "A system has 99.99% availability (four nines). Approximately how much downtime is allowed per year?",
+    "options": [
+      "~5.3 minutes",
+      "~52.6 minutes",
+      "~8.77 hours",
+      "~3.65 days"
+    ],
+    "correct": 1,
+    "explanation": "99.99% availability means 0.01% downtime. 365.25 days \u00d7 24 hours \u00d7 60 minutes \u00d7 0.0001 \u2248 52.6 minutes per year. For comparison, 99.9% (three nines) allows about 8.77 hours, and 99% (two nines) allows about 3.65 days per year.",
+    "relatedCards": [
+      "L1-034",
+      "L1-035"
+    ]
+  },
+  {
+    "id": "Q1-036",
+    "level": 1,
+    "category": "Estimation",
+    "question": "How do you typically estimate peak QPS from average QPS?",
+    "options": [
+      "Peak QPS = average QPS \u00d7 10",
+      "Peak QPS = average QPS \u00d7 2",
+      "Peak QPS = average QPS + 1000",
+      "Peak QPS = average QPS\u00b2 / 100"
+    ],
+    "correct": 1,
+    "explanation": "A common rule of thumb is that peak QPS is approximately 2\u00d7 the average QPS. This accounts for daily traffic spikes (e.g., lunchtime, evening hours). For systems with extreme spikes (e.g., flash sales), you might use a higher multiplier, but 2\u00d7 is the standard interview estimate.",
+    "relatedCards": [
+      "L1-036",
+      "L1-050"
+    ]
+  },
+  {
+    "id": "Q1-037",
+    "level": 1,
+    "category": "Estimation",
+    "question": "When estimating storage for 5 years, 150M daily active users generate 30 TB of media per day. What is the approximate 5-year storage?",
+    "options": [
+      "~5.5 PB",
+      "~55 PB",
+      "~550 PB",
+      "~5.5 EB"
+    ],
+    "correct": 1,
+    "explanation": "30 TB/day \u00d7 365 days/year \u00d7 5 years = 30 \u00d7 1,825 = 54,750 TB \u2248 55 PB. In estimation problems, rounding is encouraged \u2014 the process and order of magnitude matter more than the exact number.",
+    "relatedCards": [
+      "L1-036",
+      "L1-037"
+    ]
+  },
+  {
+    "id": "Q1-038",
+    "level": 1,
+    "category": "Estimation",
+    "question": "Which is the best tip for back-of-the-envelope estimation in interviews?",
+    "options": [
+      "Use exact calculations to show mathematical rigor",
+      "Use rounding and approximation, and always label your units",
+      "Avoid writing down assumptions to save time",
+      "Focus only on storage estimates since they're the most common"
+    ],
+    "correct": 1,
+    "explanation": "In estimation problems, rounding and approximation are encouraged \u2014 99,987 / 9.1 becomes 100,000 / 10. Always label units (5 KB vs 5 MB) to avoid costly mistakes. Writing down assumptions helps you and the interviewer stay aligned, and the process matters more than the exact answer.",
+    "relatedCards": [
+      "L1-037",
+      "L1-031"
+    ]
+  },
+  {
+    "id": "Q1-039",
+    "level": 1,
+    "category": "DNS",
+    "question": "What does DNS do when a user enters a domain name in their browser?",
+    "options": [
+      "Encrypts the domain name and sends it to the web server",
+      "Resolves the domain name to an IP address so the browser can connect to the server",
+      "Validates the domain's SSL certificate",
+      "Loads the HTML page from a local cache on the user's machine"
+    ],
+    "correct": 1,
+    "explanation": "DNS (Domain Name System) translates human-readable domain names (e.g., api.mysite.com) into IP addresses. The browser then uses this IP address to send HTTP requests to the correct web server. DNS is typically provided by a third-party service, not hosted by your own infrastructure.",
+    "relatedCards": [
+      "L1-002",
+      "L1P-001"
+    ]
+  },
+  {
+    "id": "Q1-040",
+    "level": 1,
+    "category": "DNS",
+    "question": "Which DNS record type maps a domain name to an IPv4 address?",
+    "options": [
+      "CNAME",
+      "A record",
+      "MX record",
+      "NS record"
+    ],
+    "correct": 1,
+    "explanation": "An A (Address) record maps a domain name directly to an IPv4 address (e.g., example.com \u2192 93.184.216.34). CNAME maps a domain to another domain name, MX specifies mail servers, and NS identifies authoritative name servers for the domain.",
+    "relatedCards": [
+      "L1-002",
+      "L1P-001",
+      "L1P-003"
+    ]
+  },
+  {
+    "id": "Q1-041",
+    "level": 1,
+    "category": "DNS",
+    "question": "What is a CNAME record used for?",
+    "options": [
+      "Mapping a domain name to an IPv4 address",
+      "Mapping a domain alias to another canonical domain name",
+      "Specifying the mail server responsible for the domain",
+      "Storing arbitrary text metadata about the domain"
+    ],
+    "correct": 1,
+    "explanation": "A CNAME (Canonical Name) record maps one domain name (an alias) to another domain name. For example, www.example.com might be a CNAME pointing to example.com. The DNS resolver then follows the chain to find the final IP address. CNAMEs are commonly used for subdomains and CDN integration.",
+    "relatedCards": [
+      "L1P-001",
+      "L1P-003"
+    ]
+  },
+  {
+    "id": "Q1-042",
+    "level": 1,
+    "category": "DNS",
+    "question": "In the DNS resolution process, what is the role of the authoritative name server?",
+    "options": [
+      "It caches DNS records from other name servers to speed up resolution",
+      "It holds the definitive DNS records for a domain and provides the final answer",
+      "It routes DNS queries between the user's ISP and the root name server",
+      "It encrypts DNS queries to prevent interception"
+    ],
+    "correct": 1,
+    "explanation": "The authoritative name server is the final stop in a DNS query \u2014 it holds the actual DNS records for the domain and returns the definitive IP address. Recursive resolvers and caching servers may answer from their cache, but the authoritative server is the source of truth.",
+    "relatedCards": [
+      "L1P-001",
+      "L1P-002"
+    ]
+  },
+  {
+    "id": "Q1-043",
+    "level": 1,
+    "category": "CAP Theorem",
+    "question": "What does the CAP theorem state about distributed systems?",
+    "options": [
+      "A distributed system can achieve Caching, Availability, and Partitioning simultaneously",
+      "A distributed system can only guarantee two of three: Consistency, Availability, and Partition Tolerance",
+      "Consistency, Atomicity, and Performance are the three pillars of distributed databases",
+      "You must choose between Concurrency, Authentication, and Privacy"
+    ],
+    "correct": 1,
+    "explanation": "The CAP theorem states that a distributed data store can guarantee at most two of three properties: Consistency (every read gets the most recent write), Availability (every request gets a response), and Partition Tolerance (the system works despite network partitions). Since network partitions are unavoidable, the real choice is between CP and AP.",
+    "relatedCards": [
+      "L1P-008",
+      "L1P-009"
+    ]
+  },
+  {
+    "id": "Q1-044",
+    "level": 1,
+    "category": "CAP Theorem",
+    "question": "A banking system must ensure that account balances are always accurate, even if it means briefly rejecting some requests during a network partition. Is this a CP or AP system?",
+    "options": [
+      "AP \u2014 it prioritizes serving all requests",
+      "CP \u2014 it sacrifices availability to guarantee consistency",
+      "Neither \u2014 banking systems are exempt from the CAP theorem",
+      "Both \u2014 modern databases can achieve full CAP"
+    ],
+    "correct": 1,
+    "explanation": "A banking system is a CP (Consistency + Partition Tolerance) system. During a network partition, it will reject or block requests rather than risk returning stale or inconsistent account balances. Financial data correctness is more important than always being available.",
+    "relatedCards": [
+      "L1P-008",
+      "L1P-010"
+    ]
+  },
+  {
+    "id": "Q1-045",
+    "level": 1,
+    "category": "CAP Theorem",
+    "question": "Which of the following is an example of an AP (Availability + Partition Tolerance) system?",
+    "options": [
+      "A relational database with strong ACID transactions",
+      "A social media feed that may show slightly stale posts but is always accessible",
+      "A two-phase commit coordinator for distributed transactions",
+      "A single-node PostgreSQL database with no replication"
+    ],
+    "correct": 1,
+    "explanation": "A social media feed is a classic AP system. It prioritizes availability \u2014 users can always load their feed \u2014 even if it means some posts are slightly stale during a network partition. The system favors eventual consistency over immediate accuracy, which is acceptable for social content.",
+    "relatedCards": [
+      "L1P-008",
+      "L1P-011"
+    ]
+  },
+  {
+    "id": "Q1-046",
+    "level": 1,
+    "category": "CAP Theorem",
+    "question": "Why is Partition Tolerance considered non-negotiable in distributed systems?",
+    "options": [
+      "Because hardware failures never happen in data centers",
+      "Because network partitions are inevitable in real-world distributed systems",
+      "Because partition tolerance is the same thing as data consistency",
+      "Because cloud providers guarantee no network partitions in their SLAs"
+    ],
+    "correct": 1,
+    "explanation": "Network partitions \u2014 where communication between nodes is temporarily lost \u2014 are inevitable in any real distributed system due to network hardware failures, congestion, or configuration issues. Since you must tolerate partitions, the practical CAP choice is between consistency (CP) and availability (AP).",
+    "relatedCards": [
+      "L1P-008",
+      "L1P-009"
+    ]
+  },
+  {
+    "id": "Q1-047",
+    "level": 1,
+    "category": "Networking Basics",
+    "question": "What is the key difference between TCP and UDP?",
+    "options": [
+      "TCP is faster but less reliable than UDP",
+      "TCP guarantees ordered, reliable delivery; UDP is faster but does not guarantee delivery or order",
+      "UDP encrypts data by default while TCP does not",
+      "TCP is used only for file transfers; UDP is used only for web browsing"
+    ],
+    "correct": 1,
+    "explanation": "TCP (Transmission Control Protocol) provides reliable, ordered delivery with acknowledgments, retransmissions, and flow control. UDP (User Datagram Protocol) sends packets without guarantees \u2014 faster and lower overhead, ideal for video streaming, gaming, and DNS where occasional packet loss is acceptable.",
+    "relatedCards": [
+      "L1P-029",
+      "L1P-030"
+    ]
+  },
+  {
+    "id": "Q1-048",
+    "level": 1,
+    "category": "Networking Basics",
+    "question": "Which protocol would you choose for a live video streaming application?",
+    "options": [
+      "TCP, because every frame must arrive in order",
+      "UDP, because low latency matters more than occasional dropped frames",
+      "FTP, because it's designed for transferring large files",
+      "SMTP, because it supports multimedia attachments"
+    ],
+    "correct": 1,
+    "explanation": "UDP is preferred for live video streaming because low latency is critical \u2014 a slightly dropped frame is far less noticeable than the delay caused by TCP's retransmission and ordering guarantees. Applications can implement their own lightweight error handling on top of UDP as needed.",
+    "relatedCards": [
+      "L1P-029",
+      "L1P-030"
+    ]
+  },
+  {
+    "id": "Q1-049",
+    "level": 1,
+    "category": "Networking Basics",
+    "question": "What does the HTTP protocol operate on top of?",
+    "options": [
+      "UDP at the transport layer",
+      "TCP at the transport layer",
+      "IP directly at the network layer",
+      "Ethernet at the data link layer"
+    ],
+    "correct": 1,
+    "explanation": "HTTP (Hypertext Transfer Protocol) is an application-layer protocol that operates on top of TCP. TCP provides the reliable, ordered byte-stream delivery that HTTP depends on for sending requests and receiving complete responses. HTTP/3 (QUIC) is the exception, using UDP with its own reliability layer.",
+    "relatedCards": [
+      "L1P-029",
+      "L1P-031"
+    ]
+  },
+  {
+    "id": "Q1-050",
+    "level": 1,
+    "category": "Networking Basics",
+    "question": "What is the purpose of the TCP three-way handshake?",
+    "options": [
+      "To encrypt the connection before any data is sent",
+      "To establish a reliable connection by synchronizing sequence numbers between client and server",
+      "To authenticate both the client and the server's identity",
+      "To negotiate which application-layer protocol to use"
+    ],
+    "correct": 1,
+    "explanation": "The TCP three-way handshake (SYN \u2192 SYN-ACK \u2192 ACK) establishes a connection by having both sides agree on initial sequence numbers and confirm that each can send and receive. This setup ensures the reliable, ordered delivery that TCP promises before any application data is transmitted.",
+    "relatedCards": [
+      "L1P-029",
+      "L1P-030"
+    ]
+  },
+  {
+    "id": "Q2-001",
+    "level": 2,
+    "category": "Rate Limiting",
+    "question": "In a token bucket rate limiter, what happens when a request arrives and the bucket is empty?",
+    "options": [
+      "The request is queued until a token is available",
+      "The request is dropped or rejected immediately",
+      "A new bucket is created for the request",
+      "The request borrows tokens from the next refill interval"
+    ],
+    "correct": 1,
+    "explanation": "In a token bucket algorithm, when no tokens are available the request is dropped or rejected. Unlike a leaky bucket which queues requests, the token bucket simply denies requests that arrive when the bucket is empty.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-002",
+    "level": 2,
+    "category": "Rate Limiting",
+    "question": "What advantage does the sliding window log algorithm have over the fixed window counter?",
+    "options": [
+      "It uses less memory since it only stores one counter",
+      "It eliminates the burst-at-boundary problem where 2x the rate passes at window edges",
+      "It allows higher throughput by pre-allocating tokens",
+      "It automatically adjusts the rate limit based on server load"
+    ],
+    "correct": 1,
+    "explanation": "Fixed window counters allow up to 2x the rate limit at window boundaries (e.g., N requests at the end of one window and N at the start of the next). The sliding window log tracks exact timestamps, eliminating this burst problem at the cost of more memory.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-003",
+    "level": 2,
+    "category": "Rate Limiting",
+    "question": "How does a leaky bucket differ from a token bucket in handling burst traffic?",
+    "options": [
+      "Leaky bucket allows short bursts up to the bucket capacity; token bucket does not",
+      "Token bucket allows short bursts up to the bucket capacity; leaky bucket processes at a fixed rate",
+      "Both handle bursts identically since they are mathematically equivalent",
+      "Leaky bucket drops all burst traffic while token bucket queues it"
+    ],
+    "correct": 1,
+    "explanation": "The token bucket allows bursts up to the bucket's current token count, then rate-limits. The leaky bucket processes requests at a constant outflow rate regardless of arrival pattern, smoothing bursts into a steady stream. This makes token bucket better for tolerating short spikes.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-004",
+    "level": 2,
+    "category": "Rate Limiting",
+    "question": "In a distributed rate limiting system, why is a race condition a concern when multiple API servers share a Redis counter?",
+    "options": [
+      "Redis is single-threaded so it cannot handle concurrent writes",
+      "Two servers may read the same counter value, both decide to allow, and both increment \u2014 exceeding the limit",
+      "Redis does not support atomic operations on counters",
+      "The network latency between servers causes counter values to become negative"
+    ],
+    "correct": 1,
+    "explanation": "Without atomicity, two servers can read the counter, both see it below the limit, both allow the request, and both increment \u2014 resulting in more requests than allowed. Using Redis Lua scripts or MULTI/EXEC ensures the read-check-increment is atomic.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-005",
+    "level": 2,
+    "category": "Rate Limiting",
+    "question": "Which rate limiting algorithm is most memory-efficient for tracking per-user limits across millions of users?",
+    "options": [
+      "Sliding window log \u2014 stores one timestamp per request per user",
+      "Token bucket \u2014 stores only a counter and last-refill timestamp per user",
+      "Fixed window counter \u2014 stores the full request history per user",
+      "Leaky bucket \u2014 stores the complete queue of pending requests per user"
+    ],
+    "correct": 1,
+    "explanation": "Token bucket only needs two values per user: current token count and last refill timestamp. Sliding window log stores every request timestamp (O(N) per user). Leaky bucket stores a queue. Fixed window counter is also efficient but has the boundary burst problem.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-006",
+    "level": 2,
+    "category": "Rate Limiting",
+    "question": "You need a rate limiter that smooths traffic to protect a downstream database from spiky writes. Which algorithm best fits?",
+    "options": [
+      "Token bucket \u2014 it absorbs bursts which is exactly what we want to prevent",
+      "Fixed window counter \u2014 it allows maximum throughput within each window",
+      "Leaky bucket \u2014 it processes requests at a constant rate regardless of input pattern",
+      "Sliding window log \u2014 it tracks precise request timestamps for accurate limiting"
+    ],
+    "correct": 2,
+    "explanation": "The leaky bucket is ideal for smoothing traffic because it enforces a constant output rate. Token bucket would allow bursts through to the database. The goal is a steady flow, which is the leaky bucket's core property.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-007",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "question": "What problem does consistent hashing solve that simple modular hashing (key % N) does not?",
+    "options": [
+      "It provides faster hash computation for large key spaces",
+      "It minimizes the number of keys that must be remapped when a node is added or removed",
+      "It guarantees perfectly equal distribution of keys across all nodes",
+      "It eliminates the need for a hash function entirely"
+    ],
+    "correct": 1,
+    "explanation": "With key % N, adding or removing a server changes N, causing nearly all keys to remap. Consistent hashing maps both keys and servers onto a ring, so only K/N keys (on average) need to move when a node changes \u2014 a massive improvement for cache hit rates.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-008",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "question": "Why are virtual nodes used in consistent hashing?",
+    "options": [
+      "To reduce the memory overhead of the hash ring data structure",
+      "To achieve more uniform key distribution and handle heterogeneous server capacities",
+      "To allow keys to be replicated across multiple physical nodes automatically",
+      "To speed up the lookup time from O(log N) to O(1)"
+    ],
+    "correct": 1,
+    "explanation": "With few physical nodes, the hash ring can become unbalanced \u2014 one node may own a much larger arc. Virtual nodes (multiple positions per physical node) smooth the distribution. Servers with more capacity can be assigned more virtual nodes.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-009",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "question": "In a consistent hashing ring, when a node fails, which node takes over its keys?",
+    "options": [
+      "All remaining nodes split the failed node's keys equally",
+      "The next node clockwise on the ring inherits the failed node's key range",
+      "A new replacement node is automatically provisioned with the same hash position",
+      "The keys are redistributed using key % (N-1) across all remaining nodes"
+    ],
+    "correct": 1,
+    "explanation": "On the ring, each key is assigned to the first node encountered clockwise from the key's hash position. When a node fails, its keys simply fall through to the next clockwise node. Only that successor is affected \u2014 all other nodes keep their existing keys.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-010",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "question": "What is the typical time complexity to find the responsible node for a key in a consistent hashing ring with N nodes?",
+    "options": [
+      "O(1) using direct array indexing",
+      "O(N) by scanning all nodes on the ring",
+      "O(log N) using binary search on the sorted ring positions",
+      "O(N log N) due to rebalancing on each lookup"
+    ],
+    "correct": 2,
+    "explanation": "The ring positions are stored in a sorted data structure. Finding the first node clockwise from a key's hash is a binary search operation, giving O(log N) complexity. With virtual nodes, N is the total virtual node count.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-011",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "question": "You have 5 physical servers and use 200 virtual nodes per server. After adding a 6th server, approximately what fraction of keys must be remapped?",
+    "options": [
+      "About 1/6 of all keys",
+      "About 5/6 of all keys",
+      "All keys must be remapped",
+      "No keys need to be remapped because virtual nodes prevent movement"
+    ],
+    "correct": 0,
+    "explanation": "Consistent hashing remaps approximately K/N keys when going from N-1 to N servers, where K is total keys. Adding a 6th server means roughly 1/6 of all keys move to the new server \u2014 the minimum necessary for a balanced distribution.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-012",
+    "level": 2,
+    "category": "Key-Value Store",
+    "question": "In Amazon DynamoDB's design, what is the purpose of vector clocks?",
+    "options": [
+      "To compress large values for efficient storage",
+      "To detect and resolve conflicts between concurrent writes to the same key",
+      "To route read requests to the nearest replica for lower latency",
+      "To partition the key space across storage nodes using consistent hashing"
+    ],
+    "correct": 1,
+    "explanation": "Vector clocks track the causal history of each version of a value. When concurrent writes happen on different replicas, vector clocks detect that neither version supersedes the other, allowing the system to surface the conflict for resolution (or merge automatically).",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-013",
+    "level": 2,
+    "category": "Key-Value Store",
+    "question": "What is the role of Merkle trees in a Dynamo-style key-value store?",
+    "options": [
+      "They index keys for O(log N) lookups within each partition",
+      "They detect data inconsistencies between replicas efficiently by comparing hash trees",
+      "They encode the replication topology so nodes know where to forward writes",
+      "They compress values using tree-structured deduplication"
+    ],
+    "correct": 1,
+    "explanation": "Merkle trees allow two replicas to compare their data by exchanging only tree hashes. If root hashes match, the replicas are consistent. If not, they walk the tree to find exactly which key ranges differ \u2014 transferring only the divergent data instead of the entire dataset.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-014",
+    "level": 2,
+    "category": "Key-Value Store",
+    "question": "In a Dynamo-style system configured with N=3, W=2, R=2, what consistency guarantee does this provide?",
+    "options": [
+      "No consistency guarantee since W + R = N",
+      "Strong consistency because W + R > N ensures read-write overlap",
+      "Eventual consistency because quorum is not achievable with these values",
+      "Linearizability because all three replicas must agree"
+    ],
+    "correct": 1,
+    "explanation": "With N=3, W=2, R=2: W + R = 4 > 3 = N. This means every read quorum overlaps with every write quorum by at least one node, guaranteeing the read sees the latest write. This provides strong (quorum) consistency.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-015",
+    "level": 2,
+    "category": "Key-Value Store",
+    "question": "Why does a Dynamo-style store use sloppy quorum with hinted handoff instead of strict quorum?",
+    "options": [
+      "To reduce storage costs by writing fewer replicas",
+      "To maintain write availability even when some designated replicas are temporarily unreachable",
+      "To ensure strong consistency across all replicas at all times",
+      "To speed up reads by always serving from the nearest data center"
+    ],
+    "correct": 1,
+    "explanation": "Sloppy quorum allows writes to go to any W healthy nodes (not necessarily the designated ones). The non-designated nodes hold the data as 'hinted' and forward it when the original node recovers. This trades consistency for availability during partitions.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-016",
+    "level": 2,
+    "category": "Key-Value Store",
+    "question": "In an eventually consistent key-value store, a client writes value A then immediately reads back value B. What explains this?",
+    "options": [
+      "The write failed silently and was never persisted",
+      "The read hit a replica that has not yet received the latest write due to replication lag",
+      "The key was automatically expired by the TTL policy between write and read",
+      "A Merkle tree comparison resolved the conflict in favor of value B"
+    ],
+    "correct": 1,
+    "explanation": "In eventual consistency, a write acknowledged by the coordinator may not have propagated to all replicas yet. A subsequent read routed to a stale replica returns the older value. Given enough time without new writes, all replicas converge.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-017",
+    "level": 2,
+    "category": "URL Shortener",
+    "question": "A URL shortener uses base62 encoding with a 7-character short code. Approximately how many unique URLs can it support?",
+    "options": [
+      "About 62 million (62 \u00d7 10^6)",
+      "About 3.5 trillion (62^7 \u2248 3.5 \u00d7 10^12)",
+      "About 7 billion (7 \u00d7 62^2)",
+      "About 62 billion (62 \u00d7 10^9)"
+    ],
+    "correct": 1,
+    "explanation": "Base62 uses [0-9a-zA-Z]. With 7 characters: 62^7 = 3,521,614,606,208 \u2248 3.5 trillion unique codes. This is sufficient for most URL shortening services for many years of operation.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-018",
+    "level": 2,
+    "category": "URL Shortener",
+    "question": "Why would a URL shortener return a 302 (Found) redirect instead of a 301 (Moved Permanently)?",
+    "options": [
+      "302 is faster because the browser doesn't need to follow the redirect",
+      "302 allows the shortener to track click analytics since the browser always hits the server",
+      "301 is deprecated in modern HTTP standards and should not be used",
+      "302 caches the redirect permanently in the browser for offline access"
+    ],
+    "correct": 1,
+    "explanation": "A 301 tells the browser to cache the redirect permanently \u2014 subsequent clicks bypass the shortener entirely. A 302 forces every click through the shortener's server, enabling accurate click counting, A/B testing, and link expiration. Most analytics-focused shorteners use 302.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-019",
+    "level": 2,
+    "category": "URL Shortener",
+    "question": "When using MD5 or SHA-256 to generate a short URL, how do you handle hash collisions?",
+    "options": [
+      "Collisions are impossible with SHA-256 so no handling is needed",
+      "Append a pre-defined salt or sequence counter to the input and rehash until the short code is unique",
+      "Use a longer hash output which eliminates collisions entirely",
+      "Store the collision in a separate overflow table and serve both URLs"
+    ],
+    "correct": 1,
+    "explanation": "Since we only take the first N characters of the hash, collisions are likely even with strong hash functions. The standard approach is to check the database; on collision, append an incrementing counter or unique salt to the URL and rehash until finding an unused short code.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-020",
+    "level": 2,
+    "category": "URL Shortener",
+    "question": "What is the main advantage of using a pre-generated key service (KGS) for short URL codes instead of generating them on-the-fly?",
+    "options": [
+      "It makes the hash function unnecessary and reduces CPU usage on every request",
+      "It eliminates collision handling at write time since keys are guaranteed unique from the pool",
+      "It automatically load-balances write traffic across multiple data centers",
+      "It ensures that all short codes are sequential and human-readable"
+    ],
+    "correct": 1,
+    "explanation": "A KGS pre-generates and stores all possible unique keys. When a new URL is shortened, it simply claims the next available key. This eliminates the read-check-retry collision loop, making writes faster and simpler, especially under high concurrency.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-021",
+    "level": 2,
+    "category": "URL Shortener",
+    "question": "A URL shortener needs to handle 100M new URLs per day. Which ID generation strategy would cause the most write contention?",
+    "options": [
+      "Auto-incrementing ID in a single database",
+      "Snowflake IDs generated independently on each application server",
+      "UUIDs generated client-side",
+      "Pre-generated key ranges distributed to each application server"
+    ],
+    "correct": 0,
+    "explanation": "Auto-increment on a single database creates a global bottleneck \u2014 every write must coordinate through one sequence generator. Snowflake IDs, UUIDs, and pre-distributed key ranges all allow each server to generate IDs independently without coordination.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-022",
+    "level": 2,
+    "category": "Web Crawler",
+    "question": "Why does a web crawler use BFS (breadth-first search) instead of DFS (depth-first search) as its default traversal strategy?",
+    "options": [
+      "BFS uses less memory because it doesn't need a visited set",
+      "BFS prioritizes pages closer to the seed URL, which tend to be higher quality and more important",
+      "DFS cannot handle cycles in the web graph",
+      "BFS automatically respects robots.txt while DFS does not"
+    ],
+    "correct": 1,
+    "explanation": "BFS explores pages level by level from seed URLs. Pages closer to the seed (e.g., a site's homepage) tend to be more important and higher PageRank. DFS could dive deep into a single site's low-quality pages before discovering other important domains.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-023",
+    "level": 2,
+    "category": "Web Crawler",
+    "question": "How does a web crawler at scale efficiently check if a URL has already been visited?",
+    "options": [
+      "It stores all URLs in a hash set on a single machine for O(1) lookups",
+      "It uses a Bloom filter to probabilistically check membership with minimal memory",
+      "It queries the search engine's index for every URL before fetching",
+      "It relies on HTTP caching headers to avoid re-fetching duplicate pages"
+    ],
+    "correct": 1,
+    "explanation": "At scale (billions of URLs), an exact hash set is too large for memory. A Bloom filter provides O(1) probabilistic membership checks with very low memory. It may have false positives (re-crawl a visited URL) but never false negatives (skip an unvisited URL).",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-024",
+    "level": 2,
+    "category": "Web Crawler",
+    "question": "What does 'politeness' mean in the context of web crawling?",
+    "options": [
+      "Using HTTPS instead of HTTP when connecting to web servers",
+      "Rate-limiting requests to the same domain to avoid overloading host servers",
+      "Sending a polite User-Agent header with an email address for contact",
+      "Only crawling pages that have a valid SSL certificate"
+    ],
+    "correct": 1,
+    "explanation": "Politeness means throttling crawl rate per domain \u2014 typically by enforcing a delay between consecutive requests to the same host. This prevents the crawler from overwhelming a single server with rapid-fire requests, which could be perceived as a DDoS attack.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-025",
+    "level": 2,
+    "category": "Web Crawler",
+    "question": "A web crawler detects that two different URLs serve identical page content. What technique is used to avoid storing duplicates?",
+    "options": [
+      "URL normalization \u2014 if URLs normalize to the same string, skip the duplicate",
+      "Content fingerprinting using SimHash or MinHash to detect near-duplicate pages",
+      "Checking the HTTP Content-Length header \u2014 pages with the same byte count are duplicates",
+      "Comparing the DOM tree structure \u2014 pages with identical tags are duplicates"
+    ],
+    "correct": 1,
+    "explanation": "URL normalization catches syntactic duplicates (different URLs, same resource), but different URLs can serve the same content (mirrors, parameterized URLs). SimHash/MinHash generates a fingerprint of page content to detect near-duplicates efficiently at scale.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-026",
+    "level": 2,
+    "category": "Notification System",
+    "question": "What is the key architectural difference between APNs (Apple Push Notification service) and FCM (Firebase Cloud Messaging)?",
+    "options": [
+      "APNs requires a persistent connection from the provider and uses a binary protocol; FCM uses HTTP/2 or XMPP",
+      "FCM only supports iOS devices; APNs supports both iOS and Android",
+      "APNs guarantees delivery while FCM is best-effort only",
+      "FCM requires end-to-end encryption; APNs sends notifications in plaintext"
+    ],
+    "correct": 0,
+    "explanation": "APNs uses a provider-to-Apple persistent TLS connection with a binary or HTTP/2 protocol. FCM provides an HTTP API and also supports XMPP for upstream messages. Both are platform-specific: APNs for Apple devices, FCM for Android (and cross-platform via the FCM SDK).",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-027",
+    "level": 2,
+    "category": "Notification System",
+    "question": "In a notification system, why would you use a message queue between the notification service and the delivery workers?",
+    "options": [
+      "To encrypt notification payloads in transit between services",
+      "To decouple producers from consumers, buffer traffic spikes, and enable retries on delivery failure",
+      "To ensure notifications are delivered in strict chronological order across all users",
+      "To reduce the number of connections to APNs and FCM by batching all notifications"
+    ],
+    "correct": 1,
+    "explanation": "A message queue absorbs traffic spikes (e.g., breaking news alerts to millions), decouples the API from slow third-party delivery (APNs/FCM/SMS gateways), and provides natural retry semantics \u2014 a failed delivery re-queues rather than being lost.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-028",
+    "level": 2,
+    "category": "Notification System",
+    "question": "A user has the app open and receives a notification. Which delivery model minimizes unnecessary server pushes?",
+    "options": [
+      "Push model \u2014 the server always pushes immediately regardless of app state",
+      "Pull model \u2014 the client polls the server every few seconds for new notifications",
+      "Hybrid \u2014 push a lightweight signal, then the client pulls the full notification payload when ready",
+      "Batch model \u2014 collect all notifications and deliver them once per minute"
+    ],
+    "correct": 2,
+    "explanation": "A hybrid approach pushes a small trigger to the client, which then fetches the full payload. This avoids wasting bandwidth on rich push payloads when the user is already in-app (they can fetch inline) and avoids the latency of pure polling.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-029",
+    "level": 2,
+    "category": "Notification System",
+    "question": "How should a notification system prevent sending duplicate notifications to the same user for the same event?",
+    "options": [
+      "Use an idempotency key per event-user pair and check before sending",
+      "Rely on APNs and FCM built-in deduplication to handle all duplicates",
+      "Send all notifications and let the client-side UI deduplicate on display",
+      "Use a FIFO queue which automatically prevents duplicate messages"
+    ],
+    "correct": 0,
+    "explanation": "An idempotency key (event_id + user_id) checked against a dedup cache/store before enqueuing prevents the same notification from being sent twice. Relying on third-party dedup is unreliable, and client-side dedup still wastes bandwidth and processing.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-030",
+    "level": 2,
+    "category": "News Feed",
+    "question": "In a social media news feed, what is the fan-out-on-write approach?",
+    "options": [
+      "When a user requests their feed, the system queries all followed users' posts in real time",
+      "When a user publishes a post, the system immediately writes it to every follower's feed cache",
+      "Posts are written to a single global timeline and filtered per-user on read",
+      "The system fans out writes to multiple database shards for redundancy"
+    ],
+    "correct": 1,
+    "explanation": "Fan-out-on-write (push model) pre-computes feeds at write time. When user A posts, the system pushes that post to every follower's pre-built feed list. Reads are fast (just fetch the precomputed list) but writes are expensive, especially for users with millions of followers.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-031",
+    "level": 2,
+    "category": "News Feed",
+    "question": "Why do systems like Twitter use a hybrid approach combining fan-out-on-write and fan-out-on-read?",
+    "options": [
+      "Fan-out-on-write is used for all users because it is always faster",
+      "Regular users use fan-out-on-write; high-follower users (celebrities) use fan-out-on-read to avoid millions of writes per post",
+      "Fan-out-on-read is used for all users to save storage, with write as a fallback",
+      "The hybrid ensures strong consistency by verifying read results against the write cache"
+    ],
+    "correct": 1,
+    "explanation": "A celebrity posting to 50M followers would trigger 50M cache writes \u2014 slow and expensive. The hybrid approach: normal users' posts are fanned out on write (fast reads), but celebrity posts are merged in at read time (fan-out-on-read) to avoid the write amplification.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-032",
+    "level": 2,
+    "category": "News Feed",
+    "question": "In a fan-out-on-write news feed, what data structure is typically used to store each user's feed?",
+    "options": [
+      "A B+ tree indexed by post content hash",
+      "A sorted set or list in Redis/cache keyed by user ID, ordered by timestamp or ranking score",
+      "A relational table with a composite index on (user_id, follower_id)",
+      "A graph database storing post nodes connected to user nodes"
+    ],
+    "correct": 1,
+    "explanation": "Each user's feed is typically a sorted list (or sorted set in Redis) containing post IDs ordered by timestamp or a ranking score. This allows O(1) feed retrieval with pagination. The list is capped to a fixed size (e.g., last 500 posts) to bound memory.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-033",
+    "level": 2,
+    "category": "News Feed",
+    "question": "What is the main disadvantage of fan-out-on-read for a news feed?",
+    "options": [
+      "It uses too much storage because every post is duplicated across all follower feeds",
+      "Feed reads are slow because the system must query and merge posts from all followed users in real time",
+      "It cannot support ranked feeds \u2014 only chronological ordering is possible",
+      "It requires a message queue for every read operation"
+    ],
+    "correct": 1,
+    "explanation": "Fan-out-on-read (pull model) computes the feed at read time: it must fetch recent posts from every user you follow, merge-sort them, and rank them \u2014 all before the page loads. For users following thousands of accounts, this is slow without aggressive caching.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-034",
+    "level": 2,
+    "category": "API Design",
+    "question": "What problem does cursor-based pagination solve that offset-based pagination does not?",
+    "options": [
+      "Cursor-based pagination supports sorting by multiple columns",
+      "Cursor-based pagination avoids skipping or duplicating items when the dataset changes between page fetches",
+      "Cursor-based pagination reduces the size of the API response payload",
+      "Cursor-based pagination allows fetching the total item count without a separate query"
+    ],
+    "correct": 1,
+    "explanation": "With offset pagination, if items are inserted or deleted between page requests, items can be skipped or shown twice. Cursor-based pagination uses a stable pointer (e.g., the last item's ID), so the next page always starts right after that item regardless of changes.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-035",
+    "level": 2,
+    "category": "API Design",
+    "question": "When would you choose gRPC over REST for inter-service communication?",
+    "options": [
+      "When the API needs to be consumed directly by web browsers without any proxy",
+      "When low latency and high throughput are critical, and services share a schema via Protocol Buffers",
+      "When the API must support human-readable requests and responses for debugging",
+      "When the client needs to discover the API schema dynamically without prior knowledge"
+    ],
+    "correct": 1,
+    "explanation": "gRPC uses Protocol Buffers (binary serialization) and HTTP/2, providing lower latency, smaller payloads, and streaming support compared to REST+JSON. It excels for internal service-to-service calls where both ends share .proto files. Browser support requires a gRPC-web proxy.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-036",
+    "level": 2,
+    "category": "API Design",
+    "question": "What is the N+1 query problem that GraphQL APIs can introduce?",
+    "options": [
+      "A single query fetches N+1 separate resources, overwhelming the client's memory",
+      "Resolving a list of N items triggers one additional database query per item instead of one batch query",
+      "The schema requires N+1 type definitions for every nested object",
+      "Each GraphQL subscription opens N+1 WebSocket connections to the server"
+    ],
+    "correct": 1,
+    "explanation": "In GraphQL, fetching a list of N users with their posts can naively trigger 1 query for users + N queries (one per user) for posts. DataLoader batches these N individual lookups into a single query, solving the N+1 problem.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-037",
+    "level": 2,
+    "category": "API Design",
+    "question": "Why is API versioning important, and which strategy has the least impact on URL routing?",
+    "options": [
+      "Query parameter versioning (?v=2) \u2014 it keeps the URL path clean but is easy to miss",
+      "Header-based versioning (Accept: application/vnd.api.v2+json) \u2014 it leaves URLs unchanged entirely",
+      "URL path versioning (/v2/users) \u2014 it is invisible to clients and requires no code changes",
+      "Subdomain versioning (v2.api.example.com) \u2014 it avoids versioning in the application layer entirely"
+    ],
+    "correct": 1,
+    "explanation": "Header-based versioning uses content negotiation (Accept/Content-Type headers) to specify the version. URLs remain unchanged, so routing logic isn't affected. URL path versioning (/v1/, /v2/) is more visible and common but requires route duplication.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-038",
+    "level": 2,
+    "category": "API Design",
+    "question": "What is the primary advantage of GraphQL over REST for mobile clients?",
+    "options": [
+      "GraphQL automatically compresses responses for low-bandwidth networks",
+      "Clients can request exactly the fields they need, avoiding over-fetching and reducing payload size",
+      "GraphQL provides built-in offline caching that REST cannot support",
+      "GraphQL endpoints are always faster because they bypass HTTP overhead"
+    ],
+    "correct": 1,
+    "explanation": "REST endpoints return fixed response shapes \u2014 a /user endpoint returns all user fields even if the mobile client only needs name and avatar. GraphQL lets the client specify exactly which fields to fetch, reducing bandwidth usage \u2014 critical on mobile networks.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-039",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "What is the purpose of a circuit breaker pattern in a microservices architecture?",
+    "options": [
+      "To encrypt communication between services during security incidents",
+      "To stop calling a failing downstream service and fail fast, preventing cascading failures",
+      "To balance traffic equally across all instances of a service",
+      "To automatically scale up service instances when error rates increase"
+    ],
+    "correct": 1,
+    "explanation": "A circuit breaker monitors failures to a downstream service. After a threshold is exceeded, it 'opens' and immediately returns an error (or fallback) without making the call. This prevents a slow/failing service from consuming upstream resources and causing cascading failure.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-040",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "Why should retry logic use exponential backoff with jitter instead of fixed-interval retries?",
+    "options": [
+      "Fixed-interval retries are incompatible with HTTP/2 and gRPC protocols",
+      "Fixed-interval retries cause thundering herd \u2014 all clients retry simultaneously, overloading the recovering service",
+      "Exponential backoff guarantees the retry will succeed within a bounded time",
+      "Jitter ensures that retries are distributed across different servers"
+    ],
+    "correct": 1,
+    "explanation": "If 1000 clients fail at the same time and all retry after exactly 1 second, the recovering service gets hit by 1000 simultaneous retries. Exponential backoff spreads retries over time; jitter adds randomness so clients don't synchronize, preventing the thundering herd problem.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-041",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "In a circuit breaker, what happens in the 'half-open' state?",
+    "options": [
+      "All requests are blocked and return a cached response from before the failure",
+      "A limited number of test requests are allowed through to check if the downstream service has recovered",
+      "The circuit alternates between open and closed on each request",
+      "Requests are routed to a backup service while the primary is tested offline"
+    ],
+    "correct": 1,
+    "explanation": "After the open state's timeout expires, the circuit breaker enters half-open: it allows a few probe requests through. If they succeed, the circuit closes (resumes normal traffic). If they fail, the circuit reopens. This avoids slamming a recovering service with full traffic.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-042",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "Service A calls B, which calls C. Service C becomes slow (10s response time). Without any protective patterns, what happens?",
+    "options": [
+      "Only Service C is affected; A and B continue operating normally",
+      "Thread pools in B fill up waiting for C, then A's threads fill up waiting for B \u2014 cascading failure across all three services",
+      "Service B automatically drops calls to C after detecting high latency",
+      "The load balancer removes Service C from the pool, resolving the issue"
+    ],
+    "correct": 1,
+    "explanation": "Without timeouts or circuit breakers, B's threads/connections block waiting for C's slow responses. B's thread pool exhausts, causing B to become slow/unavailable. A's threads then block waiting for B \u2014 the failure cascades upstream. This is a classic cascading failure.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-043",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "What is the bulkhead pattern and why is it useful?",
+    "options": [
+      "It replicates every service across multiple regions for disaster recovery",
+      "It isolates different call paths into separate resource pools so a failure in one doesn't exhaust resources for others",
+      "It encrypts data at rest in separate partitions to limit breach scope",
+      "It routes traffic through a single chokepoint for centralized monitoring"
+    ],
+    "correct": 1,
+    "explanation": "Named after ship bulkheads that contain flooding, this pattern gives each downstream dependency its own thread pool or connection pool. If service C's pool fills up, calls to service D still have their own pool and continue normally \u2014 the blast radius is contained.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-044",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "A service has retry logic with max 3 retries. Under what condition does this retry logic make the problem worse?",
+    "options": [
+      "When the downstream service returns errors due to invalid input from the caller",
+      "When the downstream is overloaded \u2014 retries multiply the load by up to 4x, deepening the overload",
+      "When the network between services has zero latency",
+      "When the retry interval is less than the downstream service's health check interval"
+    ],
+    "correct": 1,
+    "explanation": "If the downstream is failing because it's overloaded, each client retrying 3 times multiplies the load by 4x (1 original + 3 retries). This amplifies the overload. Retries should be paired with circuit breakers and backoff, and should not retry on overload (429/503) without delay.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-045",
+    "level": 2,
+    "category": "Unique ID Generation",
+    "question": "In Twitter's Snowflake ID scheme, why is a timestamp placed in the most significant bits?",
+    "options": [
+      "To allow the ID to be used as an encryption key with time-based rotation",
+      "So that IDs are roughly sortable by creation time without a secondary index",
+      "To ensure uniqueness across data centers by encoding the creation date",
+      "To compress the ID using variable-length encoding for older timestamps"
+    ],
+    "correct": 1,
+    "explanation": "Placing the timestamp in the high bits means IDs generated later are always numerically larger. This makes IDs roughly time-ordered, enabling efficient range queries (e.g., 'all posts from today') and chronological sorting without a separate timestamp column or index.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-046",
+    "level": 2,
+    "category": "Unique ID Generation",
+    "question": "What is the main disadvantage of using UUIDv4 as a primary key in a B-tree indexed database?",
+    "options": [
+      "UUIDs are too short to guarantee uniqueness across distributed systems",
+      "Random UUIDs cause excessive page splits and fragmentation because insertions are scattered across the B-tree",
+      "UUIDs cannot be stored in fixed-width database columns",
+      "UUID generation requires network calls to a central coordination service"
+    ],
+    "correct": 1,
+    "explanation": "UUIDv4 is random, so new inserts land at random positions in the B-tree index, causing frequent page splits and poor cache locality. Sequential or time-ordered IDs (auto-increment, Snowflake, UUIDv7) insert at the end, keeping the tree balanced and cache-friendly.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-047",
+    "level": 2,
+    "category": "Unique ID Generation",
+    "question": "Why can't you rely on database auto-increment IDs in a multi-master replication setup?",
+    "options": [
+      "Auto-increment is too slow for high-throughput workloads",
+      "Two masters can generate the same ID simultaneously, causing primary key conflicts on replication",
+      "Auto-increment IDs overflow after 2^31 rows which is too few for large systems",
+      "Database auto-increment does not support transactions across tables"
+    ],
+    "correct": 1,
+    "explanation": "With two masters independently incrementing, both can assign ID=1001 to different rows. When they replicate to each other, the primary key collides. Workarounds (odd/even IDs, different starting offsets) are brittle. Snowflake-style IDs encode the machine ID, avoiding this.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-048",
+    "level": 2,
+    "category": "Unique ID Generation",
+    "question": "A Snowflake ID generator uses 10 bits for machine ID and 12 bits for sequence number. What is the maximum number of IDs one machine can generate per millisecond?",
+    "options": [
+      "1,024 (2^10)",
+      "4,096 (2^12)",
+      "10,000 (one per 100 nanoseconds)",
+      "1,048,576 (2^20)"
+    ],
+    "correct": 1,
+    "explanation": "The 12-bit sequence field can represent 2^12 = 4,096 unique values (0 to 4095). Each millisecond the sequence resets, so one machine can generate up to 4,096 unique IDs per millisecond \u2014 about 4 million per second.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-049",
+    "level": 2,
+    "category": "Design Decision",
+    "question": "You're designing a ride-sharing app's dispatch system. Drivers send location updates every 3 seconds. You need to find the nearest 10 drivers to a rider. Which approach is most appropriate?",
+    "options": [
+      "Store driver locations in a SQL table and run a query with ORDER BY distance LIMIT 10 on each request",
+      "Use a geospatial index (like Redis GeoHash or a QuadTree) that supports efficient nearest-neighbor queries on frequently updated locations",
+      "Pre-compute all pairwise distances between drivers and riders in a batch job every minute",
+      "Broadcast the rider's location to all drivers and have them self-report if they are nearby"
+    ],
+    "correct": 1,
+    "explanation": "A geospatial index (GeoHash, QuadTree, or Redis GEOSEARCH) provides O(log N) nearest-neighbor queries and handles frequent updates efficiently. SQL distance sorting scans the whole table. Batch pre-computation is too stale. Broadcasting doesn't scale with driver count.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q2-050",
+    "level": 2,
+    "category": "Design Decision",
+    "question": "You're building a collaborative document editor where multiple users type simultaneously. Which approach best handles real-time conflict resolution?",
+    "options": [
+      "Pessimistic locking \u2014 only one user can edit a paragraph at a time",
+      "Last-writer-wins \u2014 the most recent save overwrites all others",
+      "Operational Transformation (OT) or CRDTs \u2014 concurrent edits are merged automatically without locks",
+      "Periodic snapshots \u2014 save the document every 30 seconds and discard intermediate edits"
+    ],
+    "correct": 2,
+    "explanation": "OT (used by Google Docs) and CRDTs (used by Figma, Yjs) allow concurrent edits to be merged deterministically. Locking destroys the real-time collaborative experience. Last-writer-wins silently drops edits. Snapshots lose data between intervals.",
+    "relatedCards": []
+  }
+]

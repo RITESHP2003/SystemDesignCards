@@ -561,6 +561,8 @@ function loadCards(){
       }
       fill.style.width="60%";
       return loadState();
+  // Load dedicated quiz bank
+  fetch('quizzes.json').then(function(r){return r.ok?r.json():[]}).then(function(qs){quizBank=qs||[]}).catch(function(){quizBank=[]});
     }).then(function(){
       return loadDailyCount();
     }).then(function(){
@@ -999,6 +1001,13 @@ function getKeySentence(text){
   return sentences.length?sentences[0]+".":text.substring(0,80)+"…";
 }
 function generateQuizQuestions(level){
+  // Prefer dedicated quiz bank if available
+  var dedicated=quizBank.filter(function(q){return q.level===level});
+  if(dedicated.length>=10){
+    var shuffled=dedicated.slice().sort(function(){return Math.random()-.5}).slice(0,10);
+    return shuffled.map(function(q){return{card:{id:q.relatedCards&&q.relatedCards[0]||"",level:q.level,category:q.category||"",front:q.question,back:q.explanation},question:q.question,correct:q.options[q.correct],options:q.options.slice(),explanation:q.explanation,correctIndex:q.correct}});
+  }
+  // Fallback: auto-generate from cards
   var pool=allCards.filter(function(c){return c.level===level});
   if(pool.length<4)return[];
   var shuffled=pool.slice().sort(function(){return Math.random()-.5});
