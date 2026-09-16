@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=16">
+    <link rel="stylesheet" href="styles.css?v=17">
 </head>
 <body class="theme-dark">
     <!-- Onboarding (first launch only) -->
@@ -48,6 +48,12 @@
 
     <!-- Confetti canvas -->
     <canvas id="confetti" class="confetti-canvas"></canvas>
+
+    <!-- Notification banner -->
+    <div id="notif-banner" class="notif-banner">
+        <span id="notif-text" class="notif-text"></span>
+        <button id="notif-dismiss" class="notif-dismiss">✕</button>
+    </div>
 
     <!-- Top bar -->
     <header id="topbar" class="topbar">
@@ -304,7 +310,7 @@
 
     <div id="overlay" class="overlay dismissed"></div>
 
-    <script src="app.js?v=16"></script>
+    <script src="app.js?v=17"></script>
     <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>

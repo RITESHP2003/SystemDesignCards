@@ -1,5 +1,5 @@
 /**
- * SystemDesignCards v14 — Quiz Mode
+ * SystemDesignCards v17 — Notifications + Split Data
  * 1. Swipe gestures on study cards (LEFT=Forgot, DOWN=Hard, RIGHT=Good, UP=Easy)
  * 2. Category progress in study mode
  * 3. Better empty states
@@ -9,6 +9,8 @@
  * 7. IndexedDB persistence (migrated from localStorage)
  * 8. Export / Import progress
  * 9. Quiz Mode: Practice MCQ + Timed Test with level unlocking
+ * 10. Split data loading (cards.json + diagrams.json)
+ * 11. In-app notification banners + browser Notification API
  */
 (function(){
 "use strict";
@@ -26,6 +28,89 @@ var MOTIVATIONAL_MESSAGES=[
   "⭐ Another day of growth in the books. You're getting sharper!"
 ];
 
+// ═══ NOTIFICATION MESSAGES ═══
+var NOTIF_MOTIVATIONAL=[
+  "Even Netflix takes a break. Your brain doesn't have to 🧠",
+  "Future you will thank present you. Go study 🙏",
+  "1 card a day keeps the rejection away 💪",
+  "Your interview prep called. It misses you 📞",
+  "Every senior engineer started with 'What is a load balancer?' 🌱",
+  "Small steps compound. You're proof 📈",
+  "The best time to study was yesterday. The second best is now ⏰",
+  "Your brain is a muscle. Flex it 💪",
+  "Distributed systems won't learn themselves. But you can learn them 🔧",
+  "You're not just studying — you're investing in yourself 💎"
+];
+var NOTIF_FUNNY=[
+  "Plot twist: the real system design was the friends we made along the way. JK, go study 😂",
+  "Your load balancer can't balance your study schedule for you ⚖️",
+  "CAP theorem says you can't have it all. But you CAN study today 🤓",
+  "This notification is eventual-ly consistent with your study goals 😏",
+  "BREAKING: Local developer discovers studying actually works 📰",
+  "Your DNS is resolving to procrastination. Let's fix that 🔧",
+  "Sharding your attention across apps? Consolidate on this one 🗃️",
+  "Your cache has expired. Time to refresh your knowledge 🔄",
+  "Error 404: Study session not found. Let's change that 🔍",
+  "Your message queue is full of excuses. Time to drain it 📬",
+  "Hot take: reading about system design > doom scrolling 🌶️",
+  "This app has better uptime than your study habits. Let's fix that 😏",
+  "Your retry policy for studying has too much backoff 📉",
+  "If you were a microservice, you'd be the one that never gets called 😬",
+  "Even Redis would forget you if you don't come back soon 🫠"
+];
+var NOTIF_OPEN_NO_STUDY=[
+  "Your brain cells are filing a missing person report 😱",
+  "The cards missed you. They told me to tell you 💌",
+  "Welcome back! Your neurons are doing warmup stretches 🤸",
+  "Oh look who decided to show up! Let's make it count 🎯",
+  "Your cards have been waiting. Don't leave them hanging 🃏"
+];
+var NOTIF_IDLE=[
+  "These cards aren't gonna study themselves 😏",
+  "Hey, you still there? The cards are getting lonely 👀",
+  "Idle detected. Deploying knowledge in 3... 2... 1... 🚀",
+  "Your session is timing out faster than your motivation 😴",
+  "Even eventual consistency requires SOME action 🐌"
+];
+var NOTIF_QUIZ_COMPLETE=[
+  "You're on fire! Keep the momentum? 🔥",
+  "Big brain energy detected! Go again? 🧠⚡",
+  "Quiz crushed. Cards next? The grind doesn't stop 💯",
+  "That was solid. Your interviewer won't know what hit them 🎯"
+];
+var NOTIF_SESSION_COMPLETE=[
+  "Another session in the books! You're building something real 📚",
+  "Streak secured. Brain expanded. Legend mode: ON 👑",
+  "That's what growth looks like. See you tomorrow? 🌅",
+  "Cards reviewed. XP earned. You're leveling up IRL 🎮"
+];
+function getNotifStreak(streak){
+  var msgs=[
+    "Day "+streak+"! You're basically a streak-asaurus 🦖",
+    "Your streak is older than some startups now 🚀",
+    "Streak: "+streak+". That's "+streak+" days of pure dedication 🌟",
+    streak+" days! At this rate you'll be a Fellow before lunch 🏅",
+    "Day "+streak+". The consistency is chef's kiss 👨‍🍳💋"
+  ];
+  return msgs[Math.floor(Math.random()*msgs.length)];
+}
+function getNotifProgress(n){
+  var msgs=[
+    "You've mastered "+n+" cards. That's "+n+" concepts your competitors don't know 📊",
+    n+" cards down. Each one is an interview advantage 🎯",
+    ""+n+" concepts locked in. Your brain's database is growing 🗄️"
+  ];
+  return msgs[Math.floor(Math.random()*msgs.length)];
+}
+function getNotifDue(n){
+  var msgs=[
+    n+" cards due today. Crush them like a distributed hash table 🔨",
+    n+" cards waiting. They're not gonna review themselves 📋",
+    ""+n+" reviews queued up. Let's clear that backlog 🧹"
+  ];
+  return msgs[Math.floor(Math.random()*msgs.length)];
+}
+
 var allCards=[],cardState={},gam={xp:0,streak:0,lastStudyDate:null,unlockedLevels:[1,2],seenMilestones:[],quizUnlockedLevels:[1]},settings={theme:"dark",newPerDay:10};
 var studyQueue=[],studyIndex=0,sessionStats={reviewed:0,correct:0,xpEarned:0},selectedLevel="all",savedCards=new Set();
 var readBook="vol1",readPage=1,readManifests={},readInit=false;
@@ -37,6 +122,86 @@ var DB_VERSION=1;
 // ═══ QUIZ STATE ═══
 var quizLevel=1,quizMode="practice",quizQuestions=[],quizIndex=0,quizCorrect=0,quizXP=0,quizWrong=[],quizAnswered=false;
 var quizTimerInterval=null,quizTimeLeft=60,quizTimeTaken=0,quizStartTime=0;
+
+// ═══ NOTIFICATION STATE ═══
+var notifQueue=[],notifShowing=false,notifIdleTimer=null;
+var notifShownThisSession=[];
+
+function pickNotif(arr){
+  // Avoid repeats within session
+  var pool=arr.filter(function(m){return notifShownThisSession.indexOf(m)===-1});
+  if(!pool.length){notifShownThisSession=[];pool=arr}
+  var msg=pool[Math.floor(Math.random()*pool.length)];
+  notifShownThisSession.push(msg);
+  return msg;
+}
+
+function showNotifBanner(msg){
+  notifQueue.push(msg);
+  if(!notifShowing)drainNotifQueue();
+}
+
+function drainNotifQueue(){
+  if(!notifQueue.length){notifShowing=false;return}
+  notifShowing=true;
+  var msg=notifQueue.shift();
+  var banner=$("notif-banner");
+  var text=$("notif-text");
+  text.textContent=msg;
+  banner.classList.add("visible");
+  // Also try OS notification if page hidden and permission granted
+  if(document.hidden&&Notification.permission==="granted"){
+    try{new Notification("System Design Cards",{body:msg,icon:"icon-192.png"})}catch(e){}
+  }
+  var autoDismiss=setTimeout(function(){dismissNotifBanner()},5000);
+  var dismissBtn=$("notif-dismiss");
+  function onDismiss(){clearTimeout(autoDismiss);dismissNotifBanner();dismissBtn.removeEventListener("click",onDismiss)}
+  dismissBtn.addEventListener("click",onDismiss);
+}
+
+function dismissNotifBanner(){
+  var banner=$("notif-banner");
+  banner.classList.remove("visible");
+  setTimeout(function(){drainNotifQueue()},400);
+}
+
+function resetIdleTimer(){
+  if(notifIdleTimer)clearTimeout(notifIdleTimer);
+  notifIdleTimer=setTimeout(function(){
+    showNotifBanner(pickNotif(NOTIF_IDLE));
+    resetIdleTimer();
+  },5*60*1000);
+}
+
+function requestNotifPermission(){
+  if(!("Notification" in window))return;
+  if(Notification.permission==="default"){
+    Notification.requestPermission();
+  }
+}
+
+function triggerOpenNotif(){
+  var today=new Date().toISOString().split("T")[0];
+  var studied=gam.lastStudyDate===today;
+  if(!studied){
+    // Haven't studied today
+    if(gam.streak>0){
+      showNotifBanner("Your "+gam.streak+"-day streak is begging for mercy 😭");
+    }else{
+      showNotifBanner(pickNotif(NOTIF_OPEN_NO_STUDY));
+    }
+  }else{
+    // Studied today, show progress or due cards
+    var due=getStudyQueue().length;
+    if(due>0){
+      showNotifBanner(getNotifDue(due));
+    }else{
+      var mastered=0;var keys=Object.keys(cardState);
+      for(var i=0;i<keys.length;i++){if(cardState[keys[i]].status==="mastered")mastered++}
+      if(mastered>0)showNotifBanner(getNotifProgress(mastered));
+    }
+  }
+}
 
 // ═══ INDEXEDDB WRAPPER ═══
 function openDB(){
@@ -165,7 +330,6 @@ function migrateFromLocalStorage(){
       try{
         var dates=JSON.parse(sd);
         for(var d=0;d<dates.length;d++){
-          // Only add if not already migrated from sdc-today-
           promises.push(
             dbGet("dailyCounts",dates[d]).then(function(dateVal){
               return function(existing){
@@ -258,6 +422,10 @@ function updateStreak(){
   gam.streak=gam.lastStudyDate===y?gam.streak+1:1;
   gam.lastStudyDate=t;save();
   checkStreakMilestone();
+  // Streak notification
+  if(gam.streak>1&&gam.streak%5===0){
+    showNotifBanner(getNotifStreak(gam.streak));
+  }
 }
 function checkStreakMilestone(){
   for(var i=0;i<STREAK_MILESTONES.length;i++){
@@ -373,13 +541,25 @@ function showOnboarding(){
 }
 function finishOnboarding(){localStorage.setItem("sdc-onboarded","1");$("onboarding").classList.add("hidden");startApp()}
 
-// ═══ DATA LOADING ═══
+// ═══ DATA LOADING (split: cards.json + diagrams.json) ═══
 function loadCards(){
   return new Promise(function(resolve){
     $("loader").style.opacity="1";$("loader").style.pointerEvents="auto";$("loader").style.display="flex";
-    var fill=$("loader").querySelector(".loader-fill");fill.style.width="30%";
-    fetch("cards.json").then(function(r){return r.json()}).then(function(data){allCards=data}).catch(function(){allCards=[]}).then(function(){
-      fill.style.width="70%";
+    var fill=$("loader").querySelector(".loader-fill");fill.style.width="20%";
+    // Load both files in parallel
+    Promise.all([
+      fetch("cards.json").then(function(r){return r.json()}).catch(function(){return[]}),
+      fetch("diagrams.json").then(function(r){if(r.ok)return r.json();return null}).catch(function(){return null})
+    ]).then(function(results){
+      allCards=results[0];
+      var svgs=results[1];
+      // Merge SVGs back into cards in memory
+      if(svgs){
+        for(var i=0;i<allCards.length;i++){
+          if(svgs[allCards[i].id])allCards[i].diagram_svg=svgs[allCards[i].id];
+        }
+      }
+      fill.style.width="60%";
       return loadState();
     }).then(function(){
       return loadDailyCount();
@@ -404,6 +584,8 @@ function startStudy(){
   if(!studyQueue.length){alert("No cards due! Come back later.");return}
   studyIndex=0;sessionStats={reviewed:0,correct:0,xpEarned:0};sessionSeenCategories={};
   $("study-summary").classList.add("hidden");$("card-area").classList.remove("hidden");$("session-complete").classList.add("hidden");
+  // Request notification permission on first study
+  requestNotifPermission();
   showCard();
 }
 function showCard(){
@@ -454,12 +636,15 @@ function rateCard(rating){
   sessionStats.reviewed++;if(rating>=3)sessionStats.correct++;sessionStats.xpEarned+=addXP(rating);
   incDailyCount();updateStreak();recordStudyDay();checkLevelUnlock();save();updateDailyGoal();
   if(navigator.vibrate&&rating>=3)navigator.vibrate(30);
+  resetIdleTimer();
   studyIndex++;showCard();
 }
 function finishSession(){
   $("card-area").classList.add("hidden");$("session-complete").classList.remove("hidden");
   $("session-stats").innerHTML="Cards: "+sessionStats.reviewed+"<br>Correct: "+sessionStats.correct+"/"+sessionStats.reviewed+"<br>XP: ⚡"+sessionStats.xpEarned;
   fireConfetti();updateAll();
+  // Session complete notification
+  setTimeout(function(){showNotifBanner(pickNotif(NOTIF_SESSION_COMPLETE))},1500);
 }
 
 // ═══ SWIPE GESTURES (LEFT=Forgot, DOWN=Hard, RIGHT=Good, UP=Easy) ═══
@@ -940,6 +1125,7 @@ function selectQuizOption(selected){
   $("quiz-explanation-text").textContent=q.explanation;
   $("quiz-explanation").classList.remove("hidden");
   $("quiz-score-live").textContent="⚡ "+quizXP;
+  resetIdleTimer();
   // In practice mode, show Next button. In timed, auto-advance after 2s
   if(quizMode==="practice"){
     $("quiz-next-btn").classList.remove("hidden");
@@ -1000,6 +1186,8 @@ function finishQuiz(){
     }
   }
   if(pct>=70)fireConfetti();
+  // Quiz complete notification
+  setTimeout(function(){showNotifBanner(pickNotif(NOTIF_QUIZ_COMPLETE))},1500);
 }
 
 // ═══ EVENTS ═══
@@ -1076,6 +1264,10 @@ function setupEvents(){
     var all=document.querySelectorAll(".quiz-level-btn");for(var x=0;x<all.length;x++)all[x].classList.remove("active");
     b.classList.add("active");quizLevel=parseInt(b.dataset.level);
   })})(quizLevelBtns[ql])}
+
+  // Idle timer for notifications
+  document.addEventListener("touchstart",resetIdleTimer,{passive:true});
+  document.addEventListener("click",resetIdleTimer);
 }
 function closePanels(){$("profile-panel").classList.add("hidden");$("overlay").classList.add("dismissed")}
 function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
@@ -1086,6 +1278,9 @@ function startApp(){
   loadCards().then(function(){
     document.body.className="theme-"+settings.theme;updateAll();setupEvents();
     setTimeout(function(){$("loader").style.opacity="0";$("loader").style.pointerEvents="none"},300);
+    // Trigger open notification after brief delay
+    setTimeout(triggerOpenNotif,2000);
+    resetIdleTimer();
   });
 }
 function init(){
@@ -1097,6 +1292,9 @@ function init(){
     if(showOnboarding())return;
     document.body.className="theme-"+settings.theme;updateAll();setupEvents();
     setTimeout(function(){$("loader").style.opacity="0";$("loader").style.pointerEvents="none"},300);
+    // Trigger open notification after brief delay
+    setTimeout(triggerOpenNotif,2000);
+    resetIdleTimer();
   }).catch(function(err){
     console.error("Init error:",err);
     // Fallback: try to start anyway
