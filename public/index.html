@@ -10,39 +10,72 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=7">
+    <link rel="stylesheet" href="styles.css?v=8">
 </head>
 <body class="theme-dark">
-    <!-- ── Loader ── -->
-    <div id="loader" class="loader">
+    <!-- Onboarding (first launch only) -->
+    <div id="onboarding" class="onboarding hidden">
+        <div class="onboard-slide" data-slide="0">
+            <div class="onboard-icon">🧠</div>
+            <h2>System Design Cards</h2>
+            <p>Master system design interviews with spaced repetition — the same technique that makes Duolingo addictive.</p>
+        </div>
+        <div class="onboard-slide hidden" data-slide="1">
+            <div class="onboard-icon">🃏</div>
+            <h2>Study Mode</h2>
+            <p>The app picks your cards. Flip to reveal the answer, then rate how well you knew it. Cards you struggle with come back sooner.</p>
+        </div>
+        <div class="onboard-slide hidden" data-slide="2">
+            <div class="onboard-icon">🔀</div>
+            <h2>Reels Mode</h2>
+            <p>Scroll through random cards like TikTok. Tap to reveal. Save interesting ones to your study queue with the ❤️ button.</p>
+        </div>
+        <div class="onboard-dots">
+            <span class="dot active"></span><span class="dot"></span><span class="dot"></span>
+        </div>
+        <button id="onboard-next" class="btn-primary">Next</button>
+        <button id="onboard-skip" class="onboard-skip">Skip intro</button>
+    </div>
+
+    <!-- Loader -->
+    <div id="loader" class="loader hidden">
         <div class="loader-content">
             <div class="loader-icon">🧠</div>
-            <div class="loader-text">Loading cards...</div>
+            <div class="loader-text">Loading 565 cards...</div>
             <div class="loader-bar"><div class="loader-fill"></div></div>
         </div>
     </div>
 
-    <!-- ── Top bar ── -->
+    <!-- Confetti canvas -->
+    <canvas id="confetti" class="confetti-canvas"></canvas>
+
+    <!-- Top bar -->
     <header id="topbar" class="topbar">
         <div class="topbar-left">
             <span id="streak-badge" class="streak-badge">🔥 0</span>
-            <span id="xp-badge" class="xp-badge">⚡ 0 XP</span>
+            <span id="rank-badge" class="rank-badge">Novice</span>
+        </div>
+        <div class="topbar-center">
+            <div id="daily-goal-bar" class="daily-goal-bar">
+                <div id="daily-goal-fill" class="daily-goal-fill"></div>
+                <span id="daily-goal-text" class="daily-goal-text">0/10</span>
+            </div>
         </div>
         <div class="topbar-right">
+            <button id="btn-search" class="icon-btn" aria-label="Search">🔍</button>
             <button id="btn-profile" class="icon-btn" aria-label="Profile">👤</button>
         </div>
     </header>
 
-    <!-- ── Mode tabs ── -->
+    <!-- Mode tabs -->
     <nav id="mode-tabs" class="mode-tabs">
         <button class="mode-tab active" data-mode="study">🃏 Study</button>
         <button class="mode-tab" data-mode="reels">🔀 Reels</button>
         <button class="mode-tab" data-mode="read">📖 Read</button>
     </nav>
 
-    <!-- ── Study mode ── -->
+    <!-- Study mode -->
     <main id="study-view" class="view">
-        <!-- Daily summary -->
         <div id="study-summary" class="study-summary">
             <div class="summary-ring">
                 <svg viewBox="0 0 120 120" class="progress-ring">
@@ -69,46 +102,42 @@
             </div>
         </div>
 
-        <!-- Active card -->
         <div id="card-area" class="card-area hidden">
             <div class="card-nav-row">
-                <button id="btn-prev-card" class="card-nav-btn" aria-label="Previous">◀ Prev</button>
-                <div class="card-progress-bar">
-                    <div id="card-progress-fill" class="card-progress-fill"></div>
-                </div>
-                <span id="card-counter" class="card-counter">1 / 15</span>
+                <button id="btn-prev-card" class="card-nav-btn">◀ Prev</button>
+                <div class="card-progress-bar"><div id="card-progress-fill" class="card-progress-fill"></div></div>
+                <span id="card-counter" class="card-counter">1/15</span>
             </div>
             <div id="flashcard" class="flashcard">
                 <div class="card-inner">
                     <div class="card-front">
                         <div class="card-level-tag" id="card-level-tag">L1</div>
                         <div class="card-category" id="card-category">Scaling</div>
-                        <div class="card-question" id="card-question">Question goes here</div>
-                        <div class="card-hint">Tap to reveal answer</div>
+                        <div class="card-question" id="card-question">Question</div>
+                        <div class="card-hint">Tap to reveal</div>
                     </div>
                     <div class="card-back">
                         <div class="card-back-header">
                             <div class="card-level-tag" id="card-level-tag-back">L1</div>
-                            <button id="btn-flip-back" class="flip-back-btn">👁 See question</button>
+                            <button id="btn-flip-back" class="flip-back-btn">👁 Question</button>
                         </div>
-                        <div class="card-answer" id="card-answer">Answer goes here</div>
+                        <div class="card-answer" id="card-answer">Answer</div>
                         <div class="card-diagram" id="card-diagram"></div>
-                        <div class="card-source" id="card-source">Vol1 Ch1</div>
+                        <div class="card-source" id="card-source"></div>
                     </div>
                 </div>
             </div>
             <div id="rating-buttons" class="rating-buttons hidden">
                 <div class="rating-label">How well did you know this?</div>
                 <div class="rating-btn-row">
-                    <button class="rate-btn rate-again" data-rating="1">😫<br>Again<br><span class="rate-hint">Show soon</span></button>
-                    <button class="rate-btn rate-hard" data-rating="2">😐<br>Hard<br><span class="rate-hint">1 day</span></button>
-                    <button class="rate-btn rate-good" data-rating="3">🙂<br>Good<br><span class="rate-hint">3 days</span></button>
-                    <button class="rate-btn rate-easy" data-rating="4">😎<br>Easy<br><span class="rate-hint">7+ days</span></button>
+                    <button class="rate-btn rate-again" data-rating="1">😫<br>Again<br><span class="rate-hint">Now</span></button>
+                    <button class="rate-btn rate-hard" data-rating="2">😐<br>Hard<br><span class="rate-hint">1d</span></button>
+                    <button class="rate-btn rate-good" data-rating="3">🙂<br>Good<br><span class="rate-hint">3d</span></button>
+                    <button class="rate-btn rate-easy" data-rating="4">😎<br>Easy<br><span class="rate-hint">7d+</span></button>
                 </div>
             </div>
         </div>
 
-        <!-- Session complete -->
         <div id="session-complete" class="session-complete hidden">
             <div class="complete-icon">🎉</div>
             <div class="complete-title">Session Complete!</div>
@@ -118,23 +147,24 @@
         </div>
     </main>
 
-    <!-- ── Reels mode ── -->
+    <!-- Reels mode -->
     <main id="reels-view" class="view hidden">
-        <div id="reels-container" class="reels-container">
-            <!-- Cards injected by JS -->
+        <div id="reels-filters" class="reels-filters">
+            <button class="filter-chip active" data-cat="all">All</button>
         </div>
+        <div id="reels-container" class="reels-container"></div>
     </main>
 
-    <!-- ── Read mode ── -->
+    <!-- Read mode -->
     <main id="read-view" class="view hidden">
         <div class="read-controls">
             <select id="book-select" class="book-select">
-                <option value="vol1">📕 Volume 1 — Alex Xu</option>
-                <option value="vol2">📗 Volume 2 — Xu & Lam</option>
+                <option value="vol1">📕 Volume 1</option>
+                <option value="vol2">📗 Volume 2</option>
             </select>
             <div class="read-nav">
                 <button id="read-prev" class="icon-btn">◀</button>
-                <span id="read-page-num" class="read-page-num" title="Tap to enter page number">1 / 269</span>
+                <span id="read-page-num" class="read-page-num">1 / 269</span>
                 <button id="read-next" class="icon-btn">▶</button>
             </div>
         </div>
@@ -146,58 +176,54 @@
         </div>
     </main>
 
-    <!-- ── Profile panel (stats + settings combined) ── -->
+    <!-- Search panel -->
+    <div id="search-panel" class="search-panel hidden">
+        <div class="search-header">
+            <input id="search-input" class="search-input" type="text" placeholder="Search cards..." autofocus>
+            <button id="close-search" class="icon-btn">✕</button>
+        </div>
+        <div id="search-results" class="search-results"></div>
+    </div>
+
+    <!-- Profile panel -->
     <div id="profile-panel" class="side-panel hidden">
         <div class="panel-header">
-            <h2>👤 Your Profile</h2>
+            <h2>👤 Profile</h2>
             <button class="icon-btn" id="close-profile">✕</button>
         </div>
         <div id="profile-body" class="panel-body">
-            <!-- Stats section -->
             <div id="stats-section"></div>
-            <!-- Settings section -->
+            <div id="badges-section"></div>
             <h3 style="margin:20px 0 8px;font-size:0.9rem;color:var(--text-muted)">⚙️ Settings</h3>
-            <label class="setting-row">
-                <span>Theme</span>
-                <select id="theme-select">
-                    <option value="dark">Dark</option>
-                    <option value="light">Light</option>
-                </select>
+            <label class="setting-row"><span>Theme</span>
+                <select id="theme-select"><option value="dark">Dark</option><option value="light">Light</option></select>
             </label>
-            <label class="setting-row">
-                <span>New cards/day</span>
-                <select id="daily-new-select">
-                    <option value="5">5</option>
-                    <option value="10" selected>10</option>
-                    <option value="15">15</option>
-                    <option value="20">20</option>
-                </select>
+            <label class="setting-row"><span>Daily goal</span>
+                <select id="daily-new-select"><option value="5">5</option><option value="10" selected>10</option><option value="15">15</option><option value="20">20</option></select>
             </label>
-            <div class="setting-row">
-                <span>Total cards</span>
-                <span id="total-cards-count">0</span>
-            </div>
+            <div class="setting-row"><span>Total cards</span><span id="total-cards-count">0</span></div>
             <button id="btn-reset" class="btn-danger">Reset All Progress</button>
         </div>
     </div>
 
-    <!-- ── Level unlock toast ── -->
-    <div id="level-toast" class="level-toast hidden">
-        <div class="toast-icon">🎉</div>
-        <div class="toast-text" id="toast-text">Level 2 Unlocked!</div>
+    <!-- Streak milestone toast -->
+    <div id="milestone-toast" class="milestone-toast hidden">
+        <div id="milestone-icon" class="milestone-icon">🏆</div>
+        <div id="milestone-text" class="milestone-text"></div>
     </div>
 
-    <!-- ── XP popup ── -->
+    <!-- XP popup -->
     <div id="xp-popup" class="xp-popup hidden">+3 XP</div>
 
-    <!-- ── Overlay ── -->
+    <!-- Level unlock toast -->
+    <div id="level-toast" class="level-toast hidden">
+        <div class="toast-icon">🎉</div>
+        <div class="toast-text" id="toast-text"></div>
+    </div>
+
     <div id="overlay" class="overlay hidden"></div>
 
-    <script src="app.js?v=7"></script>
-    <script>
-        if ('serviceWorker' in navigator) {
-            navigator.serviceWorker.register('sw.js').catch(() => {});
-        }
-    </script>
+    <script src="app.js?v=8"></script>
+    <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>
