@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=10">
+    <link rel="stylesheet" href="styles.css?v=11">
 </head>
 <body class="theme-dark">
     <!-- Onboarding (first launch only) -->
@@ -79,6 +79,7 @@
         <div id="study-summary" class="study-summary">
             <div class="summary-ring">
                 <svg viewBox="0 0 120 120" class="progress-ring">
+                    <defs><linearGradient id="ring-grad" x1="0" y1="0" x2="1" y2="1"><stop offset="0%" stop-color="#7c6cf0"/><stop offset="100%" stop-color="#a78bfa"/></linearGradient></defs>
                     <circle cx="60" cy="60" r="52" class="ring-bg"/>
                     <circle id="ring-progress" cx="60" cy="60" r="52" class="ring-fill"/>
                 </svg>
@@ -226,7 +227,7 @@
 
     <div id="overlay" class="overlay dismissed"></div>
 
-    <script src="app.js?v=10"></script>
+    <script src="app.js?v=11"></script>
     <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>
