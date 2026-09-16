@@ -1,5 +1,5 @@
-const CACHE_NAME = "sdc-v19";
-const SHELL = ["./", "index.html", "styles.css?v=19", "app.js?v=19", "manifest.json", "cards.json", "diagrams.json", "quizzes.json"];
+const CACHE_NAME = "sdc-v20";
+const SHELL = ["./", "index.html", "styles.css?v=20", "app.js?v=20", "manifest.json", "cards.json", "diagrams.json", "quizzes.json"];
 
 self.addEventListener("install", (e) => {
   e.waitUntil(caches.open(CACHE_NAME).then((c) => c.addAll(SHELL)));

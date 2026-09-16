@@ -160,7 +160,8 @@ function drainNotifQueue(){
 }
 
 function dismissNotifBanner(){
-  var banner=$("notif-banner");
+  var banner=$("notif-banner");if(!banner)return;
+  banner.classList.remove("visible");banner.style.display="none";
   banner.classList.remove("visible");
   setTimeout(function(){drainNotifQueue()},400);
 }
@@ -546,13 +547,15 @@ function loadCards(){
   return new Promise(function(resolve){
     $("loader").style.opacity="1";$("loader").style.pointerEvents="auto";$("loader").style.display="flex";
     var fill=$("loader").querySelector(".loader-fill");fill.style.width="20%";
-    // Load both files in parallel
+    // Load all data files in parallel
     Promise.all([
       fetch("cards.json").then(function(r){return r.json()}).catch(function(){return[]}),
-      fetch("diagrams.json").then(function(r){if(r.ok)return r.json();return null}).catch(function(){return null})
+      fetch("diagrams.json").then(function(r){if(r.ok)return r.json();return null}).catch(function(){return null}),
+      fetch("quizzes.json").then(function(r){if(r.ok)return r.json();return[]}).catch(function(){return[]})
     ]).then(function(results){
       allCards=results[0];
       var svgs=results[1];
+      quizBank=results[2]||[];
       // Merge SVGs back into cards in memory
       if(svgs){
         for(var i=0;i<allCards.length;i++){
@@ -561,8 +564,7 @@ function loadCards(){
       }
       fill.style.width="60%";
       return loadState();
-  // Load dedicated quiz bank
-  fetch('quizzes.json').then(function(r){return r.ok?r.json():[]}).then(function(qs){quizBank=qs||[]}).catch(function(){quizBank=[]});
+
     }).then(function(){
       return loadDailyCount();
     }).then(function(){
