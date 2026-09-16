@@ -162,7 +162,6 @@ function drainNotifQueue(){
 
 function dismissNotifBanner(){
   var banner=$("notif-banner");if(!banner)return;
-  banner.classList.remove("visible");banner.style.display="none";
   banner.classList.remove("visible");
   setTimeout(function(){drainNotifQueue()},400);
 }
@@ -604,7 +603,9 @@ function showCard(){
   var dEl=$("card-diagram");
   dEl.innerHTML=c.diagram_svg?'<img src="'+c.diagram_svg+'" alt="Diagram" class="diagram-img">':c.diagram?'<pre>'+esc(c.diagram)+'</pre>':"";
   $("rating-buttons").classList.add("hidden");
+  $("rating-buttons").style.display="none";
   $("category-progress").classList.add("hidden");
+  $("category-progress").style.display="none";
   $("card-counter").textContent=(studyIndex+1)+"/"+studyQueue.length;
   $("card-progress-fill").style.setProperty("--progress",studyIndex/studyQueue.length*100+"%");
 }
@@ -613,6 +614,7 @@ function flipCard(){
   f.classList.toggle("flipped");
   var isFlipped=f.classList.contains("flipped");
   $("rating-buttons").classList.toggle("hidden",!isFlipped);
+  $("rating-buttons").style.display=isFlipped?"":"none";
   if(isFlipped){updateCategoryProgress()}else{$("category-progress").classList.add("hidden")}
 }
 
@@ -946,6 +948,12 @@ function updateSummary(){
   var levelBtns=document.querySelectorAll(".level-btn[data-level]");
   for(var j=0;j<levelBtns.length;j++){var b=levelBtns[j];var l=b.dataset.level;if(l==="all")continue;b.classList.toggle("locked",gam.unlockedLevels.indexOf(parseInt(l))===-1)}
   $("total-cards-count").textContent=allCards.length;
+  // Show unlock requirements on study info
+  var masteredCount=Object.values(cardState).filter(function(s){return s.status==="mastered"}).length;
+  var unlockInfo="";
+  if(gam.unlockedLevels.indexOf(3)===-1)unlockInfo="🔒 Master "+LEVEL_THRESHOLDS[3]+" cards to unlock L3 ("+masteredCount+"/"+LEVEL_THRESHOLDS[3]+")";
+  else if(gam.unlockedLevels.indexOf(4)===-1)unlockInfo="🔒 Master "+LEVEL_THRESHOLDS[4]+" cards to unlock L4 ("+masteredCount+"/"+LEVEL_THRESHOLDS[4]+")";
+  if(unlockInfo&&$("study-info"))$("study-info").textContent+=" "+unlockInfo;
 
   var info=$("study-info");
   hideEmptyState();
