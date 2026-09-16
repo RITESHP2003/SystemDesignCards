@@ -149,6 +149,7 @@ function drainNotifQueue(){
   var banner=$("notif-banner");
   var text=$("notif-text");
   text.textContent=msg;
+  banner.style.display="";
   banner.classList.add("visible");
   // Also try OS notification if page hidden and permission granted
   if(document.hidden&&Notification.permission==="granted"){
@@ -163,7 +164,7 @@ function drainNotifQueue(){
 function dismissNotifBanner(){
   var banner=$("notif-banner");if(!banner)return;
   banner.classList.remove("visible");
-  setTimeout(function(){drainNotifQueue()},400);
+  setTimeout(function(){banner.style.display="none";drainNotifQueue()},400);
 }
 
 function resetIdleTimer(){
@@ -681,7 +682,7 @@ function setupSwipeGestures(){
   },{passive:false});
 
   fc.addEventListener("touchend",function(){
-    if(!isSwiping){fc.style.transform="";fc.classList.remove("swipe-left","swipe-right","swipe-up","swipe-down");return}
+    if(!isSwiping)return; // Don't touch transform — let CSS handle the flip
     isSwiping=false;
     fc.classList.remove("swiping");
     var absX=Math.abs(dx),absY=Math.abs(dy);
@@ -953,7 +954,8 @@ function updateSummary(){
   var unlockInfo="";
   if(gam.unlockedLevels.indexOf(3)===-1)unlockInfo="🔒 Master "+LEVEL_THRESHOLDS[3]+" cards to unlock L3 ("+masteredCount+"/"+LEVEL_THRESHOLDS[3]+")";
   else if(gam.unlockedLevels.indexOf(4)===-1)unlockInfo="🔒 Master "+LEVEL_THRESHOLDS[4]+" cards to unlock L4 ("+masteredCount+"/"+LEVEL_THRESHOLDS[4]+")";
-  if(unlockInfo&&$("study-info"))$("study-info").textContent+=" "+unlockInfo;
+  if(unlockInfo&&$("unlock-info"))$("unlock-info").textContent=unlockInfo;
+  else if($("unlock-info"))$("unlock-info").textContent="";
 
   var info=$("study-info");
   hideEmptyState();
