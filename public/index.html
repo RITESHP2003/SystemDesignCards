@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=11">
+    <link rel="stylesheet" href="styles.css?v=12">
 </head>
 <body class="theme-dark">
     <!-- Onboarding (first launch only) -->
@@ -95,6 +95,12 @@
                 <div class="stat"><span id="stat-mastered" class="stat-num">0</span><span class="stat-label">Mastered</span></div>
             </div>
             <div id="study-info" class="study-info"></div>
+            <!-- Empty state area: streak calendar + motivational message -->
+            <div id="empty-state" class="empty-state hidden">
+                <div id="empty-message" class="empty-message"></div>
+                <div id="streak-calendar" class="streak-calendar"></div>
+                <div id="empty-tomorrow" class="empty-tomorrow"></div>
+            </div>
             <button id="btn-start-study" class="btn-primary">Start Studying</button>
             <button id="btn-extra-study" class="btn-secondary hidden">Learn More Cards</button>
             <div id="level-selector" class="level-selector">
@@ -130,7 +136,12 @@
                         <div class="card-source" id="card-source"></div>
                     </div>
                 </div>
+                <!-- Swipe indicators -->
+                <div class="swipe-indicator swipe-left-indicator">← Forgot</div>
+                <div class="swipe-indicator swipe-right-indicator">Good →</div>
+                <div class="swipe-indicator swipe-up-indicator">Easy ↑</div>
             </div>
+            <div id="category-progress" class="category-progress hidden"></div>
             <div id="rating-buttons" class="rating-buttons hidden">
                 <div class="rating-label">How well did you know the answer?</div>
                 <div class="rating-btn-row">
@@ -153,30 +164,32 @@
 
     <!-- Reels mode -->
     <main id="reels-view" class="view hidden">
-        <div id="reels-filters" class="reels-filters">
-            <button class="filter-chip active" data-cat="all">All</button>
+        <div class="reels-filter-row">
+            <select id="reels-filter-select" class="reels-filter-select">
+                <option value="all">All</option>
+            </select>
         </div>
         <div id="reels-container" class="reels-container"></div>
     </main>
 
     <!-- Read mode -->
     <main id="read-view" class="view hidden">
-        <div class="read-controls">
-            <select id="book-select" class="book-select">
-                <option value="vol1">📕 Volume 1</option>
-                <option value="vol2">📗 Volume 2</option>
-            </select>
-            <div class="read-nav">
-                <button id="read-prev" class="icon-btn">◀</button>
-                <span id="read-page-num" class="read-page-num">1 / 269</span>
-                <button id="read-next" class="icon-btn">▶</button>
-            </div>
-        </div>
         <div id="read-container" class="read-container">
             <img id="read-page-img" class="read-page-img" alt="Book page">
         </div>
-        <div class="read-slider-container">
-            <input type="range" id="read-slider" class="read-slider" min="1" max="269" value="1">
+        <div class="read-bottom-controls">
+            <select id="book-select" class="book-select">
+                <option value="vol1">📕 Vol 1</option>
+                <option value="vol2">📗 Vol 2</option>
+            </select>
+            <div class="read-nav">
+                <button id="read-prev" class="icon-btn read-nav-btn">◀</button>
+                <span id="read-page-num" class="read-page-num">1 / 269</span>
+                <button id="read-next" class="icon-btn read-nav-btn">▶</button>
+            </div>
+            <div class="read-slider-container">
+                <input type="range" id="read-slider" class="read-slider" min="1" max="269" value="1">
+            </div>
         </div>
     </main>
 
@@ -227,7 +240,7 @@
 
     <div id="overlay" class="overlay dismissed"></div>
 
-    <script src="app.js?v=11"></script>
+    <script src="app.js?v=12"></script>
     <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>
