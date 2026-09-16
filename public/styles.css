@@ -127,9 +127,11 @@ body.theme-dark{background:linear-gradient(160deg,#0a0a14 0%,#0d0d1f 40%,#121228
 .swipe-left-indicator{left:8px;top:50%;transform:translateY(-50%);color:var(--red);background:rgba(248,113,113,.12);text-shadow:0 0 12px rgba(248,113,113,.5)}
 .swipe-right-indicator{right:8px;top:50%;transform:translateY(-50%);color:var(--green);background:rgba(52,211,153,.12);text-shadow:0 0 12px rgba(52,211,153,.5)}
 .swipe-up-indicator{top:8px;left:50%;transform:translateX(-50%);color:var(--accent2);background:rgba(124,108,240,.12);text-shadow:0 0 12px rgba(124,108,240,.5)}
+.swipe-down-indicator{bottom:8px;left:50%;transform:translateX(-50%);color:var(--orange);background:rgba(251,146,60,.12);text-shadow:0 0 12px rgba(251,146,60,.5)}
 .flashcard.swipe-left .swipe-left-indicator{opacity:1}
 .flashcard.swipe-right .swipe-right-indicator{opacity:1}
 .flashcard.swipe-up .swipe-up-indicator{opacity:1}
+.flashcard.swipe-down .swipe-down-indicator{opacity:1}
 .flashcard.fly-out{transition:transform .3s ease-out,opacity .3s ease-out;opacity:0}
 
 /* Category progress line */

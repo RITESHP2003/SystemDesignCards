@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=12">
+    <link rel="stylesheet" href="styles.css?v=13">
 </head>
 <body class="theme-dark">
     <!-- Onboarding (first launch only) -->
@@ -140,6 +140,7 @@
                 <div class="swipe-indicator swipe-left-indicator">← Forgot</div>
                 <div class="swipe-indicator swipe-right-indicator">Good →</div>
                 <div class="swipe-indicator swipe-up-indicator">Easy ↑</div>
+                <div class="swipe-indicator swipe-down-indicator">Hard ↓</div>
             </div>
             <div id="category-progress" class="category-progress hidden"></div>
             <div id="rating-buttons" class="rating-buttons hidden">
@@ -219,6 +220,9 @@
                 <select id="daily-new-select"><option value="5">5</option><option value="10" selected>10</option><option value="15">15</option><option value="20">20</option></select>
             </label>
             <div class="setting-row"><span>Total cards</span><span id="total-cards-count">0</span></div>
+            <button id="btn-export" class="btn-secondary" style="margin-top:12px">📤 Export Progress</button>
+            <button id="btn-import" class="btn-secondary" style="margin-top:8px">📥 Import Progress</button>
+            <input id="import-file" type="file" accept=".json" class="hidden">
             <button id="btn-reset" class="btn-danger">Reset All Progress</button>
         </div>
     </div>
@@ -240,7 +244,7 @@
 
     <div id="overlay" class="overlay dismissed"></div>
 
-    <script src="app.js?v=12"></script>
+    <script src="app.js?v=13"></script>
     <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>

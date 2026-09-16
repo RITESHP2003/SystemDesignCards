@@ -1,11 +1,13 @@
 /**
- * SystemDesignCards v9 — 6 UX improvements
- * 1. Swipe gestures on study cards
+ * SystemDesignCards v10 — IndexedDB + Export/Import + Swipe Down=Hard
+ * 1. Swipe gestures on study cards (LEFT=Forgot, DOWN=Hard, RIGHT=Good, UP=Easy)
  * 2. Category progress in study mode
  * 3. Better empty states
  * 4. Reels filter as dropdown
  * 5. Smooth page transitions (CSS)
  * 6. Better read mode — bottom controls + swipe
+ * 7. IndexedDB persistence (migrated from localStorage)
+ * 8. Export / Import progress
  */
 (function(){
 "use strict";
@@ -27,19 +29,211 @@ var allCards=[],cardState={},gam={xp:0,streak:0,lastStudyDate:null,unlockedLevel
 var studyQueue=[],studyIndex=0,sessionStats={reviewed:0,correct:0,xpEarned:0},selectedLevel="all",savedCards=new Set();
 var readBook="vol1",readPage=1,readManifests={},readInit=false;
 var sessionSeenCategories={};
+var db=null;
+var DB_NAME="SystemDesignCardsDB";
+var DB_VERSION=1;
 
-// ═══ PERSISTENCE ═══
-function loadState(){try{
-  var s=localStorage.getItem("sdc-state");if(s)cardState=JSON.parse(s);
-  var g=localStorage.getItem("sdc-gam");if(g)gam=Object.assign({},gam,JSON.parse(g));
-  var st=localStorage.getItem("sdc-settings");if(st)settings=Object.assign({},settings,JSON.parse(st));
-  var sv=localStorage.getItem("sdc-saved");if(sv)savedCards=new Set(JSON.parse(sv));
-}catch(e){/* ignore */}}
+// ═══ INDEXEDDB WRAPPER ═══
+function openDB(){
+  return new Promise(function(resolve,reject){
+    var req=indexedDB.open(DB_NAME,DB_VERSION);
+    req.onupgradeneeded=function(e){
+      var d=e.target.result;
+      if(!d.objectStoreNames.contains("cardState"))d.createObjectStore("cardState",{keyPath:"id"});
+      if(!d.objectStoreNames.contains("gamification"))d.createObjectStore("gamification");
+      if(!d.objectStoreNames.contains("settings"))d.createObjectStore("settings");
+      if(!d.objectStoreNames.contains("savedCards"))d.createObjectStore("savedCards");
+      if(!d.objectStoreNames.contains("dailyCounts"))d.createObjectStore("dailyCounts");
+    };
+    req.onsuccess=function(e){db=e.target.result;resolve(db)};
+    req.onerror=function(e){reject(e.target.error)};
+  });
+}
+function dbGet(store,key){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(store,"readonly");
+    var req=tx.objectStore(store).get(key);
+    req.onsuccess=function(){resolve(req.result)};
+    req.onerror=function(){reject(req.error)};
+  });
+}
+function dbPut(store,key,value){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(store,"readwrite");
+    var s=tx.objectStore(store);
+    // For stores with keyPath, put value directly; otherwise use key
+    if(s.keyPath){s.put(value)}else{s.put(value,key)}
+    tx.oncomplete=function(){resolve()};
+    tx.onerror=function(){reject(tx.error)};
+  });
+}
+function dbGetAll(store){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(store,"readonly");
+    var req=tx.objectStore(store).getAll();
+    req.onsuccess=function(){resolve(req.result)};
+    req.onerror=function(){reject(req.error)};
+  });
+}
+function dbGetAllKeys(store){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(store,"readonly");
+    var req=tx.objectStore(store).getAllKeys();
+    req.onsuccess=function(){resolve(req.result)};
+    req.onerror=function(){reject(req.error)};
+  });
+}
+function dbDelete(store,key){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(store,"readwrite");
+    tx.objectStore(store).delete(key);
+    tx.oncomplete=function(){resolve()};
+    tx.onerror=function(){reject(tx.error)};
+  });
+}
+function dbClear(store){
+  return new Promise(function(resolve,reject){
+    var tx=db.transaction(store,"readwrite");
+    tx.objectStore(store).clear();
+    tx.oncomplete=function(){resolve()};
+    tx.onerror=function(){reject(tx.error)};
+  });
+}
+
+// ═══ MIGRATION FROM LOCALSTORAGE ═══
+function migrateFromLocalStorage(){
+  return new Promise(function(resolve){
+    var hadData=false;
+    var promises=[];
+    // Migrate card state
+    var s=localStorage.getItem("sdc-state");
+    if(s){
+      hadData=true;
+      try{
+        var parsed=JSON.parse(s);
+        var keys=Object.keys(parsed);
+        for(var i=0;i<keys.length;i++){
+          var id=keys[i];
+          var val=parsed[id];
+          val.id=id;
+          promises.push(dbPut("cardState",id,val));
+        }
+      }catch(e){/* ignore bad data */}
+    }
+    // Migrate gamification
+    var g=localStorage.getItem("sdc-gam");
+    if(g){
+      hadData=true;
+      try{promises.push(dbPut("gamification","main",JSON.parse(g)))}catch(e){}
+    }
+    // Migrate settings
+    var st=localStorage.getItem("sdc-settings");
+    if(st){
+      hadData=true;
+      try{promises.push(dbPut("settings","main",JSON.parse(st)))}catch(e){}
+    }
+    // Migrate saved cards
+    var sv=localStorage.getItem("sdc-saved");
+    if(sv){
+      hadData=true;
+      try{
+        var arr=JSON.parse(sv);
+        for(var j=0;j<arr.length;j++){
+          promises.push(dbPut("savedCards",arr[j],{id:arr[j]}));
+        }
+      }catch(e){}
+    }
+    // Migrate daily counts (sdc-today-YYYY-MM-DD keys)
+    for(var k=0;k<localStorage.length;k++){
+      var key=localStorage.key(k);
+      if(key&&key.indexOf("sdc-today-")===0){
+        hadData=true;
+        var dateStr=key.replace("sdc-today-","");
+        var count=parseInt(localStorage.getItem(key)||"0",10);
+        promises.push(dbPut("dailyCounts",dateStr,{date:dateStr,count:count}));
+      }
+    }
+    // Migrate study dates into dailyCounts (ensure presence)
+    var sd=localStorage.getItem("sdc-study-dates");
+    if(sd){
+      hadData=true;
+      try{
+        var dates=JSON.parse(sd);
+        for(var d=0;d<dates.length;d++){
+          // Only add if not already migrated from sdc-today-
+          promises.push(
+            dbGet("dailyCounts",dates[d]).then(function(dateVal){
+              return function(existing){
+                if(!existing)return dbPut("dailyCounts",dateVal,{date:dateVal,count:0,studied:true});
+                if(!existing.studied){existing.studied=true;return dbPut("dailyCounts",dateVal,existing)}
+              };
+            }(dates[d]))
+          );
+        }
+      }catch(e){}
+    }
+    Promise.all(promises).then(function(){
+      if(hadData){
+        // Remove old localStorage keys
+        localStorage.removeItem("sdc-state");
+        localStorage.removeItem("sdc-gam");
+        localStorage.removeItem("sdc-settings");
+        localStorage.removeItem("sdc-saved");
+        localStorage.removeItem("sdc-study-dates");
+        // Remove daily count keys
+        var toRemove=[];
+        for(var r=0;r<localStorage.length;r++){
+          var rk=localStorage.key(r);
+          if(rk&&rk.indexOf("sdc-today-")===0)toRemove.push(rk);
+        }
+        for(var ri=0;ri<toRemove.length;ri++)localStorage.removeItem(toRemove[ri]);
+      }
+      resolve();
+    }).catch(function(){resolve()});
+  });
+}
+
+// ═══ PERSISTENCE (IndexedDB) ═══
+function loadState(){
+  return Promise.all([
+    dbGetAll("cardState").then(function(rows){
+      cardState={};
+      for(var i=0;i<rows.length;i++)cardState[rows[i].id]=rows[i];
+    }),
+    dbGet("gamification","main").then(function(g){
+      if(g)gam=Object.assign({},gam,g);
+    }),
+    dbGet("settings","main").then(function(st){
+      if(st)settings=Object.assign({},settings,st);
+    }),
+    dbGetAllKeys("savedCards").then(function(keys){
+      savedCards=new Set(keys);
+    })
+  ]);
+}
 function save(){
-  localStorage.setItem("sdc-state",JSON.stringify(cardState));
-  localStorage.setItem("sdc-gam",JSON.stringify(gam));
-  localStorage.setItem("sdc-settings",JSON.stringify(settings));
-  localStorage.setItem("sdc-saved",JSON.stringify(Array.from(savedCards)));
+  // Save cardState, gamification, settings, savedCards to IndexedDB
+  var promises=[];
+  var keys=Object.keys(cardState);
+  // Batch card state writes in a single transaction
+  var csTx=db.transaction("cardState","readwrite");
+  var csStore=csTx.objectStore("cardState");
+  for(var i=0;i<keys.length;i++){
+    var val=cardState[keys[i]];
+    val.id=keys[i];
+    csStore.put(val);
+  }
+  promises.push(new Promise(function(resolve,reject){csTx.oncomplete=resolve;csTx.onerror=reject}));
+  promises.push(dbPut("gamification","main",Object.assign({},gam)));
+  promises.push(dbPut("settings","main",Object.assign({},settings)));
+  // Saved cards
+  var svTx=db.transaction("savedCards","readwrite");
+  var svStore=svTx.objectStore("savedCards");
+  svStore.clear();
+  savedCards.forEach(function(id){svStore.put({id:id})});
+  promises.push(new Promise(function(resolve,reject){svTx.oncomplete=resolve;svTx.onerror=reject}));
+  // Fire and forget — don't block UI
+  Promise.all(promises).catch(function(e){console.error("save error",e)});
 }
 
 // ═══ SM-2 ═══
@@ -98,8 +292,23 @@ function checkLevelUnlock(){
     }
   }
 }
-function getDailyCount(){var k="sdc-today-"+new Date().toISOString().split("T")[0];return parseInt(localStorage.getItem(k)||"0",10)}
-function incDailyCount(){var k="sdc-today-"+new Date().toISOString().split("T")[0];localStorage.setItem(k,String(getDailyCount()+1))}
+function getDailyCount(){
+  // Sync read from in-memory cache updated by incDailyCount
+  return getDailyCount._cache||0;
+}
+function loadDailyCount(){
+  var today=new Date().toISOString().split("T")[0];
+  return dbGet("dailyCounts",today).then(function(rec){
+    getDailyCount._cache=rec?rec.count:0;
+  });
+}
+function incDailyCount(){
+  var today=new Date().toISOString().split("T")[0];
+  var current=getDailyCount._cache||0;
+  current++;
+  getDailyCount._cache=current;
+  dbPut("dailyCounts",today,{date:today,count:current,studied:true}).catch(function(){});
+}
 function updateDailyGoal(){
   var done=getDailyCount(),goal=settings.newPerDay;
   var pct=Math.min(100,Math.round(done/goal*100));
@@ -109,13 +318,23 @@ function updateDailyGoal(){
 
 // ═══ STUDY HISTORY (for streak calendar) ═══
 function recordStudyDay(){
-  var dates=[];
-  try{var d=localStorage.getItem("sdc-study-dates");if(d)dates=JSON.parse(d)}catch(e){/* ignore */}
   var today=new Date().toISOString().split("T")[0];
-  if(dates.indexOf(today)===-1){dates.push(today);if(dates.length>90)dates=dates.slice(-90);localStorage.setItem("sdc-study-dates",JSON.stringify(dates))}
+  dbGet("dailyCounts",today).then(function(rec){
+    if(rec){
+      if(!rec.studied){rec.studied=true;dbPut("dailyCounts",today,rec).catch(function(){})}
+    }else{
+      dbPut("dailyCounts",today,{date:today,count:0,studied:true}).catch(function(){});
+    }
+  }).catch(function(){});
 }
 function getStudyDates(){
-  try{var d=localStorage.getItem("sdc-study-dates");return d?JSON.parse(d):[]}catch(e){return[]}
+  return dbGetAll("dailyCounts").then(function(rows){
+    var dates=[];
+    for(var i=0;i<rows.length;i++){
+      if(rows[i].studied)dates.push(rows[i].date);
+    }
+    return dates;
+  }).catch(function(){return[]});
 }
 
 // ═══ CONFETTI ═══
@@ -155,8 +374,12 @@ function loadCards(){
     $("loader").style.opacity="1";$("loader").style.pointerEvents="auto";$("loader").style.display="flex";
     var fill=$("loader").querySelector(".loader-fill");fill.style.width="30%";
     fetch("cards.json").then(function(r){return r.json()}).then(function(data){allCards=data}).catch(function(){allCards=[]}).then(function(){
-      fill.style.width="70%";loadState();
-      for(var i=0;i<allCards.length;i++){var c=allCards[i];if(!cardState[c.id])cardState[c.id]={ef:2.5,interval:0,repetitions:0,nextReview:null,status:"new"}}
+      fill.style.width="70%";
+      return loadState();
+    }).then(function(){
+      return loadDailyCount();
+    }).then(function(){
+      for(var i=0;i<allCards.length;i++){var c=allCards[i];if(!cardState[c.id])cardState[c.id]={id:c.id,ef:2.5,interval:0,repetitions:0,nextReview:null,status:"new"}}
       fill.style.width="100%";resolve();
     });
   });
@@ -181,7 +404,7 @@ function startStudy(){
 function showCard(){
   if(studyIndex>=studyQueue.length){finishSession();return}
   var c=studyQueue[studyIndex],fc=$("flashcard");fc.classList.remove("flipped");
-  fc.style.transform="";fc.style.opacity="";fc.classList.remove("fly-out","swipe-left","swipe-right","swipe-up","swiping");
+  fc.style.transform="";fc.style.opacity="";fc.classList.remove("fly-out","swipe-left","swipe-right","swipe-up","swipe-down","swiping");
   fc.setAttribute("data-card-level",c.level);
   $("card-level-tag").textContent="L"+c.level;$("card-level-tag-back").textContent="L"+c.level;
   $("card-category").textContent=c.category;$("card-question").textContent=c.front;
@@ -198,7 +421,6 @@ function flipCard(){
   f.classList.toggle("flipped");
   var isFlipped=f.classList.contains("flipped");
   $("rating-buttons").classList.toggle("hidden",!isFlipped);
-  // Show category progress when flipped
   if(isFlipped){updateCategoryProgress()}else{$("category-progress").classList.add("hidden")}
 }
 
@@ -210,7 +432,6 @@ function updateCategoryProgress(){
   for(var i=0;i<studyQueue.length;i++){
     if(studyQueue[i].category===cat){total++;if(i<studyIndex)seen++}
   }
-  // Also count current as being viewed
   if(sessionSeenCategories[cat])seen=sessionSeenCategories[cat];
   var el=$("category-progress");
   el.textContent=cat+" "+(seen)+"/"+total+" seen";
@@ -218,8 +439,11 @@ function updateCategoryProgress(){
 }
 
 function rateCard(rating){
-  var c=studyQueue[studyIndex];cardState[c.id]=sm2(cardState[c.id],rating);
-  // Track seen per category
+  var c=studyQueue[studyIndex];
+  var st=cardState[c.id];
+  st.id=c.id;
+  cardState[c.id]=Object.assign(st,sm2(st,rating));
+  cardState[c.id].id=c.id;
   if(!sessionSeenCategories[c.category])sessionSeenCategories[c.category]=0;
   sessionSeenCategories[c.category]++;
   sessionStats.reviewed++;if(rating>=3)sessionStats.correct++;sessionStats.xpEarned+=addXP(rating);
@@ -233,7 +457,7 @@ function finishSession(){
   fireConfetti();updateAll();
 }
 
-// ═══ SWIPE GESTURES ═══
+// ═══ SWIPE GESTURES (LEFT=Forgot, DOWN=Hard, RIGHT=Good, UP=Easy) ═══
 function setupSwipeGestures(){
   var fc=$("flashcard");
   var startX=0,startY=0,dx=0,dy=0,isSwiping=false;
@@ -248,13 +472,14 @@ function setupSwipeGestures(){
   fc.addEventListener("touchmove",function(e){
     if(!isSwiping||!fc.classList.contains("flipped"))return;
     var t=e.touches[0];dx=t.clientX-startX;dy=t.clientY-startY;
-    // Apply transform to card
     var rotate=dx*0.08;
-    fc.style.transform="translateX("+dx+"px) translateY("+Math.min(dy,0)+"px) rotate("+rotate+"deg)";
-    // Show indicators
-    fc.classList.toggle("swipe-left",dx<-THRESHOLD/2);
-    fc.classList.toggle("swipe-right",dx>THRESHOLD/2);
-    fc.classList.toggle("swipe-up",dy<-THRESHOLD/2&&Math.abs(dy)>Math.abs(dx));
+    fc.style.transform="translateX("+dx+"px) translateY("+dy+"px) rotate("+rotate+"deg)";
+    // Show indicators based on direction
+    var absX=Math.abs(dx),absY=Math.abs(dy);
+    fc.classList.toggle("swipe-left",dx<-THRESHOLD/2&&absX>absY);
+    fc.classList.toggle("swipe-right",dx>THRESHOLD/2&&absX>absY);
+    fc.classList.toggle("swipe-up",dy<-THRESHOLD/2&&absY>absX);
+    fc.classList.toggle("swipe-down",dy>THRESHOLD/2&&absY>absX);
     e.preventDefault();
   },{passive:false});
 
@@ -263,10 +488,12 @@ function setupSwipeGestures(){
     isSwiping=false;
     fc.classList.remove("swiping");
     var absX=Math.abs(dx),absY=Math.abs(dy);
-    // Determine swipe direction
     if(dy<-THRESHOLD&&absY>absX){
       // Swipe UP = Easy (4)
       flyOut(0,-1);rateCard(4);
+    }else if(dy>THRESHOLD&&absY>absX){
+      // Swipe DOWN = Hard (2)
+      flyOut(0,1);rateCard(2);
     }else if(dx<-THRESHOLD&&absX>absY){
       // Swipe LEFT = Forgot (1)
       flyOut(-1,0);rateCard(1);
@@ -274,37 +501,112 @@ function setupSwipeGestures(){
       // Swipe RIGHT = Good (3)
       flyOut(1,0);rateCard(3);
     }else{
-      // Snap back
       fc.style.transform="";
-      fc.classList.remove("swipe-left","swipe-right","swipe-up");
+      fc.classList.remove("swipe-left","swipe-right","swipe-up","swipe-down");
     }
   },{passive:true});
 
   function flyOut(dirX,dirY){
     fc.classList.add("fly-out");
     fc.style.transform="translateX("+(dirX*300)+"px) translateY("+(dirY*300)+"px) rotate("+(dirX*20)+"deg)";
-    fc.classList.remove("swipe-left","swipe-right","swipe-up");
+    fc.classList.remove("swipe-left","swipe-right","swipe-up","swipe-down");
   }
+}
+
+// ═══ EXPORT / IMPORT ═══
+function setupExportImport(){
+  $("btn-export").addEventListener("click",function(){
+    Promise.all([
+      dbGetAll("cardState"),
+      dbGet("gamification","main"),
+      dbGet("settings","main"),
+      dbGetAll("savedCards"),
+      dbGetAll("dailyCounts")
+    ]).then(function(results){
+      var data={
+        version:1,
+        exportDate:new Date().toISOString(),
+        cardState:results[0],
+        gamification:results[1]||{},
+        settings:results[2]||{},
+        savedCards:results[3],
+        dailyCounts:results[4]
+      };
+      var blob=new Blob([JSON.stringify(data,null,2)],{type:"application/json"});
+      var url=URL.createObjectURL(blob);
+      var a=document.createElement("a");
+      a.href=url;a.download="systemdesigncards-backup-"+new Date().toISOString().split("T")[0]+".json";
+      document.body.appendChild(a);a.click();document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    });
+  });
+  $("btn-import").addEventListener("click",function(){
+    $("import-file").click();
+  });
+  $("import-file").addEventListener("change",function(e){
+    var file=e.target.files[0];if(!file)return;
+    var reader=new FileReader();
+    reader.onload=function(ev){
+      try{
+        var data=JSON.parse(ev.target.result);
+        if(!data.cardState&&!data.gamification){alert("Invalid backup file.");return}
+        if(!confirm("This will replace all your current progress. Continue?"))return;
+        var promises=[];
+        // Clear existing stores
+        promises.push(dbClear("cardState"));
+        promises.push(dbClear("gamification"));
+        promises.push(dbClear("settings"));
+        promises.push(dbClear("savedCards"));
+        promises.push(dbClear("dailyCounts"));
+        Promise.all(promises).then(function(){
+          var imports=[];
+          if(data.cardState){
+            for(var i=0;i<data.cardState.length;i++){
+              imports.push(dbPut("cardState",data.cardState[i].id,data.cardState[i]));
+            }
+          }
+          if(data.gamification)imports.push(dbPut("gamification","main",data.gamification));
+          if(data.settings)imports.push(dbPut("settings","main",data.settings));
+          if(data.savedCards){
+            for(var j=0;j<data.savedCards.length;j++){
+              imports.push(dbPut("savedCards",data.savedCards[j].id,data.savedCards[j]));
+            }
+          }
+          if(data.dailyCounts){
+            for(var k=0;k<data.dailyCounts.length;k++){
+              imports.push(dbPut("dailyCounts",data.dailyCounts[k].date,data.dailyCounts[k]));
+            }
+          }
+          return Promise.all(imports);
+        }).then(function(){
+          location.reload();
+        });
+      }catch(err){alert("Error reading file: "+err.message)}
+    };
+    reader.readAsText(file);
+    // Reset file input so same file can be re-imported
+    e.target.value="";
+  });
 }
 
 // ═══ EMPTY STATE ═══
 function showEmptyState(reviewed){
   var el=$("empty-state");el.classList.remove("hidden");
-  // Motivational message
   var msgIdx=Math.floor(Math.random()*MOTIVATIONAL_MESSAGES.length);
   $("empty-message").textContent=MOTIVATIONAL_MESSAGES[msgIdx];
   // Streak calendar — last 7 days
-  var studyDates=getStudyDates();
-  var today=new Date();var calHtml="";
-  var dayLabels=["S","M","T","W","T","F","S"];
-  for(var i=6;i>=0;i--){
-    var d=new Date(today);d.setDate(d.getDate()-i);
-    var ds=d.toISOString().split("T")[0];
-    var studied=studyDates.indexOf(ds)!==-1;
-    var isToday=i===0;
-    calHtml+='<div class="streak-dot'+(studied?" studied":"")+(isToday?" today":"")+'">'+dayLabels[d.getDay()]+'</div>';
-  }
-  $("streak-calendar").innerHTML=calHtml;
+  getStudyDates().then(function(studyDates){
+    var today=new Date();var calHtml="";
+    var dayLabels=["S","M","T","W","T","F","S"];
+    for(var i=6;i>=0;i--){
+      var d=new Date(today);d.setDate(d.getDate()-i);
+      var ds=d.toISOString().split("T")[0];
+      var studied=studyDates.indexOf(ds)!==-1;
+      var isToday=i===0;
+      calHtml+='<div class="streak-dot'+(studied?" studied":"")+(isToday?" today":"")+'">'+dayLabels[d.getDay()]+'</div>';
+    }
+    $("streak-calendar").innerHTML=calHtml;
+  });
   // Tomorrow estimate
   var dueCount=0;var tomorrow=new Date();tomorrow.setDate(tomorrow.getDate()+1);
   for(var j=0;j<allCards.length;j++){
@@ -418,13 +720,11 @@ function initRead(){
     pn.addEventListener("click",function(){
       manifest(readBook).then(function(m){var p=prompt("Go to page (1-"+(m?m.total_pages:999)+"):");if(p){var n=parseInt(p,10);if(n>=1)readPage=n;show()}});
     });
-    // Swipe on read page image
     setupReadSwipe(img,function(){readPage--;show()},function(){readPage++;show()});
   }
   readPage=parseInt(localStorage.getItem("sdc-read-"+readBook)||"1",10);show();
 }
 
-// Read mode swipe helper
 function setupReadSwipe(el,onPrev,onNext){
   var startX=0,dx=0,active=false;
   el.addEventListener("touchstart",function(e){startX=e.touches[0].clientX;dx=0;active=true},{passive:true});
@@ -518,16 +818,14 @@ function setupEvents(){
   for(var j=0;j<modeTabs.length;j++){(function(t){t.addEventListener("click",function(){
     for(var k=0;k<modeTabs.length;k++)modeTabs[k].classList.remove("active");t.classList.add("active");
     var m=t.dataset.mode;
-    // Re-trigger fade-in by removing and re-adding the view
     var views=["study-view","reels-view","read-view"];
     for(var v=0;v<views.length;v++){
       var vEl=$(views[v]);
       var shouldShow=(views[v]===m+"-view");
       vEl.classList.toggle("hidden",!shouldShow);
       if(shouldShow){
-        // Force re-trigger CSS animation
         vEl.style.animation="none";
-        vEl.offsetHeight; // force reflow
+        vEl.offsetHeight;
         vEl.style.animation="";
       }
     }
@@ -539,12 +837,20 @@ function setupEvents(){
   $("close-profile").addEventListener("click",closePanels);
   $("theme-select").addEventListener("change",function(){settings.theme=$("theme-select").value;document.body.className="theme-"+settings.theme;save()});
   $("daily-new-select").addEventListener("change",function(){settings.newPerDay=parseInt($("daily-new-select").value,10);save();updateAll()});
-  $("btn-reset").addEventListener("click",function(){if(confirm("Reset ALL progress?")){localStorage.clear();location.reload()}});
+  $("btn-reset").addEventListener("click",function(){
+    if(confirm("Reset ALL progress?")){
+      // Clear IndexedDB and localStorage
+      var req=indexedDB.deleteDatabase(DB_NAME);
+      req.onsuccess=function(){localStorage.clear();location.reload()};
+      req.onerror=function(){localStorage.clear();location.reload()};
+    }
+  });
   $("overlay").addEventListener("click",closePanels);
   $("btn-search").addEventListener("click",function(){$("search-panel").classList.remove("hidden");$("search-input").focus()});
   $("close-search").addEventListener("click",function(){$("search-panel").classList.add("hidden")});
   initSearch();
   setupSwipeGestures();
+  setupExportImport();
 }
 function closePanels(){$("profile-panel").classList.add("hidden");$("overlay").classList.add("dismissed")}
 function esc(s){var d=document.createElement("div");d.textContent=s;return d.innerHTML}
@@ -558,10 +864,21 @@ function startApp(){
   });
 }
 function init(){
-  loadCards().then(function(){
+  openDB().then(function(){
+    return migrateFromLocalStorage();
+  }).then(function(){
+    return loadCards();
+  }).then(function(){
     if(showOnboarding())return;
     document.body.className="theme-"+settings.theme;updateAll();setupEvents();
     setTimeout(function(){$("loader").style.opacity="0";$("loader").style.pointerEvents="none"},300);
+  }).catch(function(err){
+    console.error("Init error:",err);
+    // Fallback: try to start anyway
+    loadCards().then(function(){
+      document.body.className="theme-"+settings.theme;updateAll();setupEvents();
+      setTimeout(function(){$("loader").style.opacity="0";$("loader").style.pointerEvents="none"},300);
+    });
   });
 }
 init();
