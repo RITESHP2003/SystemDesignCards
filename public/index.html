@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=14">
+    <link rel="stylesheet" href="styles.css?v=15">
 </head>
 <body class="theme-dark">
     <!-- Onboarding (first launch only) -->
@@ -227,6 +227,7 @@
             <div id="quiz-score-big" class="quiz-score-big">8/10</div>
             <div id="quiz-score-details" class="quiz-score-details"></div>
             <div id="quiz-wrong-list" class="quiz-wrong-list"></div>
+            <div id="quiz-score-extra" class="quiz-score-extra"></div>
             <button id="btn-quiz-retry" class="btn-primary" style="margin-top:16px">Try Again</button>
             <button id="btn-quiz-home" class="btn-secondary" style="margin-top:8px">Back to Quiz Home</button>
         </div>
@@ -303,7 +304,7 @@
 
     <div id="overlay" class="overlay dismissed"></div>
 
-    <script src="app.js?v=14"></script>
+    <script src="app.js?v=15"></script>
     <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>

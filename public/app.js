@@ -984,10 +984,14 @@ function finishQuiz(){
   $("quiz-wrong-list").innerHTML=wHtml;
   // Update streak and daily
   updateStreak();recordStudyDay();incDailyCount();updateDailyGoal();updateTopBar();
-  // Check quiz level unlock: 7+/10 unlocks next level
-  if(quizCorrect>=7){
+  // Check quiz level unlock: 3 quizzes scoring 8+/10 unlocks next level
+  if(quizCorrect>=8){
+    if(!gam.quizPassHistory)gam.quizPassHistory={};
+    var lk="L"+quizLevel;
+    if(!gam.quizPassHistory[lk])gam.quizPassHistory[lk]=0;
+    gam.quizPassHistory[lk]++;save();
     var nextLevel=quizLevel+1;
-    if(nextLevel<=4&&gam.quizUnlockedLevels.indexOf(nextLevel)===-1){
+    if(nextLevel<=4&&gam.quizUnlockedLevels.indexOf(nextLevel)===-1&&gam.quizPassHistory[lk]>=3){
       gam.quizUnlockedLevels.push(nextLevel);save();
       var names={2:"Core Patterns",3:"Real Systems",4:"Expert"};
       $("toast-text").textContent="🧪 Quiz Level "+nextLevel+": "+names[nextLevel]+" Unlocked!";
