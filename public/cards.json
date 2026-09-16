@@ -3819,5 +3819,605 @@
     "back": "A health check endpoint (e.g., GET /health) returns the service's status \u2014 whether it's alive and can handle requests. Load balancers use it to route traffic away from unhealthy instances. Kubernetes uses it for liveness/readiness probes. A good health check verifies critical dependencies (database, cache) \u2014 not just that the process is running.",
     "diagram": null,
     "source": "System Design Primer"
+  },
+  {
+    "id": "CC-001",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "How should you structure a 45-minute system design interview?",
+    "back": "**4 phases:**\n\n1. **Requirements & Clarification (5-7 min):** Ask functional/non-functional requirements. Clarify scope.\n2. **Back-of-Envelope Estimation (3-5 min):** QPS, storage, bandwidth. Shows you think at scale.\n3. **High-Level Design (15-20 min):** Draw core components, APIs, data flow.\n4. **Deep Dive (10-15 min):** Pick 1-2 components to go deep on. Show trade-offs.\n\nLeave 2-3 min for wrap-up and questions. **You drive the timeline**, not the interviewer.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-002",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "What is the 4-step system design framework?",
+    "back": "**Step 1 \u2014 Requirements:** Functional (what it does) + Non-functional (scale, latency, availability). Narrow scope early.\n\n**Step 2 \u2014 Estimation:** Users, QPS, storage/year, bandwidth. Use round numbers.\n\n**Step 3 \u2014 High-Level Design:** APIs \u2192 core services \u2192 data stores \u2192 data flow diagram.\n\n**Step 4 \u2014 Deep Dive:** Pick the hardest or most interesting component. Discuss trade-offs, failure modes, scaling.\n\nThis framework works for ANY system design question. Memorize it.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-003",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "What do system design interviewers actually look for?",
+    "back": "**Ranked by importance:**\n\n1. **Communication:** Can you explain your thinking clearly? Do you structure the conversation?\n2. **Problem-solving approach:** Do you ask good questions? Do you consider trade-offs?\n3. **Technical breadth:** Do you know the building blocks (caches, queues, DBs, CDNs)?\n4. **Trade-off analysis:** Can you articulate WHY you chose X over Y?\n5. **Correctness:** Is the design actually sound?\n\n**Key insight:** A clear communicator with a decent design beats a poor communicator with a perfect design every time.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-004",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "What are the most common mistakes beginners make in system design interviews?",
+    "back": "1. **Jumping to solutions** without clarifying requirements\n2. **Not estimating scale** \u2014 designing for 100 users when they mean 100M\n3. **Monologuing** \u2014 talking for 10 min without checking in\n4. **Over-engineering** \u2014 adding Kafka, Redis, sharding for a small-scale system\n5. **Ignoring trade-offs** \u2014 every choice has a cost; state it\n6. **No API design** \u2014 jumping to boxes without defining interfaces\n7. **Not drawing** \u2014 always use a diagram\n8. **Trying to be perfect** \u2014 interviewers want to see how you THINK, not a production-ready spec",
+    "type": "concept"
+  },
+  {
+    "id": "CC-005",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "How do you handle 'I don't know' gracefully in a system design interview?",
+    "back": "**Never freeze. Use these strategies:**\n\n1. **Be honest + pivot:** \"I'm not sure about the exact algorithm, but I know the problem it solves and here's how I'd approach it...\"\n2. **Reason from first principles:** \"I haven't used X, but given the constraints, I'd expect it to work like...\"\n3. **State assumptions:** \"I'll assume X works this way \u2014 please correct me if I'm off.\"\n4. **Offer alternatives:** \"I don't know Raft in detail, but I know we need leader election, and I'd use a library like ZooKeeper.\"\n\n**What NOT to do:** Bluff, go silent, or say \"I don't know\" and stop.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-006",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "How do you 'drive the conversation' in a system design interview?",
+    "back": "**You are the presenter, not the answerer.**\n\n- **Announce transitions:** \"Now I'll move to the high-level design.\"\n- **Offer choices:** \"I could deep-dive into the messaging queue or the storage layer \u2014 which interests you more?\"\n- **Check in:** \"Does this make sense so far? Should I go deeper here?\"\n- **Summarize:** \"So far we have X, Y, Z. The bottleneck is likely here.\"\n- **Propose:** \"I think the most interesting problem is X. Let me dig into that.\"\n\n**The interviewer should feel like they're watching a well-organized tech talk, not pulling answers out of you.**",
+    "type": "concept"
+  },
+  {
+    "id": "CC-007",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "When should you go broad vs. deep in a system design interview?",
+    "back": "**Go BROAD when:**\n- First 20 min \u2014 establish the full architecture\n- The interviewer hasn't signaled a focus area\n- You're showing you understand all the pieces\n\n**Go DEEP when:**\n- The interviewer asks \"how would you handle X?\"\n- You're past the HLD and have 10-15 min left\n- A component is the crux of the problem (e.g., consistency in a chat system)\n\n**Rule of thumb:** Broad = show you see the forest. Deep = show you can chop down a specific tree. Every interview needs BOTH.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-008",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "How do you pick which component to deep dive on?",
+    "back": "**Pick the component that is:**\n\n1. **The hardest part** of the system (where the real engineering challenge lives)\n2. **Most relevant to the requirements** you established\n3. **Where you're strongest** (play to your expertise)\n\n**Examples:**\n- URL shortener \u2192 deep dive on the hash/ID generation\n- Chat system \u2192 deep dive on message delivery & ordering\n- News feed \u2192 deep dive on fan-out strategy\n\n**Pro move:** Offer the interviewer a choice: \"The most interesting challenges here are X and Y. Which would you like me to explore?\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-009",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "What are red flags that hurt your system design interview?",
+    "back": "\ud83d\udea9 **Instant rejects:**\n- Can't define requirements \u2014 just starts drawing boxes\n- No awareness of scale (millions vs thousands)\n- Single point of failure with no acknowledgment\n\n\ud83d\udea9 **Strong negatives:**\n- Refuses to make trade-offs: \"We'll just use the best of everything\"\n- Buzzword salad: throws in Kafka, Redis, K8s without justification\n- Can't explain their own diagram\n- Gets defensive when challenged\n- Never mentions failure modes\n\n\ud83d\udea9 **Subtle negatives:**\n- Only talks, never draws\n- Doesn't listen to interviewer hints\n- Overcomplicates simple systems",
+    "type": "concept"
+  },
+  {
+    "id": "CC-010",
+    "category": "Interview Strategy",
+    "level": 1,
+    "front": "What's the most effective way to practice system design?",
+    "back": "**Progression (4-6 weeks):**\n\n1. **Week 1-2:** Learn the building blocks (DB types, caches, queues, LBs, CDNs). Flashcards help.\n2. **Week 3-4:** Design 2 systems/week on paper. Time yourself (45 min). Use the 4-step framework.\n3. **Week 5-6:** Mock interviews with a partner. Get feedback on communication.\n\n**Practice method per system:**\n- Write requirements (5 min)\n- Estimate scale (5 min)\n- Draw HLD on paper/whiteboard (15 min)\n- Write up trade-offs (10 min)\n- Compare with published solutions\n\n**Best resources:** DDIA book (depth), Alex Xu's books (breadth), mock interviews (delivery).",
+    "type": "concept"
+  },
+  {
+    "id": "CC-011",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is database indexing? B-tree vs. Hash index?",
+    "back": "**Index:** A data structure that speeds up reads at the cost of slower writes and extra storage.\n\n**B-tree index (most common):**\n- Balanced tree structure, O(log n) lookups\n- Supports range queries (`WHERE age > 25`)\n- Used by: PostgreSQL, MySQL (default)\n\n**Hash index:**\n- Hash map: key \u2192 disk offset, O(1) exact lookups\n- Does NOT support range queries\n- Used by: Memcached, some in-memory stores\n\n**Trade-off:** B-tree is more versatile (range + equality). Hash is faster for exact key lookups only.\n\n**Rule:** If you need `WHERE x = ?` only \u2192 hash. If you need `WHERE x > ? AND x < ?` \u2192 B-tree.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-012",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is consistent hashing and why does it matter?",
+    "back": "**Problem:** Adding/removing servers in a hash-based system remaps almost ALL keys.\n\n**Solution \u2014 Consistent Hashing:**\n- Arrange hash space as a **ring** (0 to 2^32)\n- Servers and keys are hashed onto the ring\n- Each key is assigned to the **next server clockwise**\n- Adding/removing a server only remaps ~K/N keys (K=keys, N=servers)\n\n**Virtual nodes:** Each physical server gets multiple positions on the ring for better load balance.\n\n**Used by:** DynamoDB, Cassandra, CDNs, distributed caches.\n\n**Interview tip:** Draw the ring, place 3 servers, show what happens when one is added/removed.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-013",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is leader election and what's the Raft intuition?",
+    "back": "**Leader election:** Choosing ONE node in a distributed system to coordinate work (writes, scheduling, etc.).\n\n**Why it's needed:** Without a leader, you get conflicts (split-brain), duplicate work, or inconsistency.\n\n**Raft intuition (simplified):**\n1. Nodes start as **followers**\n2. If a follower gets no heartbeat \u2192 becomes **candidate**, requests votes\n3. Majority vote \u2192 becomes **leader**\n4. Leader sends heartbeats + replicates log entries\n5. If leader dies \u2192 new election\n\n**Key guarantee:** At most ONE leader per **term** (a monotonic epoch number).\n\n**Used by:** etcd, CockroachDB, Kafka (KRaft). In interviews, just say \"we'd use Raft-based consensus via etcd/ZooKeeper.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-014",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is a Write-Ahead Log (WAL)?",
+    "back": "**WAL:** Append every change to a sequential log file BEFORE applying it to the actual data.\n\n**Why?**\n- **Durability:** If the system crashes mid-write, replay the log to recover\n- **Atomicity:** Either the log entry is complete or it isn't\n- **Replication:** Ship the log to replicas for consistent state\n\n**How it works:**\n1. Write operation arrives\n2. Append to WAL (sequential disk write \u2014 fast)\n3. Acknowledge to client\n4. Apply to data structure in background\n\n**Used by:** PostgreSQL, MySQL (redo log), Kafka (the log IS the database), etcd, LevelDB.\n\n**Interview mention:** \"We use a WAL for crash recovery and replication.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-015",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is a Bloom filter?",
+    "back": "**Bloom filter:** A space-efficient probabilistic data structure that answers: \"Is X in the set?\"\n\n**Answers:**\n- **\"Definitely not in the set\"** \u2192 guaranteed correct\n- **\"Probably in the set\"** \u2192 may be a false positive\n\n**How:** k hash functions map each element to k bit positions in a bit array. To check membership, verify all k positions are set.\n\n**Trade-offs:** No false negatives. False positive rate tunable (more bits = fewer FPs). Cannot delete elements.\n\n**Use cases:**\n- Chrome: is this URL malicious? (avoid network call)\n- Cassandra/HBase: is this key in this SSTable? (avoid disk read)\n- CDN: has this content been cached?\n\n**Interview line:** \"We add a Bloom filter to avoid expensive lookups for non-existent keys.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-016",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is the heartbeat pattern in distributed systems?",
+    "back": "**Heartbeat:** A periodic signal sent by a node to declare \"I'm alive.\"\n\n**How it works:**\n1. Node sends heartbeat every T seconds to a coordinator (or peers)\n2. If no heartbeat received within timeout (e.g., 3\u00d7T) \u2192 node is presumed dead\n3. Coordinator triggers failover, rebalancing, or alerts\n\n**Variants:**\n- **Push:** Node pushes heartbeat to coordinator (most common)\n- **Pull:** Coordinator polls nodes\n- **Peer-to-peer:** Nodes heartbeat each other (gossip-style)\n\n**Used by:** Kubernetes (kubelet \u2192 API server), Kafka (brokers \u2192 ZooKeeper), Consul, any leader election system.\n\n**Key trade-off:** Short timeout \u2192 fast detection, more false positives. Long timeout \u2192 fewer false alarms, slower detection.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-017",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is a gossip protocol?",
+    "back": "**Gossip protocol:** Each node periodically picks a random peer and exchanges state. Information spreads like an epidemic.\n\n**How:**\n1. Node A picks random node B\n2. A sends its state/updates to B\n3. B merges and does the same with a random node C\n4. After O(log N) rounds, all N nodes converge\n\n**Properties:**\n- **Decentralized:** No coordinator\n- **Fault-tolerant:** Works even if many nodes are down\n- **Eventually consistent:** All nodes converge, but not instantly\n- **Scalable:** O(log N) rounds to propagate\n\n**Used by:** Cassandra (membership/failure detection), DynamoDB, Consul, Redis Cluster.\n\n**Interview line:** \"Gossip gives us decentralized, eventually-consistent membership and failure detection.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-018",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is the circuit breaker pattern?",
+    "back": "**Problem:** Service A keeps calling failing Service B \u2192 cascading failures, resource exhaustion.\n\n**Circuit breaker (3 states):**\n- **Closed (normal):** Requests flow through. Track failure count.\n- **Open (tripped):** Failures exceed threshold \u2192 stop calling B, return fallback/error immediately.\n- **Half-Open (probe):** After timeout, allow ONE request through. If it succeeds \u2192 Closed. If fails \u2192 Open again.\n\n**Benefits:**\n- Prevents cascade failures\n- Gives failing service time to recover\n- Fails fast instead of slow timeout\n\n**Used by:** Netflix Hystrix (retired), Resilience4j, AWS App Mesh, Envoy proxy.\n\n**Interview line:** \"We wrap downstream calls in a circuit breaker to prevent cascade failures.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-019",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is idempotency and how do you implement it?",
+    "back": "**Idempotent operation:** Performing it once or N times produces the same result.\n\n**Why it matters:** In distributed systems, retries are inevitable (network timeouts, crashes). Without idempotency, retries cause duplicate charges, double-sends, etc.\n\n**Implementation:**\n1. Client generates a unique **idempotency key** (UUID) per logical operation\n2. Client sends key with every request (including retries)\n3. Server checks: have I seen this key? \u2192 If yes, return cached response. If no, process and store result.\n\n**Storage:** Redis/DB with TTL on keys (e.g., 24h).\n\n**Naturally idempotent:** GET, PUT, DELETE.\n**NOT idempotent:** POST (must add explicit key).\n\n**Used by:** Stripe (`Idempotency-Key` header), AWS (client tokens).",
+    "type": "concept"
+  },
+  {
+    "id": "CC-020",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is the Saga pattern for distributed transactions?",
+    "back": "**Problem:** In microservices, a single business transaction spans multiple services. No shared DB \u2192 no ACID transactions.\n\n**Saga:** A sequence of local transactions where each step has a **compensating action** (undo).\n\n**Two coordination styles:**\n\n**Choreography:** Each service emits an event \u2192 next service reacts. Simple but hard to trace.\n\n**Orchestration:** A central orchestrator tells each service what to do. Easier to manage/debug.\n\n**Example (Order):**\n1. Create order \u2192 (compensate: cancel order)\n2. Reserve inventory \u2192 (compensate: release inventory)\n3. Charge payment \u2192 (compensate: refund)\n\nIf step 3 fails \u2192 run compensations for 2, then 1.\n\n**Trade-off:** Eventually consistent (not ACID). Compensations can be complex. But it's the standard approach for distributed transactions.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-021",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is CQRS (Command Query Responsibility Segregation)?",
+    "back": "**CQRS:** Use DIFFERENT models (and often different stores) for reading vs. writing.\n\n**Write side (Command):** Optimized for validation, business logic, consistency. Normalized data.\n\n**Read side (Query):** Optimized for fast, flexible queries. Denormalized, pre-computed views.\n\n**Sync:** Write side publishes events \u2192 read side updates its materialized views (async).\n\n**When to use:**\n- Read and write patterns are very different\n- High read:write ratio (90:10)\n- Complex queries that don't map to the write model\n\n**When NOT to use:** Simple CRUD apps. The complexity isn't worth it.\n\n**Often paired with:** Event sourcing (events are the write model, projections are the read model).\n\n**Used by:** Large e-commerce platforms, financial systems.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-022",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is event sourcing?",
+    "back": "**Event sourcing:** Store every state change as an immutable **event** instead of overwriting current state.\n\n**Traditional:** `account.balance = 500` (current state only)\n**Event sourced:** `[Deposited $1000, Withdrew $300, Deposited $200, Withdrew $400]` \u2192 derive balance = $500\n\n**Benefits:**\n- Complete audit trail\n- Can rebuild state at any point in time\n- Natural fit for event-driven architectures\n- Enables temporal queries (\"what was the balance on Jan 1?\")\n\n**Challenges:**\n- Querying current state requires projections (materialized views)\n- Event schema evolution is hard\n- Storage grows indefinitely (use snapshots)\n\n**Used by:** Banking/finance, Git (commits are events), Kafka (log is the source of truth).",
+    "type": "concept"
+  },
+  {
+    "id": "CC-023",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What are the main sharding strategies?",
+    "back": "**Sharding:** Splitting data across multiple databases/nodes.\n\n**1. Hash-based:** `shard = hash(key) % N`. Even distribution but hard to reshard. Use consistent hashing to mitigate.\n\n**2. Range-based:** `shard 1: A-M, shard 2: N-Z`. Supports range queries but can create hotspots.\n\n**3. Geo-based:** Data goes to the nearest regional shard. Good for latency, complex for cross-region queries.\n\n**4. Directory-based:** A lookup table maps key \u2192 shard. Most flexible but the directory is a single point of failure.\n\n**Key decisions:**\n- **Shard key choice** is critical \u2014 bad key = hotspots\n- Cross-shard queries are expensive (avoid or use scatter-gather)\n- Resharding is painful \u2014 plan for it\n\n**Interview default:** \"We'd use hash-based sharding with consistent hashing on user_id.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-024",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What are the main database replication strategies?",
+    "back": "**1. Leader-Follower (Primary-Replica):**\n- All writes \u2192 leader. Reads from leader or followers.\n- Simple. Read scaling. But leader is a bottleneck/SPOF.\n- Used by: PostgreSQL, MySQL, MongoDB.\n\n**2. Multi-Leader:**\n- Multiple nodes accept writes. Sync via conflict resolution.\n- Good for multi-region. Complex conflict handling.\n- Used by: CouchDB, some MySQL setups.\n\n**3. Leaderless:**\n- Any node accepts reads/writes. Quorum-based consistency (W+R > N).\n- Highly available. Eventually consistent by default.\n- Used by: Cassandra, DynamoDB, Riak.\n\n**Trade-off triangle:** Leader-follower (simple, consistent) \u2194 Multi-leader (multi-region) \u2194 Leaderless (highest availability).\n\n**Interview default:** Start with leader-follower, mention leaderless if availability is paramount.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-025",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "Why is distributed consensus hard? What's the Raft intuition?",
+    "back": "**Why it's hard:** Networks are unreliable. Nodes crash. Clocks drift. The FLP impossibility result proves you can't guarantee consensus in an asynchronous system with even one faulty node.\n\n**Raft makes it practical with simplifications:**\n1. **Leader-based:** One leader does all coordination\n2. **Log replication:** Leader appends entries, replicates to majority\n3. **Safety:** A committed entry is never lost (majority has it)\n4. **Elections:** Randomized timeouts prevent split votes\n\n**Guarantees:** Linearizable reads/writes with a majority quorum (N/2+1 of N nodes).\n\n**Cost:** Latency (round-trip to majority), availability limited to majority alive.\n\n**Interview tip:** Don't explain Paxos. Say: \"We'd use Raft-based consensus (e.g., etcd) for leader election and config management.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-026",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What are the essential back-of-envelope numbers for system design?",
+    "back": "**Scale numbers to memorize:**\n- 1 day \u2248 100K seconds (86,400)\n- 1M requests/day \u2248 12 QPS\n- 100M requests/day \u2248 1,200 QPS\n- 1B requests/day \u2248 12,000 QPS\n\n**Storage:**\n- 1 char = 1-2 bytes, 1 tweet (140 chars) \u2248 300 bytes with metadata\n- 1 image \u2248 200KB-1MB, 1 video minute \u2248 50MB\n- 1M users \u00d7 1KB each = 1GB\n\n**Latency:**\n- Memory access: 100ns\n- SSD read: 100\u03bcs\n- Network round-trip (same DC): 500\u03bcs\n- Disk seek: 10ms\n- Cross-continent: 150ms\n\n**Power of 2:**\n- 2^10 = 1K, 2^20 = 1M, 2^30 = 1B, 2^40 = 1T",
+    "type": "concept"
+  },
+  {
+    "id": "CC-027",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What are REST API design best practices for system design interviews?",
+    "back": "**Basics:**\n- Nouns for resources: `/users/123`, not `/getUser`\n- HTTP verbs: GET (read), POST (create), PUT (replace), PATCH (partial update), DELETE\n- Status codes: 200 OK, 201 Created, 400 Bad Request, 404 Not Found, 429 Rate Limited, 500 Server Error\n\n**Pagination:** Use cursor-based for large/real-time datasets (`?cursor=abc&limit=20`). Offset-based is simpler but breaks with inserts.\n\n**Versioning:** URL path (`/v1/users`) or header (`Accept: application/vnd.api.v1+json`). Path is most common.\n\n**Rate limiting:** Return `429` with `Retry-After` header.\n\n**Interview tip:** Always define 2-3 key API endpoints early in your design. It grounds the discussion.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-028",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "JSON vs. Protobuf vs. Avro \u2014 when to use which?",
+    "back": "**JSON:**\n- Human-readable, self-describing\n- Verbose (field names repeated), slow parsing\n- Use for: REST APIs, config files, debugging\n\n**Protocol Buffers (Protobuf):**\n- Binary, schema-defined (.proto files), very compact\n- 3-10\u00d7 smaller and faster than JSON\n- Requires code generation. Not human-readable.\n- Use for: gRPC, internal service-to-service, high-throughput\n\n**Avro:**\n- Binary, schema embedded or referenced\n- Good for schema evolution (reader/writer schemas)\n- Use for: Kafka messages, data pipelines, Hadoop\n\n**Interview default:** \"JSON for external APIs, Protobuf for internal gRPC services, Avro for event streaming/Kafka.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-029",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What is connection pooling and why does it matter?",
+    "back": "**Problem:** Opening a new DB/HTTP connection per request is expensive (~1-10ms TCP handshake + TLS + auth).\n\n**Connection pool:** Pre-create and reuse a pool of connections. Requests borrow a connection, use it, return it.\n\n**Benefits:**\n- Eliminates connection setup overhead\n- Bounds max connections (protects the DB)\n- Reduces latency for each request\n\n**Key settings:**\n- **Min pool size:** Warm connections kept ready\n- **Max pool size:** Upper bound (too high = overwhelms DB, too low = request queuing)\n- **Idle timeout:** Close unused connections\n\n**Common pools:** HikariCP (Java), pgBouncer (PostgreSQL), generic HTTP connection pools.\n\n**Interview mention:** \"Each service instance maintains a connection pool to the database to avoid per-request connection overhead.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-030",
+    "category": "Common Patterns",
+    "level": 2,
+    "front": "What are the main rate limiting algorithms?",
+    "back": "**1. Token Bucket:**\n- Bucket fills at rate R tokens/sec, max capacity B\n- Each request costs 1 token. No tokens \u2192 rejected.\n- Allows bursts up to B. Most common algorithm.\n\n**2. Leaky Bucket:**\n- Requests enter a queue (bucket), processed at fixed rate\n- Queue full \u2192 rejected. Smooths traffic (no bursts).\n\n**3. Fixed Window:**\n- Count requests in fixed time windows (e.g., per minute)\n- Simple but allows 2\u00d7 burst at window boundaries.\n\n**4. Sliding Window Log:**\n- Track timestamp of each request, count in rolling window\n- Accurate but memory-heavy.\n\n**5. Sliding Window Counter:**\n- Weighted average of current + previous window counts\n- Good balance of accuracy and memory.\n\n**Interview default:** \"Token bucket for API rate limiting \u2014 it's simple, allows bursts, and is used by AWS and Stripe.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-031",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "What database does Netflix use and why?",
+    "back": "**Netflix uses multiple databases for different needs:**\n\n- **Cassandra (primary):** Handles massive scale (trillions of rows), high write throughput, multi-region replication. Used for viewing history, bookmarks, user activity.\n- **MySQL/PostgreSQL:** Billing, account data (strong consistency needed).\n- **EVCache (Memcached):** Caching layer for low-latency reads. Handles 30M+ requests/sec.\n- **Elasticsearch:** Search (titles, genres, actors).\n- **Apache Kafka:** Event streaming between services.\n\n**Key lesson:** No one database fits all needs. Netflix uses the right tool for each workload \u2014 this is the **polyglot persistence** pattern.\n\n**Interview takeaway:** \"For a Netflix-scale system, I'd use Cassandra for high-write workloads and a cache layer for reads.\"",
+    "type": "concept"
+  },
+  {
+    "id": "CC-032",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "How does Instagram handle 2B+ images?",
+    "back": "**Storage architecture:**\n- Images stored on **Amazon S3** (object storage) \u2014 virtually unlimited, durable\n- Metadata (who posted, timestamps, likes) in **PostgreSQL** (sharded by user ID)\n- **CDN (Facebook's own)** caches popular images close to users\n\n**Upload flow:**\n1. Client uploads to app server\n2. Server stores original in S3\n3. Async workers generate multiple resolutions (thumbnail, medium, full)\n4. CDN URL returned to client\n\n**Key decisions:**\n- Shard Postgres by user_id (each user's data on one shard)\n- IDs generated with a custom Snowflake-like scheme (time-sortable, shard-aware)\n- Aggressive CDN caching \u2014 most reads never hit origin\n\n**Interview takeaway:** Object storage (S3) + CDN + sharded metadata DB handles image-heavy workloads at scale.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-033",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "What's behind Google Search's sub-second response times?",
+    "back": "**Key techniques:**\n\n1. **Inverted index:** Pre-built mapping of word \u2192 list of documents. Query hits the index, not every document.\n2. **Distributed indexing:** Index is sharded across thousands of machines. Query is scatter-gathered in parallel.\n3. **Caching:** Popular queries cached (\"weather\", \"facebook login\"). ~30% of queries are repeats.\n4. **PageRank + ranking:** Pre-computed relevance scores reduce runtime computation.\n5. **Edge serving:** Queries routed to nearest datacenter.\n6. **Progressive refinement:** Return top results fast, refine in background.\n\n**Scale:** ~100K queries/sec, index of 100B+ pages.\n\n**Interview takeaway:** Inverted index + massive parallelism + caching + pre-computation = sub-second search at planet scale.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-034",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "How does Uber match riders to drivers in real-time?",
+    "back": "**Matching system:**\n\n1. **Location tracking:** Drivers send GPS updates every 4 seconds \u2192 stored in a geospatial index.\n2. **Geospatial index:** Uses a **geohash** or S2 cell-based spatial index to efficiently query \"drivers within 3 km of rider.\"\n3. **Matching algorithm:** Score nearby drivers by ETA (not straight-line distance), availability, rating. Optimize globally, not greedily.\n4. **Dispatch service:** Sends ride offer to best driver. Timeout \u2192 next driver. Uses a supply-demand model for surge pricing.\n\n**Key challenges:**\n- Millions of moving objects updating location constantly\n- Sub-second match latency\n- Balancing supply/demand across zones\n\n**Tech:** Originally in-memory geospatial store on ringpop (consistent hashing), evolved to Google S2 cells.\n\n**Interview takeaway:** Geohash/S2 + real-time location ingestion + ETA-based ranking.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-035",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "How does WhatsApp deliver messages to 2B users?",
+    "back": "**Architecture:**\n\n1. **Connection:** Each device maintains a persistent **TCP/WebSocket connection** to a WhatsApp server.\n2. **Send flow:** Message \u2192 sender's server \u2192 recipient's server \u2192 push to device via persistent connection.\n3. **Offline delivery:** If recipient offline, message stored in a **transient store**. Delivered on reconnect, then deleted.\n4. **End-to-end encryption:** Signal Protocol. Server never sees plaintext.\n\n**Scale secrets:**\n- **Erlang/BEAM VM:** Each server handles ~2M concurrent connections (lightweight processes)\n- **Minimal storage:** Messages are NOT stored long-term. Delivered and deleted.\n- **Small engineering team:** ~50 engineers for 2B users (efficiency of Erlang + simplicity of architecture)\n\n**Interview takeaway:** Persistent connections + transient message store + Erlang's massive concurrency = simple but scalable messaging.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-036",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "How does YouTube handle video transcoding at scale?",
+    "back": "**Pipeline:**\n\n1. **Upload:** Video uploaded to a staging area (Google Cloud Storage equivalent).\n2. **Transcoding:** Convert original into multiple formats and resolutions (360p, 720p, 1080p, 4K) + codec variants (H.264, VP9, AV1).\n3. **Distributed processing:** Each video split into chunks, transcoded in parallel across thousands of machines.\n4. **Storage:** All variants stored. Total = ~500 hours of video uploaded per minute.\n5. **Serving:** CDN serves the right variant based on device, bandwidth (adaptive bitrate streaming via DASH/HLS).\n\n**Key decisions:**\n- **Async processing:** Upload returns immediately. Transcoding happens in background (task queue).\n- **Adaptive bitrate:** Client switches quality mid-stream based on bandwidth.\n- **Chunked encoding:** Enables parallel processing and partial availability.\n\n**Interview takeaway:** Upload \u2192 async task queue \u2192 parallel chunk transcoding \u2192 CDN with adaptive bitrate.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-037",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "How does Twitter's home timeline work?",
+    "back": "**Two approaches (Twitter uses both):**\n\n**Fan-out on write (push model):**\n- When user tweets \u2192 write to ALL followers' timelines (in-memory cache)\n- Reading timeline = just read your pre-built cache. Very fast.\n- Problem: Celebrities with 50M followers \u2192 50M writes per tweet.\n\n**Fan-out on read (pull model):**\n- Timeline is assembled at read time: fetch tweets from all people you follow, merge, sort.\n- No write amplification but slow for users following many accounts.\n\n**Twitter's hybrid approach:**\n- Regular users \u2192 fan-out on write (push to followers' caches)\n- Celebrities (>50K followers) \u2192 fan-out on read (merged at query time)\n- Timeline = merge(precomputed cache, celebrity tweets fetched live)\n\n**Interview takeaway:** Hybrid fan-out is the standard pattern for feed systems. Know when to push vs pull.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-038",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "How does Slack handle real-time messaging?",
+    "back": "**Architecture:**\n\n1. **WebSocket connections:** Each client maintains a persistent WebSocket to a gateway server.\n2. **Channel model:** Messages routed by channel ID. Gateway knows which users are in which channels.\n3. **Message flow:** Client \u2192 gateway \u2192 message service \u2192 fanout to all connected members of that channel.\n4. **Persistence:** Messages stored in MySQL (sharded by team/workspace). Search via Elasticsearch.\n5. **Presence system:** Tracks online/offline/typing status via heartbeats.\n\n**Scaling challenges:**\n- Large channels (10K+ members): Fanout is expensive \u2192 batched delivery\n- Connection management: Millions of persistent WebSockets \u2192 edge gateway tier\n- Search: Full-text search over years of messages \u2192 separate Elasticsearch cluster\n\n**Migration:** Slack moved from PHP/MySQL monolith to a service-oriented architecture with Kafka for async communication.\n\n**Interview takeaway:** WebSocket + channel-based fanout + sharded MySQL + Elasticsearch.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-039",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "How does Stripe handle payments reliably?",
+    "back": "**Key reliability principles:**\n\n1. **Idempotency:** Every API request can include an `Idempotency-Key`. Retries are safe \u2014 you'll never double-charge.\n2. **Request lifecycle:** Each request goes through a state machine: received \u2192 processing \u2192 succeeded/failed. Stored durably at each step.\n3. **At-least-once delivery:** Webhooks are retried with exponential backoff until acknowledged (up to 72 hours).\n4. **Exactly-once semantics:** Idempotency keys + state machine = each logical operation happens exactly once.\n5. **Multi-provider failover:** Stripe routes through multiple payment processors. If one is down, traffic shifts.\n\n**Tech choices:**\n- Ruby on Rails (API layer)\n- MongoDB \u2192 later migrated to a custom document store\n- Strong consistency for financial data (no eventual consistency)\n\n**Interview takeaway:** Idempotency keys + state machines + at-least-once webhooks = reliable payment processing.",
+    "type": "concept"
+  },
+  {
+    "id": "CC-040",
+    "category": "Real-World Mappings",
+    "level": 1,
+    "front": "How does AWS S3 achieve 99.999999999% (11 nines) durability?",
+    "back": "**Key mechanisms:**\n\n1. **Redundant storage:** Each object is automatically replicated across **\u22653 Availability Zones** (physically separate data centers).\n2. **Erasure coding:** Data split into fragments with parity. Can reconstruct from a subset (like RAID across data centers). More storage-efficient than full replication.\n3. **Integrity checks:** MD5/CRC checksums on every read and write. Continuous background verification scans all stored data.\n4. **Automatic repair:** If a bit rot or disk failure is detected, S3 automatically re-replicates from healthy copies.\n5. **Versioning:** Optional object versioning protects against accidental deletes/overwrites.\n\n**What 11 nines means:** If you store 10 million objects, you'd statistically lose ONE object every 10,000 years.\n\n**Interview takeaway:** Erasure coding across AZs + continuous integrity verification + automatic repair = extreme durability at reasonable cost.",
+    "type": "concept"
+  },
+  {
+    "id": "V2D-001",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "estimation",
+    "front": "Estimate the scale for a Yelp-like proximity service: QPS, storage, and latency requirements.",
+    "back": "Assumptions: 100M DAU, 5 searches/day = 500M queries/day = 5,800 QPS. 200M businesses worldwide. Each business record ~10KB so 2TB total. Geospatial index (geohash table) ~200M rows x 100 bytes = 20GB fits in memory. Latency target: <200ms p99. Read-heavy workload (~100:1 read:write) since businesses rarely update location. Write QPS negligible.",
+    "diagram": null,
+    "source": "SDIV2 Ch1"
+  },
+  {
+    "id": "V2D-002",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "architecture",
+    "front": "Trace the full data flow when a user searches 'restaurants near me' in the proximity service.",
+    "back": "1) Client sends GET /v1/search/nearby with lat, lng, radius. 2) LB routes to stateless Location-Based Service (LBS). 3) LBS converts lat/lng to geohash prefix at desired precision. 4) LBS queries geospatial index (geohash to business_id list) from cache or DB. 5) If not enough results, LBS expands by removing last geohash character and queries neighboring geohashes. 6) LBS fetches full business details from Business Service. 7) Results ranked by distance/rating, paginated, returned.",
+    "diagram": "graph LR\n  Client-->LB[Load Balancer]\n  LB-->LBS[Location-Based Service]\n  LBS-->Cache[Redis/Memcached]\n  Cache-.miss.->GeoDB[(Geohash Index DB)]\n  LBS-->BizSvc[Business Service]\n  BizSvc-->BizDB[(Business DB)]",
+    "source": "SDIV2 Ch1"
+  },
+  {
+    "id": "V2D-003",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "deep-concept",
+    "front": "How does Google S2 geometry library differ from geohash for proximity search, and why might you choose it?",
+    "back": "S2 maps Earth onto a unit sphere, projects onto 6 cube faces, subdivides each with a Hilbert curve into cells at 30 levels. Advantages over geohash: 1) More uniform cell area (geohash distorts near poles). 2) Hilbert curve preserves locality better. 3) S2 returns precise coverings of arbitrary regions (circles, polygons) vs geohash fixed rectangles. 4) Used by Google Maps and Tinder. Trade-off: more complex to implement, less database support than geohash.",
+    "diagram": null,
+    "source": "SDIV2 Ch1"
+  },
+  {
+    "id": "V2D-004",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "tradeoff",
+    "front": "What are the trade-offs in choosing geohash precision level for the proximity service?",
+    "back": "Longer geohash = smaller cell = precise but more cells to query. Shorter = larger cell = fewer queries but more false positives. Typical: precision 4 (~39km) for 20km radius, 5 (~5km) for 5km, 6 (~1.2km) for 1km. Use pre-computed radius-to-precision mapping. Too fine: query 9+ cells. Too coarse: waste filtering. The boundary problem means you ALWAYS query 8 neighboring geohashes -- objects near a cell edge could be closer than objects within the same cell.",
+    "diagram": null,
+    "source": "SDIV2 Ch1"
+  },
+  {
+    "id": "V2D-005",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "interview",
+    "front": "How would you handle a business that appears in results but closed permanently 5 minutes ago?",
+    "back": "Consistency vs latency trade-off. Business update writes to DB and publishes event to Kafka. Consumer updates geohash index. Cache invalidation: TTL-based (accept staleness for minutes) or event-driven. Slight staleness is acceptable for this use case. System prioritizes read latency over write freshness. For critical cases, use a real-time filter that checks business status after fetching from index.",
+    "diagram": null,
+    "source": "SDIV2 Ch1"
+  },
+  {
+    "id": "V2D-006",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "tradeoff",
+    "front": "Should you shard or replicate the geospatial index? What are the trade-offs?",
+    "back": "The geospatial index (~200M businesses x 100 bytes = 20GB) fits in memory. Replicate, don't shard. Reasons: 1) Data small enough for full replicas. 2) Searches span multiple geohash prefixes that would hit different shards. 3) Read replicas handle massive read QPS. 4) Sharding adds complexity with no benefit at this size. Shard only when data exceeds single-node memory, by geohash prefix so proximity queries hit a single shard.",
+    "diagram": null,
+    "source": "SDIV2 Ch1"
+  },
+  {
+    "id": "V2D-007",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "interview",
+    "front": "How would you handle a 10x traffic spike during a major event like the Super Bowl?",
+    "back": "1) LBS is stateless -- auto-scale horizontally. 2) Geospatial index cached in Redis with read replicas. 3) Cache hit rate naturally high because everyone queries same geographic area. 4) Pre-warm caches for known event locations. 5) Rate limit per user. 6) Circuit breaker on Business Service. 7) Serve slightly stale cached results. Key insight: proximity searches have excellent cache locality during events.",
+    "diagram": null,
+    "source": "SDIV2 Ch1"
+  },
+  {
+    "id": "V2D-008",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "estimation",
+    "front": "What is the caching strategy and expected hit rate for the proximity service?",
+    "back": "Cache geohash-to-business_id list mapping. At precision 6: ~2-3M unique cells with businesses. Each entry ~1KB, total cache ~2-3GB in Redis. Hit rate >99% because: 1) Business data changes rarely. 2) Popular areas queried repeatedly. 3) Only 2-3M unique cells. TTL: hours to a day. Invalidation: event-driven from business update stream. This eliminates nearly all DB reads.",
+    "diagram": null,
+    "source": "SDIV2 Ch1"
+  },
+  {
+    "id": "V2D-009",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "estimation",
+    "front": "Estimate the scale for a Nearby Friends feature: concurrent users, message rate, and bandwidth.",
+    "back": "100M DAU, 10% use Nearby Friends = 10M concurrent. Each user has ~400 friends, ~10% active = 40 to track. Location update every 30s: 10M/30 = 333K updates/sec. Fan-out to ~40 friends = 13.3M messages/sec delivered. Each message ~100 bytes = ~1.3GB/s bandwidth. The key challenge is the massive fan-out from each location update to all subscribing friends.",
+    "diagram": null,
+    "source": "SDIV2 Ch2"
+  },
+  {
+    "id": "V2D-010",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "architecture",
+    "front": "Trace the complete data flow when User A moves and nearby friends see the update.",
+    "back": "1) User A sends location via persistent WebSocket. 2) WS server updates Location Cache (Redis). 3) WS server publishes to Redis Pub/Sub channel for User A. 4) All WS servers with friends subscribed receive message. 5) Each receiving server computes distance to subscribing friend. 6) If within threshold, pushes update to friend's WebSocket. 7) Friend's client renders new position. Location history also written to Cassandra for analytics.",
+    "diagram": "graph LR\n  A[User A]-->WS1[WS Server 1]\n  WS1-->LC[(Location Cache)]\n  WS1-->PS[Redis Pub/Sub]\n  PS-->WS2[WS Server 2]\n  PS-->WS3[WS Server 3]\n  WS2-->B[Friend B]\n  WS3-->C[Friend C]",
+    "source": "SDIV2 Ch2"
+  },
+  {
+    "id": "V2D-011",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "tradeoff",
+    "front": "Should the Nearby Friends system compute distance on the server or the client?",
+    "back": "Server-side: check distance < threshold before pushing. Pros: reduces bandwidth, client stays simple. Cons: N distance calcs per update. Client-side: push all, client filters. Pros: simpler server, customizable radius. Cons: wastes bandwidth, drains battery. Design chooses server-side: 1) Haversine calc is cheap. 2) Bandwidth savings significant at scale. 3) Fewer messages = less radio usage = better battery.",
+    "diagram": null,
+    "source": "SDIV2 Ch2"
+  },
+  {
+    "id": "V2D-012",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "interview",
+    "front": "How would you handle Redis Pub/Sub server failure without losing active user connections?",
+    "back": "1) Consistent hashing maps user channels to Redis nodes deterministically. 2) On failure, ring remaps channels. 3) WS servers detect via health checks, re-subscribe to new node. 4) During failover (~seconds), updates lost -- acceptable, next update in 30s. 5) Location Cache (separate from Pub/Sub) uses replicas for availability. 6) Replicate each Pub/Sub node to a standby for faster promotion.",
+    "diagram": null,
+    "source": "SDIV2 Ch2"
+  },
+  {
+    "id": "V2D-013",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "interview",
+    "front": "How would you scale Nearby Friends for celebrities with millions of followers?",
+    "back": "1M followers per channel is too much for Redis Pub/Sub. Solutions: 1) Cap subscriber count; use broadcast mechanism for celebrities. 2) Tiered fan-out: celebrity updates to Kafka, workers push to subscriber subsets. 3) Lower frequency for celebrities (every 5 min). 4) Client-pull: followers poll cached location. Same as Twitter fan-out-on-write vs fan-out-on-read: push for normal users, pull for celebrities.",
+    "diagram": null,
+    "source": "SDIV2 Ch2"
+  },
+  {
+    "id": "V2D-014",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "deep-concept",
+    "front": "How does the initial load work when opening Nearby Friends, and what is the thundering herd risk?",
+    "back": "On connect: 1) Client opens WebSocket. 2) Server fetches friend list. 3) Subscribes to Pub/Sub channels for active friends. 4) Batch-reads last locations from cache via Redis pipeline (1 round trip). 5) Computes distances, filters, pushes initial state. Thundering herd risk during app update rollout. Mitigation: stagger with jitter, pipeline batch reads, cache friend lists. Initial load is most expensive -- subsequent updates are incremental.",
+    "diagram": null,
+    "source": "SDIV2 Ch2"
+  },
+  {
+    "id": "V2D-015",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "estimation",
+    "front": "Estimate storage and CDN bandwidth for Google Maps' map tile system across all zoom levels.",
+    "back": "21 zoom levels. Level n has 4^n tiles. Naive total: 4.4 trillion tiles x 100KB = 440PB. ~90% is ocean/desert (deduplicate) so ~44PB effective. Lower zooms heavily cached, high zoom mostly empty. Realistic: ~50-100PB. CDN: 1B daily requests x 100KB = 100TB/day. CDN cache hit >99% for popular areas, origin serves <1TB/day.",
+    "diagram": null,
+    "source": "SDIV2 Ch3"
+  },
+  {
+    "id": "V2D-016",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "architecture",
+    "front": "Trace the full data flow for a navigation request from origin to destination in Google Maps.",
+    "back": "1) Client sends origin/destination to Route Planning Service. 2) Geocoding resolves addresses to lat/lng. 3) Shortest Path Service loads routing tiles, runs Dijkstra/A* for top-k paths ignoring traffic. 4) ETA Service enriches with real-time traffic from live DB (fed by GPS via Kafka). 5) Ranker applies filters (avoid tolls/highways), ranks by ETA. 6) Results returned with polyline + tile URLs. 7) Client fetches tiles from CDN.",
+    "diagram": "graph TD\n  Client-->RPS[Route Planning]\n  RPS-->Geo[Geocoding]\n  RPS-->SP[Shortest Path]\n  SP-->RT[(Routing Tiles)]\n  RPS-->ETA[ETA Service]\n  ETA-->Traffic[(Live Traffic DB)]\n  RPS-->Rank[Ranker]\n  Client-->CDN[CDN Tiles]",
+    "source": "SDIV2 Ch3"
+  },
+  {
+    "id": "V2D-017",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "deep-concept",
+    "front": "What are routing tiles and how does hierarchical routing make continent-scale pathfinding feasible?",
+    "back": "Routing tiles partition the road graph into geographic segments with edges (roads) and nodes (intersections). 3 hierarchy levels: Local (all roads), Regional (highways/arterials), Continental (major highways). Cross-country route uses continental for highway, regional for city entry/exit, local for first/last mile. Reduces billions of edges to millions. Shortest paths within tiles are pre-cached. Incremental updates: only affected tiles recomputed when roads change.",
+    "diagram": null,
+    "source": "SDIV2 Ch3"
+  },
+  {
+    "id": "V2D-018",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "tradeoff",
+    "front": "Why does Google Maps use Cassandra for the location service, and what CAP trade-off does it make?",
+    "back": "Millions of GPS updates/sec. Cassandra: 1) High write throughput (LSM-tree). 2) Linear scaling. 3) user_id partition key co-locates history sorted by timestamp. CAP: chooses AP over consistency. Eventual consistency acceptable -- stale GPS by seconds doesn't break navigation. CP would make writes fail during partition, losing GPS data permanently. Better stale reads than lost writes.",
+    "diagram": null,
+    "source": "SDIV2 Ch3"
+  },
+  {
+    "id": "V2D-019",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "interview",
+    "front": "How would you optimize map tile delivery for users on slow mobile networks?",
+    "back": "1) CDN caching with long TTLs. 2) Client-side cache: pre-download along route. 3) Vector tiles (10x smaller, GPU-rendered; trade-off: more client CPU). 4) Progressive quality: low-res first. 5) Predictive pre-fetch: tiles ahead in driving direction. 6) Delta updates for changed tiles. 7) WebP/AVIF for 30-50% compression. 8) HTTP/2 multiplexing for many small requests.",
+    "diagram": null,
+    "source": "SDIV2 Ch3"
+  },
+  {
+    "id": "V2D-020",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "interview",
+    "front": "How would you design the ETA prediction service to handle real-time traffic?",
+    "back": "1) GPS updates flow through Kafka to stream processor. 2) Map each point to road segment via HMM map matching. 3) Compute moving-average speed per segment over 5 min in Redis + Cassandra. 4) ETA = sum(segment_length / speed). Apply ML for time/day/weather. 5) Cache popular routes, refresh every few minutes. 6) Sparse areas fall back to speed-limit estimates. Accuracy improves with more drivers (network effect).",
+    "diagram": null,
+    "source": "SDIV2 Ch3"
+  },
+  {
+    "id": "V2D-021",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "tradeoff",
+    "front": "How does Google Maps batch client GPS updates, and what is the accuracy vs bandwidth trade-off?",
+    "back": "Client batches every 15-60s instead of 1/sec. Compressed array of (timestamp, lat, lng, speed, heading). Benefits: 15-60x fewer API calls, delta encoding, less battery drain, less server load. Trade-off: traffic freshness delayed by batch interval. 15s sufficient -- traffic changes on minutes timescale. During active navigation, interval shrinks to 1-5s for responsive rerouting.",
+    "diagram": null,
+    "source": "SDIV2 Ch3"
+  },
+  {
+    "id": "V2D-022",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "type": "estimation",
+    "front": "Estimate the scale for a Kafka-like distributed message queue: throughput, storage, and retention.",
+    "back": "Target: 1M msgs/sec, 1KB avg. Write: 1GB/s, 3x replication = 3GB/s disk. 7-day retention: 600TB, with replicas = 1.8PB. Sequential writes so spinning disks work (100MB/s each) -- need ~30 disks across 10 brokers. Network: 300MB/s in+out per broker, requires 10GbE. 100 partitions across 10 brokers = 10 each at 10MB/s.",
+    "diagram": null,
+    "source": "SDIV2 Ch4"
+  },
+  {
+    "id": "V2D-023",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "type": "architecture",
+    "front": "Trace the full data flow of a message from producer to consumer in the distributed message queue.",
+    "back": "1) Producer computes partition (hash(key) % N); routing in client library. 2) Batches messages for same partition. 3) Sends to leader broker. 4) Leader appends to WAL -- sequential, no random I/O. 5) Followers pull and append to own WAL. 6) Once ISRs ack (per setting), leader responds. 7) Consumer pulls by offset from leader. 8) Leader reads sequentially from WAL. 9) Consumer processes and commits offset to coordinator.",
+    "diagram": "graph LR\n  P[Producer]-->|batch|L[Leader Broker]\n  L-->|append|WAL[(WAL)]\n  L-->|replicate|F1[Follower 1]\n  L-->|replicate|F2[Follower 2]\n  C[Consumer]-->|pull|L\n  C-->|commit|ZK[Coordinator]",
+    "source": "SDIV2 Ch4"
+  },
+  {
+    "id": "V2D-024",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "type": "deep-concept",
+    "front": "Explain the ISR mechanism and how ack=0/1/all create a durability-performance spectrum.",
+    "back": "ISR = replicas within configurable lag of leader. ack=0: no wait, max throughput, messages can be lost. ack=1: wait for leader WAL write -- fast but leader death before replication loses data. ack=all: wait for ALL ISR replicas -- strongest durability, survives single node failure, but slow replicas block writes. ISR solves this: removing slow replicas means ack=all only waits for healthy replicas. More ISR members = higher durability but higher latency.",
+    "diagram": null,
+    "source": "SDIV2 Ch4"
+  },
+  {
+    "id": "V2D-025",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "type": "tradeoff",
+    "front": "What are the trade-offs of increasing vs decreasing partition count?",
+    "back": "More partitions: higher parallelism/throughput but more file handles, longer leader election, higher latency, more rebalancing churn. Fewer: lower overhead, faster failover, stronger ordering but limited parallelism. Rule: (throughput) / (10MB/s per partition). Increasing is easy (new messages spread). Decreasing is hard -- decommissioned partition must drain full retention period before removal.",
+    "diagram": null,
+    "source": "SDIV2 Ch4"
+  },
+  {
+    "id": "V2D-026",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "type": "interview",
+    "front": "A broker node crashes. Walk through the recovery process.",
+    "back": "1) Coordinator detects via missed heartbeats (~10-30s). 2) Controller generates new plan. 3) For each partition where it was leader: elect from ISR (highest offset). No ISR? Wait (lose availability) or elect out-of-sync (risk data loss) -- configurable. 4) Producers/consumers get new mapping via metadata refresh. 5) Recovered broker rejoins as follower, catches up, re-enters ISR. 6) Controller may rebalance with temporary extra replicas.",
+    "diagram": null,
+    "source": "SDIV2 Ch4"
+  },
+  {
+    "id": "V2D-027",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "type": "deep-concept",
+    "front": "Why does the queue use a WAL on disk instead of a database, and why is disk fast here?",
+    "back": "1) Append-only sequential writes -- no random I/O or index updates. 2) SSD does 3GB/s sequential vs 100MB/s random. 3) OS page cache makes recent reads memory-speed. 4) Zero-copy: sendfile() transfers data from page cache to network socket directly, skipping user space. 5) Simple crash recovery: replay from checkpoint. A database adds transactions/indexes/locking overhead a log doesn't need.",
+    "diagram": null,
+    "source": "SDIV2 Ch4"
+  },
+  {
+    "id": "V2D-028",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "type": "interview",
+    "front": "How would you guarantee exactly-once delivery in the distributed message queue?",
+    "back": "Idempotent producers + transactional consumers: 1) Each producer gets PID + monotonic sequence; broker deduplicates by (PID, sequence). 2) Producer transaction writes to multiple partitions atomically. Consumers read only committed messages. 3) Consume-transform-produce: offset commit and output write in same transaction. Trade-off: ~3-5x throughput reduction. Most systems use at-least-once + idempotent consumers instead.",
+    "diagram": null,
+    "source": "SDIV2 Ch4"
   }
 ]
