@@ -1007,7 +1007,8 @@ function generateQuizQuestions(level){
     var shuffled=dedicated.slice().sort(function(){return Math.random()-.5}).slice(0,10);
     return shuffled.map(function(q){return{card:{id:q.relatedCards&&q.relatedCards[0]||"",level:q.level,category:q.category||"",front:q.question,back:q.explanation},question:q.question,correct:q.options[q.correct],options:q.options.slice(),explanation:q.explanation,correctIndex:q.correct}});
   }
-  // Fallback: auto-generate from cards
+  // No auto-generation — all quizzes come from the dedicated bank
+  return [];
   var pool=allCards.filter(function(c){return c.level===level});
   if(pool.length<4)return[];
   var shuffled=pool.slice().sort(function(){return Math.random()-.5});

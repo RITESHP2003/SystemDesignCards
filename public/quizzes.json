@@ -1651,5 +1651,1805 @@
     "correct": 2,
     "explanation": "OT (used by Google Docs) and CRDTs (used by Figma, Yjs) allow concurrent edits to be merged deterministically. Locking destroys the real-time collaborative experience. Last-writer-wins silently drops edits. Snapshots lose data between intervals.",
     "relatedCards": []
+  },
+  {
+    "id": "Q3-001",
+    "level": 3,
+    "category": "Chat System",
+    "question": "In a chat system, when a user sends a message while the recipient is offline, what is the most appropriate delivery strategy?",
+    "options": [
+      "Hold the message in a persistent message queue keyed by recipient ID and deliver upon reconnection",
+      "Store the message in a CDN edge cache closest to the recipient's last known location",
+      "Broadcast the message to all chat servers using consistent hashing and let them buffer it",
+      "Write the message to a write-ahead log and replay it when the recipient's WebSocket reconnects"
+    ],
+    "correct": 0,
+    "explanation": "Offline messages should be persisted in a queue or store keyed by recipient, then pushed when the user reconnects and establishes a new WebSocket. CDN caching is for static content delivery, not transient message buffering. A WAL is for crash recovery of a database, not application-level message delivery.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-002",
+    "level": 3,
+    "category": "Chat System",
+    "question": "Which approach best handles online presence (green dot) at scale in a chat system with millions of concurrent users?",
+    "options": [
+      "Each client sends a heartbeat every N seconds; the server marks a user offline if no heartbeat arrives within a timeout window",
+      "The server pings each client via HTTP long-polling every second and updates a relational presence table",
+      "Use a Raft consensus protocol among chat servers to agree on each user's presence state",
+      "Store presence in a blockchain ledger so all nodes have an immutable, consistent view"
+    ],
+    "correct": 0,
+    "explanation": "Heartbeat-based presence with a timeout threshold is the standard scalable approach \u2014 clients periodically signal liveness over their existing WebSocket, and absence of heartbeats triggers an offline transition. Consensus protocols add unnecessary latency for a soft-state signal, and per-second HTTP polling creates enormous overhead at scale.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-003",
+    "level": 3,
+    "category": "Chat System",
+    "question": "In a group chat system, a user is connected to Chat Server A but the message was received by Chat Server B. How should the message reach the user?",
+    "options": [
+      "Chat Server B publishes the message to a shared pub/sub channel (e.g., Redis Pub/Sub or Kafka), and Chat Server A subscribes and pushes it to the connected user",
+      "Chat Server B writes the message to a distributed cache, and the client polls the cache every 500ms",
+      "Chat Server B initiates a new WebSocket connection directly to the user's device to deliver the message",
+      "Chat Server B uses DNS-based routing to redirect the message to Chat Server A's IP address"
+    ],
+    "correct": 0,
+    "explanation": "A pub/sub layer decouples message producers from consumers across chat servers. Server B publishes, Server A (which holds the user's WebSocket) subscribes to the relevant channel and pushes the message. Direct server-to-client WebSocket from a non-owning server violates the connection model, and client polling defeats the purpose of persistent connections.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-004",
+    "level": 3,
+    "category": "Chat System",
+    "question": "What is the primary reason chat systems use a sequence ID generator (e.g., Snowflake) rather than relying on wall-clock timestamps for message ordering?",
+    "options": [
+      "Clock skew between servers can cause messages to appear out of order even if they were sent sequentially",
+      "Timestamps consume more storage than 64-bit sequence IDs in columnar databases",
+      "Sequence IDs enable content-addressable storage which timestamps cannot",
+      "Wall-clock timestamps are not supported by the WebSocket protocol specification"
+    ],
+    "correct": 0,
+    "explanation": "Distributed servers have clock skew despite NTP synchronization, meaning two messages sent moments apart on different servers could get the same or reversed timestamps. A centralized or coordinated sequence ID generator ensures a strict, monotonically increasing total order. Timestamps are fully supported in WebSocket payloads \u2014 the issue is consistency, not protocol support.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-005",
+    "level": 3,
+    "category": "Chat System",
+    "question": "A chat application needs to sync message history when a user opens the app after being offline for hours. Which synchronization strategy minimizes bandwidth?",
+    "options": [
+      "The client sends its last-seen message sequence ID, and the server returns only messages with higher sequence IDs",
+      "The server sends a full snapshot of all conversations updated in the last 24 hours",
+      "The client downloads the entire message database and performs a local diff against its cache",
+      "The server uses vector clocks to compute a three-way merge of the client and server message states"
+    ],
+    "correct": 0,
+    "explanation": "Cursor-based sync using the last-seen sequence ID is the most bandwidth-efficient approach \u2014 the server only transmits the delta of new messages. Full snapshots waste bandwidth on already-seen messages. Vector clocks are used for conflict resolution in multi-writer systems, not for simple append-only message sync.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-006",
+    "level": 3,
+    "category": "Chat System",
+    "question": "In designing read receipts for a group chat with 500 members, what is the most scalable approach to avoid a write amplification problem?",
+    "options": [
+      "Store a per-user high-water mark (last-read sequence ID per conversation) rather than per-message read flags",
+      "Create a separate read-receipt row for every (user, message) pair in a normalized relational table",
+      "Use a gossip protocol so each client propagates read status to its neighbors in an overlay network",
+      "Embed read receipt arrays inside each message document in a document store and update them atomically"
+    ],
+    "correct": 0,
+    "explanation": "A per-user cursor (high-water mark) means one write per read action regardless of how many messages were read, compared to O(messages) writes for per-message flags. In a 500-member group, per-message read flags create massive write fan-out. Gossip protocols solve membership/failure detection, not read-receipt propagation.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-007",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "question": "In a search autocomplete system, why is a trie preferred over a hash map for prefix matching?",
+    "options": [
+      "A trie naturally supports prefix traversal \u2014 all completions sharing a prefix share a path, enabling efficient enumeration without scanning all keys",
+      "Tries have O(1) lookup time for exact matches, which hash maps cannot achieve",
+      "Tries use less memory than hash maps because they compress duplicate characters via hash collision chains",
+      "Hash maps cannot store string keys, so a trie is the only data structure that supports text-based lookups"
+    ],
+    "correct": 0,
+    "explanation": "The trie's structural advantage is that all strings sharing a prefix share a common path from the root, so finding all completions for a prefix is a subtree traversal. A hash map can do O(1) exact match but has no efficient way to enumerate all keys sharing a prefix without scanning every entry. Hash maps absolutely support string keys.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-008",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "question": "An autocomplete system needs to return the top-5 most popular completions for each prefix. What is an efficient approach at the trie level?",
+    "options": [
+      "Cache the top-k results at each trie node, updated periodically from aggregated query logs",
+      "Perform a full depth-first traversal of the subtree at query time and sort all leaf nodes by frequency",
+      "Use a bloom filter at each trie node to probabilistically rank completions by popularity",
+      "Store a B+ tree index at each node pointing to the top completions in a relational database"
+    ],
+    "correct": 0,
+    "explanation": "Pre-computing and caching top-k completions at each node trades periodic update cost for O(1) lookup latency at query time. Full subtree traversal at query time is too slow for real-time autocomplete with millions of terms. Bloom filters test membership, not ranking \u2014 they cannot sort results by popularity.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-009",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "question": "How should an autocomplete system aggregate trending search queries to update suggestion rankings?",
+    "options": [
+      "Stream query logs into a distributed data pipeline (e.g., Kafka \u2192 Flink/Spark), compute frequency counts over rolling time windows, and periodically rebuild the trie's top-k caches",
+      "Have each application server maintain a local LRU cache of queries and use gossip protocol to converge on global rankings",
+      "Write every query synchronously to a single leader database and read sorted rankings on each autocomplete request",
+      "Use consistent hashing to partition queries across trie shards, where each shard independently computes global top-k"
+    ],
+    "correct": 0,
+    "explanation": "A streaming pipeline with time-windowed aggregation is the standard approach \u2014 it decouples real-time ingestion from periodic trie updates, handles volume, and supports decay of stale trends. Synchronous writes to a single leader create a bottleneck at scale. Each shard only sees its own partition, not the full query distribution, so it cannot independently compute correct global top-k.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-010",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "question": "An autocomplete service needs to handle multi-language input including CJK characters where word boundaries are ambiguous. What adaptation to the trie is most appropriate?",
+    "options": [
+      "Use a character-level trie that indexes individual Unicode code points rather than word-level tokens",
+      "Convert all CJK input to ASCII using transliteration before inserting into a standard English trie",
+      "Use a suffix array instead of a trie since suffix arrays handle variable-length encodings natively",
+      "Apply a Bloom filter on n-grams to detect language boundaries before routing to language-specific tries"
+    ],
+    "correct": 0,
+    "explanation": "Character-level tries work naturally with CJK because they don't depend on whitespace-delimited word boundaries \u2014 each character is a trie edge. Transliteration to ASCII loses meaning and creates collisions across different CJK characters. Suffix arrays solve substring search, not prefix completion, and don't inherently handle encoding better than tries.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-011",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "question": "To reduce memory usage of a trie serving billions of search terms, which optimization is most effective?",
+    "options": [
+      "Merge single-child chains into compressed nodes (Patricia trie / radix tree), storing edge labels as substrings rather than individual characters",
+      "Use a B-tree instead of a trie since B-trees have better memory locality for string data",
+      "Apply LZW compression to the trie's in-memory representation and decompress nodes on access",
+      "Shard the trie by the hash of the full query string so each shard stores fewer nodes"
+    ],
+    "correct": 0,
+    "explanation": "A Patricia/radix trie collapses chains of single-child nodes into one node with a multi-character label, dramatically reducing node count for sparse key distributions. Sharding by hash of the full query defeats prefix locality \u2014 queries sharing a prefix would land on different shards, breaking the autocomplete traversal. LZW compression on live in-memory structures adds prohibitive per-access overhead.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-012",
+    "level": 3,
+    "category": "YouTube Design",
+    "question": "When a creator uploads a 4K video to YouTube, why does the system transcode it into multiple resolutions rather than serving the original file?",
+    "options": [
+      "Different client devices and network conditions require different bitrate/resolution streams; transcoding enables adaptive bitrate streaming",
+      "The original file uses a proprietary codec that browsers cannot decode, so transcoding converts it to a browser-compatible format only",
+      "Transcoding is required by CDN providers who only cache files under 100MB, so videos must be split into smaller resolution variants",
+      "Multiple resolutions allow the system to use consistent hashing to distribute video chunks across storage shards"
+    ],
+    "correct": 0,
+    "explanation": "Transcoding into multiple resolution/bitrate variants enables adaptive bitrate streaming (ABR), where the player dynamically switches quality based on the viewer's bandwidth and device capability. CDN providers don't impose a 100MB cache limit \u2014 they cache segments of any size. Consistent hashing distributes data across shards but doesn't require multiple resolutions.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-013",
+    "level": 3,
+    "category": "YouTube Design",
+    "question": "In an adaptive bitrate streaming protocol like HLS, how does the client player decide which quality level to request for the next video segment?",
+    "options": [
+      "The player estimates available bandwidth from recent segment download times and selects the highest bitrate that can be downloaded faster than playback duration",
+      "The CDN server inspects the client's User-Agent header and pushes the appropriate quality level via server-sent events",
+      "A centralized quality-of-service controller assigns quality levels to each viewer session based on their subscription tier",
+      "The player downloads all quality levels simultaneously and discards the ones that arrive too slowly"
+    ],
+    "correct": 0,
+    "explanation": "ABR is client-driven: the player measures throughput from recent segment fetches and selects the highest sustainable bitrate for the next segment from the manifest. The CDN serves whatever segment the client requests \u2014 it doesn't make quality decisions. Downloading all levels simultaneously would multiply bandwidth consumption by the number of variants.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-014",
+    "level": 3,
+    "category": "YouTube Design",
+    "question": "A video platform needs to process uploads through a transcoding pipeline. What architecture handles variable load and long-running jobs?",
+    "options": [
+      "Upload service writes a job to a message queue; a pool of transcoding workers pulls jobs, processes them asynchronously, and writes outputs to object storage",
+      "The upload API server transcodes the video synchronously in the request handler before returning a 200 response to the client",
+      "A cron job runs every minute, scans the upload directory for new files, and transcodes them in a single-threaded loop",
+      "The CDN edge nodes transcode the video on first request using lazy evaluation and cache the result"
+    ],
+    "correct": 0,
+    "explanation": "Asynchronous processing via a message queue decouples upload acknowledgment from transcoding, handles variable load through elastic worker pools, and tolerates long-running jobs. Synchronous transcoding would block the upload request for minutes or hours. CDN edge nodes are optimized for caching and delivery, not compute-intensive transcoding.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-015",
+    "level": 3,
+    "category": "YouTube Design",
+    "question": "How does a video platform's CDN strategy typically handle a viral video that suddenly gets millions of views?",
+    "options": [
+      "The video is pulled to CDN edge caches on first request and remains cached due to high hit rate; popular content naturally stays hot at edges closest to viewers",
+      "The origin server detects the traffic spike and proactively pushes the video to all CDN edge nodes worldwide using a fanout queue",
+      "The system applies rate limiting to cap the number of concurrent viewers and queues excess requests until load decreases",
+      "A consistent hashing ring redistributes the video's segments across additional origin shards to handle the increased read throughput"
+    ],
+    "correct": 0,
+    "explanation": "CDNs use pull-based caching \u2014 content is fetched from origin on the first miss and then served from edge cache for subsequent requests. For viral content, the high request rate keeps it warm in caches near viewers, shielding the origin. Proactive push to all global edges wastes bandwidth for regions with no viewers. Rate limiting viewers contradicts the platform's goal of serving content.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-016",
+    "level": 3,
+    "category": "YouTube Design",
+    "question": "What is the purpose of splitting a video into small fixed-duration segments (e.g., 2-10 seconds) in HLS/DASH streaming?",
+    "options": [
+      "Segments allow the player to switch bitrate at each segment boundary, enabling smooth adaptive quality transitions without re-buffering",
+      "Small segments reduce the total file size through better compression ratios compared to a single large file",
+      "Segmentation is required because HTTP/1.1 has a maximum response body size that full videos would exceed",
+      "Segments enable the CDN to apply consistent hashing \u2014 each segment gets a different cache key distributed across edge nodes"
+    ],
+    "correct": 0,
+    "explanation": "Fixed-duration segments are the fundamental unit of adaptive bitrate streaming \u2014 the player can independently choose the quality for each segment, switching up or down at boundaries as bandwidth changes. Segmentation doesn't improve compression (each segment is independently encoded with overhead). HTTP has no maximum response body size limit.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-017",
+    "level": 3,
+    "category": "YouTube Design",
+    "question": "A video platform stores video metadata (title, description, tags, view count) separately from actual video files. What is the primary architectural reason?",
+    "options": [
+      "Metadata is small, frequently read/written, and requires low-latency queries, while video blobs are large, append-only, and best served from object storage/CDN \u2014 different access patterns need different storage systems",
+      "Storing them together would violate third normal form in the relational database schema",
+      "Video files must be encrypted at rest but metadata must remain in plaintext for search indexing, so they cannot share a storage layer",
+      "Object storage systems like S3 do not support storing structured data alongside binary objects"
+    ],
+    "correct": 0,
+    "explanation": "The separation follows the principle of matching storage systems to access patterns: metadata goes in a database optimized for indexed queries and frequent updates, while large video blobs go in object storage optimized for throughput and CDN integration. S3 absolutely supports structured data (it stores any bytes), but it's not optimized for indexed queries on individual fields.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-018",
+    "level": 3,
+    "category": "Google Drive",
+    "question": "Google Drive uses delta sync to minimize bandwidth when a user edits a large file. What does delta sync transmit?",
+    "options": [
+      "Only the changed blocks or byte-range diffs between the local version and the server version, not the entire file",
+      "A compressed copy of the entire file, since compression achieves similar bandwidth savings as delta computation",
+      "The file's new cryptographic hash, which the server uses to reconstruct the file from its deduplication store",
+      "A log of user edit operations (keystrokes, cursor positions) that the server replays against its copy"
+    ],
+    "correct": 0,
+    "explanation": "Delta sync computes the binary diff between the old and new file versions (e.g., using rsync-style rolling checksums) and transmits only the changed blocks. This is far more efficient than re-uploading the full file for small edits. A hash alone cannot reconstruct content \u2014 it's a fingerprint, not a reversible encoding. Operation logs work for collaborative text editing (OT/CRDT) but not for general binary files.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-019",
+    "level": 3,
+    "category": "Google Drive",
+    "question": "Two users simultaneously edit the same Google Drive document offline and then sync. What conflict resolution strategy preserves both users' work?",
+    "options": [
+      "Use Operational Transformation (OT) or CRDTs to merge concurrent edits, preserving both users' changes with deterministic conflict resolution",
+      "Apply last-writer-wins based on timestamp \u2014 the most recent edit overwrites the other",
+      "Lock the file when the first user starts editing and reject the second user's changes on sync",
+      "Store both versions as separate files and ask an admin to manually merge them"
+    ],
+    "correct": 0,
+    "explanation": "OT and CRDTs are designed specifically for concurrent collaborative editing \u2014 they transform or merge operations so both users' changes are preserved without data loss. Last-writer-wins silently discards one user's work. File locking prevents concurrent editing entirely, which defeats the purpose of real-time collaboration at scale.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-020",
+    "level": 3,
+    "category": "Google Drive",
+    "question": "How does a cloud storage system like Google Drive perform block-level deduplication to save storage?",
+    "options": [
+      "Files are split into fixed or variable-size chunks, each chunk is hashed, and only chunks with unique hashes are stored \u2014 duplicate chunks reference the same stored block",
+      "The system compresses all files using gzip and stores them in a single monolithic archive, eliminating duplicate bytes at the compression level",
+      "A machine learning model identifies semantically similar files and merges them into a single canonical version",
+      "Files are stored in a B+ tree indexed by content hash, and the tree's internal deduplication merges identical leaf nodes"
+    ],
+    "correct": 0,
+    "explanation": "Block-level dedup splits files into chunks, hashes each (e.g., SHA-256), and stores only unique chunks. When multiple files share identical blocks, they reference the same stored chunk via its hash. Compression reduces size but doesn't deduplicate across files. B+ trees are indexing structures, not deduplication engines.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-021",
+    "level": 3,
+    "category": "Google Drive",
+    "question": "In Google Drive's notification system, how are file change events delivered to other users who have the same file open?",
+    "options": [
+      "The server pushes change notifications via long-polling or WebSocket connections to clients who have subscribed to that file's change feed",
+      "Each client polls the server every 100ms to check for updates to every file in their Drive",
+      "The server writes change events to a blockchain and clients validate new blocks to detect changes",
+      "Changes are propagated via DNS TXT records that clients resolve periodically to discover updates"
+    ],
+    "correct": 0,
+    "explanation": "Push-based notification via long-polling or WebSocket is how collaborative systems deliver real-time updates. Clients subscribe to change feeds for open files, and the server pushes events when changes occur. Polling every 100ms for every file would create enormous unnecessary load. DNS TXT records are for domain metadata, not real-time event delivery.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-022",
+    "level": 3,
+    "category": "Google Drive",
+    "question": "A cloud storage system needs to ensure uploaded file chunks are not corrupted. Which verification mechanism is most appropriate?",
+    "options": [
+      "Compute a checksum (e.g., MD5 or SHA-256) of each chunk client-side, send it alongside the data, and have the server verify the checksum matches after receiving the chunk",
+      "Use TCP's built-in checksum since TCP guarantees data integrity end-to-end",
+      "Store three replicas and use a Raft consensus vote to determine which replica has the correct data",
+      "Apply Reed-Solomon error correction codes to each chunk so corruption can be detected and repaired without re-upload"
+    ],
+    "correct": 0,
+    "explanation": "Application-level checksums catch corruption that TCP cannot \u2014 silent disk errors, proxy interference, and application bugs. The client computes a hash, sends it with the data, and the server verifies on receipt. TCP checksums only protect individual segments in transit and are too weak (16-bit) to catch all corruption. Raft consensus decides leader election and log ordering, not data integrity.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-023",
+    "level": 3,
+    "category": "Proximity Service",
+    "question": "What is the primary advantage of using geohashes over raw latitude/longitude coordinates for proximity queries in a database?",
+    "options": [
+      "Geohashes convert 2D coordinates into a 1D string that can be indexed with a standard B-tree, enabling prefix-based range queries for spatial proximity",
+      "Geohashes provide exact distance calculations without the Haversine formula, reducing CPU usage",
+      "Geohashes eliminate the need for spatial indexing because they are inherently sorted by distance from any query point",
+      "Geohashes compress coordinate data to 4 bytes, saving storage compared to 16 bytes for a lat/long pair"
+    ],
+    "correct": 0,
+    "explanation": "Geohashes encode 2D coordinates as a 1D string where nearby points share common prefixes, so a standard B-tree index supports proximity queries via prefix matching (e.g., WHERE geohash LIKE 'abc%'). They don't calculate distance \u2014 you still need Haversine or similar. Geohash strings are typically 6-12 bytes, not a compression win over 16 bytes of lat/long.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-024",
+    "level": 3,
+    "category": "Proximity Service",
+    "question": "A proximity service needs to find all restaurants within 500 meters of a user. Using a quadtree, how does the search work?",
+    "options": [
+      "Start at the root, recursively descend into child quadrants that intersect the search circle, and collect points within the radius from those leaf nodes",
+      "Hash the user's coordinates to find the single leaf node they fall in, then return all points in that leaf",
+      "Traverse the entire quadtree in breadth-first order, computing distance for every stored point",
+      "Use the quadtree's built-in range query to return points sorted by distance, then take the first N results"
+    ],
+    "correct": 0,
+    "explanation": "Quadtree search prunes branches whose bounding boxes don't intersect the search radius, visiting only relevant portions of the tree. This eliminates most of the space from consideration. Simply returning all points in the user's leaf node misses nearby points in adjacent cells. Quadtrees don't inherently return results sorted by distance \u2014 that requires a post-processing step.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-025",
+    "level": 3,
+    "category": "Proximity Service",
+    "question": "A known limitation of geohash-based proximity search is the 'edge problem.' What is it and how is it mitigated?",
+    "options": [
+      "Two points can be very close geographically but fall in different geohash cells with unrelated prefixes; this is mitigated by also searching the 8 neighboring geohash cells",
+      "Geohash precision decreases near the edges of the Earth (poles and antimeridian), so edge regions require higher precision levels",
+      "Points exactly on a geohash cell boundary are assigned to both adjacent cells, causing duplicate results that must be filtered",
+      "The Z-curve mapping creates discontinuities at cell edges where sequential geohash values jump to distant locations, requiring a space-filling Hilbert curve instead"
+    ],
+    "correct": 0,
+    "explanation": "Two locations across a geohash cell boundary may be meters apart but have completely different geohash prefixes, so a prefix-only search would miss the neighbor. The standard mitigation is to query not just the target cell but all 8 surrounding cells. While the Z-curve does have discontinuities, the practical fix is neighbor-cell expansion, not switching to Hilbert curves.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-026",
+    "level": 3,
+    "category": "Proximity Service",
+    "question": "For a ride-sharing app's proximity service that must find the nearest 5 drivers to a rider, which approach provides the best latency?",
+    "options": [
+      "Maintain an in-memory geospatial index (e.g., Redis GEOSEARCH) of active driver locations updated in real-time, and query it with the rider's coordinates",
+      "Query a PostgreSQL table with a WHERE clause filtering on latitude/longitude ranges using standard B-tree indexes",
+      "Broadcast the rider's location to all active drivers via a message queue and wait for the 5 closest to respond",
+      "Use DNS-based geographic routing to direct the rider's request to the nearest data center, which contains only local drivers"
+    ],
+    "correct": 0,
+    "explanation": "An in-memory geospatial index like Redis with GEOSEARCH provides sub-millisecond proximity queries on frequently-updating driver locations. Standard B-tree indexes on lat/long require rectangular range scans that don't map well to radial proximity. Broadcasting to all drivers creates O(N) load and latency proportional to the slowest responder.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-027",
+    "level": 3,
+    "category": "Proximity Service",
+    "question": "A proximity service uses a geohash of precision level 6 (roughly 1.2km \u00d7 0.6km cells). A user searches for 'restaurants within 200m.' What is the problem?",
+    "options": [
+      "The geohash cell is much larger than the search radius, so the query returns many irrelevant results that must be filtered by actual distance calculation",
+      "The geohash cell is too small to contain the search radius, so nearby restaurants in other cells are missed entirely",
+      "Geohash precision 6 cannot represent coordinates with enough decimal places to distinguish points 200m apart",
+      "The search must use a quadtree instead because geohashes don't support radius queries smaller than their cell size"
+    ],
+    "correct": 0,
+    "explanation": "At precision 6, cells are ~1.2km wide, but the search radius is only 200m. The prefix query returns all points in the cell (and neighbors), most of which are outside 200m \u2014 so a post-filter distance check is needed. The cell being larger than the radius doesn't miss results (neighbor expansion still applies), it just adds false positives. Geohashes can absolutely support small-radius queries with post-filtering.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-028",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "question": "A hotel booking system receives two simultaneous requests for the last available room. How should the system prevent overbooking?",
+    "options": [
+      "Use a database transaction with SELECT FOR UPDATE on the room inventory row, check availability, and decrement atomically \u2014 only the first transaction commits",
+      "Use optimistic concurrency with a version column \u2014 both read version 1, but only the first UPDATE WHERE version=1 succeeds; the second retries and sees zero rooms",
+      "Queue all booking requests in a FIFO message queue and process them serially with a single consumer",
+      "Both A and B are valid approaches with different tradeoffs"
+    ],
+    "correct": 3,
+    "explanation": "Both pessimistic locking (SELECT FOR UPDATE) and optimistic concurrency control (version column) correctly prevent overbooking. Pessimistic locking blocks concurrent readers but guarantees success on first attempt; optimistic allows concurrency but requires retry logic. A serial queue also works but sacrifices throughput. The best choice depends on contention levels.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-029",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "question": "Why is idempotency critical for a hotel reservation API, and how is it typically implemented?",
+    "options": [
+      "Network retries can cause the same booking request to arrive multiple times; an idempotency key (client-generated UUID) ensures the server processes the request exactly once",
+      "Idempotency prevents SQL injection by ensuring each request uses parameterized queries with unique tokens",
+      "Idempotency allows the server to cache responses in a CDN, reducing database load for repeated booking checks",
+      "Idempotency enables the hotel system to batch multiple booking requests into a single database transaction for efficiency"
+    ],
+    "correct": 0,
+    "explanation": "In distributed systems, clients may retry failed requests (timeout, network error), and without idempotency the same booking could be created twice. The client attaches a unique idempotency key; the server checks if that key was already processed and returns the previous result instead of re-executing. This has nothing to do with SQL injection or CDN caching.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-030",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "question": "A hotel reservation system needs to hold a room for 10 minutes while the user completes payment. What mechanism prevents the room from being permanently locked if the user abandons checkout?",
+    "options": [
+      "A TTL-based reservation hold: the inventory is decremented with a pending status, and a background job or TTL expiry releases the hold after 10 minutes if payment isn't confirmed",
+      "Use a distributed lock with no expiry \u2014 the payment service releases it upon success or failure, and a manual admin process handles abandoned locks",
+      "The system overbooks by 5% and relies on statistical no-show rates to balance out abandoned holds",
+      "Apply a two-phase commit across the reservation and payment databases, rolling back both if the user closes the browser"
+    ],
+    "correct": 0,
+    "explanation": "TTL-based holds are the standard pattern: decrement inventory temporarily, and if the payment deadline passes without confirmation, a scheduled job or TTL mechanism restores the room to available inventory. Distributed locks without TTL risk permanent deadlocks on abandoned sessions. Two-phase commit across external payment providers is impractical \u2014 you can't detect a browser close as a transaction participant.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-031",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "question": "A hotel reservation platform processes bookings across multiple properties. Which data partitioning strategy best supports queries like 'show availability for Hotel X on date range Y'?",
+    "options": [
+      "Partition by hotel_id so that all inventory and reservations for a single property are co-located on the same shard, enabling local joins",
+      "Partition by reservation_id using consistent hashing for even distribution across shards",
+      "Partition by date so that all reservations for the same check-in date land on the same shard",
+      "Use a single global database with read replicas since hotel reservation data is small enough to fit on one node"
+    ],
+    "correct": 0,
+    "explanation": "Partitioning by hotel_id co-locates all data for a property, so availability queries for a specific hotel hit a single shard without cross-shard joins. Partitioning by reservation_id scatters a hotel's data across all shards. Date-based partitioning creates hot shards (everyone queries upcoming dates) and splits a hotel's inventory across shards.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-032",
+    "level": 3,
+    "category": "Payment System",
+    "question": "A payment system's charge request times out after sending to the payment processor. The client retries. Without idempotency, what can happen?",
+    "options": [
+      "The customer is charged twice because the first request succeeded at the processor but the response was lost, and the retry creates a second charge",
+      "The payment processor rejects the retry because TCP guarantees exactly-once delivery",
+      "The retry is safe because payment processors automatically deduplicate based on the card number and amount",
+      "The timeout means the first request definitely failed, so the retry is always safe"
+    ],
+    "correct": 0,
+    "explanation": "A timeout means the client doesn't know the outcome \u2014 the request may have succeeded at the processor with the response lost in transit. A retry without an idempotency key creates a second independent charge. TCP guarantees ordered delivery, not application-level exactly-once semantics. Payment processors do not universally auto-deduplicate based on card+amount; explicit idempotency keys are required.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-033",
+    "level": 3,
+    "category": "Payment System",
+    "question": "In a payment system, what is the purpose of a reconciliation process?",
+    "options": [
+      "To compare the system's internal ledger records against the payment processor's settlement reports and detect discrepancies (double charges, missing refunds, failed captures)",
+      "To compress and archive old payment records to free database storage",
+      "To convert payments between currencies using real-time exchange rates from the central bank",
+      "To validate PCI DSS compliance by scanning stored payment data for unencrypted card numbers"
+    ],
+    "correct": 0,
+    "explanation": "Reconciliation is the process of matching internal transaction records against external settlement reports from payment processors and banks. It catches discrepancies like double charges, missing credits, or transactions that succeeded externally but failed internally. This is a critical financial control, distinct from archival, currency conversion, or compliance scanning.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-034",
+    "level": 3,
+    "category": "Payment System",
+    "question": "A payment system implements retry logic for failed charge attempts. Which retry strategy avoids overwhelming the payment processor during an outage?",
+    "options": [
+      "Exponential backoff with jitter \u2014 each retry waits exponentially longer with a random offset to prevent retry storms",
+      "Immediate retry in a tight loop with a maximum of 100 attempts to ensure the charge eventually goes through",
+      "Fixed 1-second interval retries with no maximum, continuing until the processor responds",
+      "Retry once after 5 seconds, and if that fails, retry again after 5 seconds with a different payment processor"
+    ],
+    "correct": 0,
+    "explanation": "Exponential backoff with jitter is the standard resilience pattern \u2014 increasing delays reduce load on a struggling service, and jitter prevents synchronized retry storms from multiple clients. Tight-loop retries amplify the outage by flooding the processor with traffic. Switching processors mid-transaction risks double charging if the first processor actually processed the original attempt.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-035",
+    "level": 3,
+    "category": "Payment System",
+    "question": "Why do payment systems use a two-phase process (authorize \u2192 capture) rather than a single immediate charge?",
+    "options": [
+      "Authorization verifies the customer has sufficient funds and places a hold, while capture transfers the money \u2014 this separation allows charging only when the order is fulfilled (e.g., shipped)",
+      "The two phases are required by TCP's handshake protocol when communicating with bank APIs",
+      "Authorization encrypts the card data and capture decrypts it at the processor \u2014 splitting ensures PCI compliance",
+      "The authorize phase writes to the primary database and the capture phase writes to the read replica, ensuring eventual consistency"
+    ],
+    "correct": 0,
+    "explanation": "The authorize-then-capture pattern holds funds at authorization time but only moves money at capture. This lets merchants verify payment feasibility immediately but charge only upon fulfillment (shipping, service delivery), preventing charges for unfulfilled orders. This is a business-level payment flow, unrelated to TCP handshakes or database replication patterns.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-036",
+    "level": 3,
+    "category": "Payment System",
+    "question": "A payment system must guarantee that a refund is processed exactly once, even if the refund service crashes mid-operation. Which pattern achieves this?",
+    "options": [
+      "Use the transactional outbox pattern \u2014 write the refund record and a corresponding event to an outbox table in the same database transaction, then a separate process publishes the event to the message broker",
+      "Write the refund to the database and publish to the message queue in parallel; if either fails, a cron job rescans for orphaned records",
+      "Use a distributed saga with compensating transactions across the refund service and the payment processor within a two-phase commit",
+      "Store the refund in an append-only event log and use event sourcing to replay the log if the service crashes, relying on the log's idempotency"
+    ],
+    "correct": 0,
+    "explanation": "The transactional outbox pattern ensures the refund record and its corresponding event are written atomically in one local transaction. A separate relay process reads the outbox and publishes events, retrying on failure. This avoids the dual-write problem (DB + queue) where one could succeed and the other fail. Two-phase commit across an external payment processor is impractical since you don't control their transaction coordinator.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-037",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "question": "A real-time gaming leaderboard needs to answer 'what is player X's rank?' among 10 million players. Why is Redis ZRANK with a sorted set the go-to solution?",
+    "options": [
+      "Redis sorted sets use a skip list internally, providing O(log N) rank lookups and score updates \u2014 all in memory for sub-millisecond latency",
+      "Redis sorted sets use a B+ tree with rank augmentation that supports O(1) rank lookups regardless of dataset size",
+      "Redis sorted sets store data on disk with memory-mapped I/O, providing the same latency as in-memory with unlimited capacity",
+      "Redis sorted sets use consistent hashing to distribute players across shards, and each shard returns a partial rank that is merged"
+    ],
+    "correct": 0,
+    "explanation": "Redis sorted sets are backed by a skip list (with a hash table for O(1) member-to-score lookups), giving O(log N) time for rank queries, score updates, and range retrievals. Being entirely in-memory, latency is sub-millisecond. It's not O(1) \u2014 it's logarithmic, which at 10M entries is still ~23 comparisons. Redis doesn't automatically shard sorted sets across nodes.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-038",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "question": "A gaming leaderboard needs to support 'show top 100 players' and 'show players ranked 500-510.' Which Redis command efficiently handles both?",
+    "options": [
+      "ZREVRANGE (or ZRANGE with REV) retrieves members by rank range from a sorted set, returning the requested slice in O(log N + M) where M is the range size",
+      "ZSCAN iterates over all members and filters by rank position, requiring a full scan each time",
+      "ZRANGEBYSCORE filters by score range, which directly maps to rank ranges since scores and ranks are the same",
+      "SMEMBERS returns all members and the client sorts and slices locally for each leaderboard view"
+    ],
+    "correct": 0,
+    "explanation": "ZREVRANGE (descending) returns members between two rank positions efficiently \u2014 it traverses the skip list to the start rank and collects M entries. It's O(log N + M), not a full scan. ZRANGEBYSCORE filters by score values, not rank positions \u2014 multiple players can share a score but have different ranks. SMEMBERS is for unordered sets and doesn't support sorted retrieval.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-039",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "question": "A game has regional leaderboards (US, EU, Asia) and a global leaderboard. How should this be architected with Redis sorted sets?",
+    "options": [
+      "Maintain a separate sorted set per region plus a global sorted set; on each score update, write to both the regional and global sets",
+      "Use a single global sorted set and filter by a region prefix in the member key at query time using ZSCAN",
+      "Store only regional sorted sets and compute the global leaderboard on-demand by merging all regional sets with ZUNIONSTORE on each request",
+      "Use Redis Cluster's hash tag feature to co-locate all regional sorted sets on one node, then query them with a multi-key ZRANGEBYLEX"
+    ],
+    "correct": 0,
+    "explanation": "Maintaining separate sorted sets per region and one global set allows O(log N) queries at each level. Writing to two sets on update is cheap in Redis. On-demand ZUNIONSTORE on every global query is O(N) and far too slow for real-time use. ZSCAN-based filtering is a full iteration, not a rank-aware query. ZRANGEBYLEX is for lexicographic range queries, not cross-set merging.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-040",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "question": "A leaderboard needs to show daily, weekly, and all-time rankings. What is the most storage-efficient approach that still allows fast queries?",
+    "options": [
+      "Maintain a separate sorted set for each time window (daily, weekly, all-time), adding scores to all relevant sets on each update, and rotating/expiring the daily and weekly sets on a schedule",
+      "Use a single sorted set with composite member keys encoding the timestamp, and parse the timestamp at query time to filter by window",
+      "Store raw score events in a time-series database and compute leaderboards on each request via GROUP BY and ORDER BY",
+      "Use a single sorted set with the all-time score and derive daily/weekly rankings by subtracting scores from a snapshot taken at the window start"
+    ],
+    "correct": 0,
+    "explanation": "Separate sorted sets per time window is the standard pattern \u2014 each is independently queryable with O(log N) operations. Daily/weekly sets get keys with TTL or are rotated on a schedule. Computing leaderboards from raw events on each request is too slow for real-time display. Score subtraction from snapshots doesn't handle the case where a player's daily high score isn't their most recent one.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-041",
+    "level": 3,
+    "category": "Email Service",
+    "question": "Why do large-scale email services use Cassandra for storing emails rather than a traditional relational database like PostgreSQL?",
+    "options": [
+      "Cassandra's wide-column model supports high write throughput and scales horizontally by partitioning mailboxes across nodes, handling billions of emails without cross-node joins",
+      "Cassandra supports ACID transactions which are required for email delivery guarantees",
+      "PostgreSQL cannot store binary attachments larger than 1MB, while Cassandra has no such limit",
+      "Cassandra's strong consistency model ensures that sent emails are immediately visible to all recipients across all replicas"
+    ],
+    "correct": 0,
+    "explanation": "Email workloads are write-heavy (constant incoming mail) and partition naturally by user/mailbox. Cassandra's architecture is designed for exactly this: high write throughput, horizontal scaling, and partition-key-based access. PostgreSQL handles binary data fine (BYTEA, TOAST), and Cassandra offers tunable consistency (typically eventual, not strong). Cassandra does not natively support ACID transactions in the traditional sense.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-042",
+    "level": 3,
+    "category": "Email Service",
+    "question": "An email service needs to support fast full-text search across a user's mailbox. What component is most appropriate?",
+    "options": [
+      "A dedicated search index (e.g., Elasticsearch or Apache Lucene) that indexes email subjects, bodies, and metadata with inverted indexes",
+      "Cassandra's native secondary indexes on the email body column, which support LIKE queries",
+      "A Redis cache storing the full text of every email, queried with Redis SEARCH module patterns",
+      "A relational database with trigram indexes (pg_trgm) on the email body column for substring matching"
+    ],
+    "correct": 0,
+    "explanation": "Full-text search over email bodies at scale requires inverted indexes \u2014 Elasticsearch or similar search engines are purpose-built for this. Cassandra's secondary indexes are not designed for full-text search on large text fields and perform poorly for LIKE-style queries. While pg_trgm works for small datasets, it doesn't scale to billions of emails across distributed mailboxes.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-043",
+    "level": 3,
+    "category": "Email Service",
+    "question": "In the SMTP protocol, what happens if the destination mail server is temporarily unavailable when a sending server attempts delivery?",
+    "options": [
+      "The sending server queues the message and retries delivery with exponential backoff, typically for up to 5 days before generating a bounce notification",
+      "The sending server immediately returns a permanent failure bounce to the sender",
+      "The email is rerouted through a backup MX record to an alternative mail server, which holds it indefinitely",
+      "The sending server stores the email in DNS TXT records associated with the recipient's domain until the server comes back online"
+    ],
+    "correct": 0,
+    "explanation": "SMTP's retry semantics specify that temporary failures (4xx codes) trigger queuing and periodic retry attempts, typically over several days, before the sending server gives up and bounces the message. Backup MX records provide alternative servers but they aren't guaranteed to exist or to hold mail indefinitely. DNS TXT records are for SPF/DKIM/DMARC metadata, not message storage.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-044",
+    "level": 3,
+    "category": "Email Service",
+    "question": "When modeling email data in Cassandra, what is the recommended partition key for a 'messages by folder' table that supports 'show me the 50 most recent emails in my inbox'?",
+    "options": [
+      "Partition by (user_id, folder_name) with a clustering column on timestamp descending \u2014 this co-locates a user's folder and orders by recency within the partition",
+      "Partition by message_id for even distribution, with a secondary index on (user_id, folder_name)",
+      "Partition by timestamp to enable time-range queries, with user_id as a clustering column",
+      "Partition by folder_name alone so all users' inbox messages are co-located, enabling efficient folder-level aggregation"
+    ],
+    "correct": 0,
+    "explanation": "Partitioning by (user_id, folder_name) groups all messages in a specific user's folder into one partition, and a descending timestamp clustering column lets Cassandra return the most recent messages with a simple LIMIT query \u2014 no full-partition scan needed. Partitioning by message_id scatters a user's messages across all nodes. Partitioning by folder_name alone creates massive hot partitions (every user's inbox on one node).",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-045",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "question": "What is the primary difference between push-based and pull-based metrics collection, and when is each preferred?",
+    "options": [
+      "Push: services emit metrics to a central collector (suited for short-lived jobs and event-driven systems). Pull: the monitoring system scrapes endpoints (suited for long-running services with predictable lifetimes, like Prometheus's model)",
+      "Push: the monitoring system fetches metrics from services on a schedule. Pull: services send metrics when they want to. The terms are named from the monitoring system's perspective",
+      "Push requires UDP for low-overhead transmission while pull requires TCP \u2014 push is faster but lossy",
+      "There is no functional difference; push and pull are implementation details of the same monitoring protocol"
+    ],
+    "correct": 0,
+    "explanation": "In push-based collection, services actively send (push) metrics to a collector (e.g., StatsD, Datadog agent). In pull-based, the monitor scrapes (pulls) from service endpoints (e.g., Prometheus). Push suits ephemeral/batch jobs that may die before a scrape cycle; pull suits stable services and gives the monitor control over collection rate. Both can use TCP or UDP \u2014 it's an architectural choice, not a transport constraint.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-046",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "question": "Why are time-series databases (e.g., InfluxDB, TimescaleDB, Prometheus TSDB) preferred over general-purpose relational databases for metrics storage?",
+    "options": [
+      "They are optimized for append-heavy workloads with time-ordered data, support efficient compression of sequential numeric values, and provide built-in downsampling and retention policies",
+      "Relational databases cannot store timestamp columns, so time-series databases are required for any time-based data",
+      "Time-series databases provide stronger ACID guarantees for concurrent writes than relational databases",
+      "Time-series databases use blockchain-style immutable append logs, which prevent data tampering of historical metrics"
+    ],
+    "correct": 0,
+    "explanation": "Metrics data is append-heavy, time-ordered, and numeric \u2014 time-series databases exploit these properties with columnar storage, delta/gorilla encoding for high compression, and built-in features like automatic downsampling and retention windows. Relational databases handle timestamps fine but aren't optimized for the write rates and compression patterns of metrics ingestion at scale.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-047",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "question": "An alerting system fires too many false alarms during brief CPU spikes. What technique reduces alert noise while still catching real incidents?",
+    "options": [
+      "Alert on sustained conditions using a sliding window \u2014 e.g., 'CPU > 90% for 5 consecutive minutes' rather than a single-point threshold",
+      "Increase the scrape interval from 15 seconds to 5 minutes so transient spikes are not recorded",
+      "Apply a Kalman filter to the raw CPU metric stream to smooth out all variance before evaluating thresholds",
+      "Route all alerts through a machine learning anomaly detection model that learns to suppress false positives over time"
+    ],
+    "correct": 0,
+    "explanation": "Windowed alerting (e.g., 'metric exceeds threshold for duration X') is the standard industry technique to filter transient spikes while catching persistent issues. Increasing scrape interval loses resolution and risks missing real incidents. Kalman filtering is a signal processing technique that could suppress real alert-worthy spikes. ML-based alerting exists but adds complexity and is not the first-line defense against noisy alerts.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-048",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "question": "A monitoring system ingests 1 million metric data points per second. How does it manage storage costs for historical data?",
+    "options": [
+      "Downsample older data \u2014 keep per-second granularity for the last 24 hours, per-minute for 30 days, per-hour for 1 year \u2014 reducing storage while preserving trend visibility",
+      "Compress all data points using gzip and store them in a single flat file per day",
+      "Delete all data older than 7 days since historical metrics have no value after the incident is resolved",
+      "Store all data at full resolution indefinitely and add more disk capacity as needed \u2014 storage is cheap"
+    ],
+    "correct": 0,
+    "explanation": "Tiered downsampling is the standard approach for time-series data: recent data at full resolution for debugging, progressively coarser aggregations for longer horizons for capacity planning and trend analysis. This dramatically reduces storage (e.g., 86,400 per-second points become 1 per-hour point). Deleting data after 7 days loses long-term trend visibility. Storing everything at full resolution is prohibitively expensive at 1M points/sec.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-049",
+    "level": 3,
+    "category": "Nearby Friends",
+    "question": "A 'Nearby Friends' feature needs to show friends within 5km who have opted in to location sharing. What architecture minimizes unnecessary location update processing?",
+    "options": [
+      "Use a pub/sub model where each user subscribes to location channels of their friends \u2014 updates are only delivered to subscribers, not broadcast globally",
+      "Have every user's device push location updates to a central server every second, which computes all pairwise distances between all users",
+      "Store all user locations in a single Redis sorted set and have each client poll GEORADIUS every 2 seconds for nearby friends",
+      "Use WebRTC peer-to-peer connections between friends to share location directly without any server involvement"
+    ],
+    "correct": 0,
+    "explanation": "A pub/sub model scopes updates to friendship graphs \u2014 User A subscribes to location channels for their friends only, so updates are delivered only to interested parties. All-pairs distance computation is O(N\u00b2) and doesn't scale. Client polling every 2 seconds creates enormous read load. Pure P2P location sharing doesn't work when friends aren't simultaneously online or when NAT traversal fails.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q3-050",
+    "level": 3,
+    "category": "Nearby Friends",
+    "question": "In a 'Nearby Friends' system, how should the backend handle location updates from millions of users to avoid writing every GPS ping to the database?",
+    "options": [
+      "Buffer updates in memory (e.g., Redis) and only persist to the database when the user moves beyond a distance threshold or a time interval elapses \u2014 reducing writes by filtering out stationary noise",
+      "Write every GPS ping directly to a relational database with a composite index on (user_id, timestamp) and rely on database connection pooling for throughput",
+      "Use a write-ahead log in the application server's local filesystem and batch-flush to the database every hour",
+      "Apply lossy compression to GPS coordinates (reducing precision to 3 decimal places) so each write is smaller and the database can handle more throughput"
+    ],
+    "correct": 0,
+    "explanation": "Filtering updates by distance threshold or time interval is the key optimization \u2014 a stationary user's GPS may jitter \u00b110m every second, generating millions of pointless writes. Buffering in-memory and only persisting meaningful movement dramatically reduces write volume. Reducing coordinate precision doesn't reduce write frequency, which is the actual bottleneck. Hourly flushes from local disk risk data loss on server failure and provide stale location data.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-001",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "question": "In Apache Kafka, when a consumer group rebalance occurs using the cooperative sticky assignor, what happens to partitions that are NOT being revoked?",
+    "options": [
+      "All partitions are revoked and reassigned from scratch",
+      "Non-revoked partitions continue being consumed without interruption",
+      "Non-revoked partitions are paused until rebalance completes",
+      "Non-revoked partitions are temporarily assigned to the group coordinator"
+    ],
+    "correct": 1,
+    "explanation": "The cooperative sticky assignor performs incremental rebalances. Only partitions that need to move are revoked, while all other partitions continue being consumed without interruption. This is a key improvement over the eager rebalance protocol where all partitions were revoked during every rebalance.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-002",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "question": "Kafka's ISR (In-Sync Replica) set shrinks when a follower falls behind. What metric determines whether a follower is removed from the ISR?",
+    "options": [
+      "The follower's log end offset is more than replica.lag.max.messages behind the leader",
+      "The follower has not sent a fetch request within the replica.lag.time.max.ms window",
+      "The follower's disk I/O latency exceeds the configured threshold",
+      "The follower has missed more than 3 consecutive heartbeats to the controller"
+    ],
+    "correct": 1,
+    "explanation": "Since Kafka 0.9+, ISR membership is determined solely by replica.lag.time.max.ms \u2014 a follower is removed if it hasn't sent a fetch request within this window. The message-count-based metric (replica.lag.max.messages) was removed because it caused false shrinks during bursty producer traffic.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-003",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "question": "A Kafka topic has 6 partitions and a consumer group with 4 consumers. Consumer C2 crashes. With the range assignor, how are C2's partitions redistributed?",
+    "options": [
+      "C2's partitions are evenly split among C1, C3, and C4 only",
+      "All 6 partitions are reassigned across C1, C3, and C4 using the range algorithm from scratch",
+      "C2's partitions go to the consumer with the lowest current load",
+      "C2's partitions are assigned to the consumer with the next-higher ID"
+    ],
+    "correct": 1,
+    "explanation": "The range assignor does not do incremental reassignment \u2014 it recomputes the full assignment from scratch across all remaining consumers. With 6 partitions and 3 consumers, each gets 2 partitions. This full rebalance is why the sticky assignor was introduced, to minimize partition movement.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-004",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "question": "When Kafka's unclean.leader.election.enable is set to true and all ISR replicas are unavailable, what is the primary risk of electing an out-of-sync replica as leader?",
+    "options": [
+      "The new leader will reject all writes until it catches up",
+      "Consumers may see duplicate messages but no data loss occurs",
+      "Acknowledged messages that only existed on ISR replicas are permanently lost",
+      "The partition becomes read-only until an ISR replica recovers"
+    ],
+    "correct": 2,
+    "explanation": "An unclean leader election allows an out-of-sync replica to become leader, which means any messages that were committed to the previous ISR but not yet replicated to the new leader are permanently lost. This is a deliberate availability-over-durability trade-off \u2014 the partition becomes available for new writes but loses data.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-005",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "question": "In Kafka's log compaction, what determines which record is retained for a given key when multiple records share the same key?",
+    "options": [
+      "The record with the highest offset (most recent) is retained",
+      "The record with the largest value payload is retained",
+      "The record with the latest timestamp header is retained",
+      "All records are retained but marked with a compaction flag"
+    ],
+    "correct": 0,
+    "explanation": "Log compaction retains the record with the highest offset for each key, which represents the most recent write. The cleaner thread scans the dirty (uncompacted) portion of the log and removes older records for the same key. A record with a null value (tombstone) is retained temporarily to propagate deletes before being removed after delete.retention.ms.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-006",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "question": "A Kafka producer sets acks=all, min.insync.replicas=2, and the topic has replication factor 3. If one broker hosting a replica goes down, what happens to produce requests?",
+    "options": [
+      "Produce requests fail because acks=all requires all 3 replicas to acknowledge",
+      "Produce requests succeed because the ISR still has 2 replicas meeting min.insync.replicas",
+      "Produce requests are buffered on the leader until the third replica recovers",
+      "The partition is automatically reassigned to a healthy broker before accepting writes"
+    ],
+    "correct": 1,
+    "explanation": "With acks=all, the leader waits for all replicas in the current ISR to acknowledge. When one replica goes down, the ISR shrinks to 2. Since min.insync.replicas=2 is still met, writes succeed. If a second replica failed, writes would be rejected with NotEnoughReplicasException because the ISR would drop below the minimum.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-007",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "question": "Kafka's __consumer_offsets topic uses log compaction. Why is this design choice critical for consumer group offset management?",
+    "options": [
+      "It ensures offsets are replicated to all brokers in the cluster",
+      "It guarantees that the latest committed offset per partition is always recoverable without replaying the full history",
+      "It prevents consumers from committing offsets faster than brokers can process",
+      "It enables exactly-once delivery by deduplicating offset commits"
+    ],
+    "correct": 1,
+    "explanation": "Log compaction on __consumer_offsets ensures that the most recent committed offset for each consumer-group/topic/partition key is always retained. On group coordinator failover or restart, only the latest offset per key needs to be loaded, making recovery fast without needing to replay the entire commit history.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-008",
+    "level": 4,
+    "category": "Distributed Message Queue",
+    "question": "When using Kafka's transactional producer with read_committed isolation on consumers, what role does the transaction coordinator's LSO (Log Stable Offset) play?",
+    "options": [
+      "LSO marks the highest offset visible to all consumer groups",
+      "LSO is the offset of the first message in an open transaction, below which all data is stable for read_committed consumers",
+      "LSO tracks the last successfully replicated offset across all ISR members",
+      "LSO is the offset the consumer will resume from after a crash"
+    ],
+    "correct": 1,
+    "explanation": "The Last Stable Offset (LSO) is the offset of the first message belonging to an open (uncommitted) transaction. Read_committed consumers can only consume up to the LSO, ensuring they never see uncommitted data. Long-running transactions push the LSO back, which is why transaction.max.timeout.ms exists to bound the visibility delay.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-009",
+    "level": 4,
+    "category": "Ad Click Event Aggregation",
+    "question": "In a real-time ad click aggregation system using Apache Flink, a watermark with timestamp T arrives. Which of the following correctly describes what happens to events?",
+    "options": [
+      "All events with timestamp \u2264 T are discarded as late",
+      "Windows that end at time \u2264 T are triggered for computation, and later events for those windows are handled by allowed lateness or dropped",
+      "Events with timestamp \u2264 T are immediately flushed to the output sink",
+      "The system pauses ingestion until all events with timestamp \u2264 T have arrived"
+    ],
+    "correct": 1,
+    "explanation": "A watermark at time T asserts that no more events with timestamp \u2264 T are expected. Windows whose end time is \u2264 T are triggered. Events arriving after the watermark passes their window are considered late \u2014 they can still be processed if within the allowed lateness, or they are dropped. The system never pauses; watermarks flow alongside data.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-010",
+    "level": 4,
+    "category": "Ad Click Event Aggregation",
+    "question": "An ad click aggregation pipeline must provide exactly-once counting. When using Kafka as both source and sink, which mechanism achieves exactly-once end-to-end?",
+    "options": [
+      "Consumer idempotency combined with at-least-once delivery on the producer side",
+      "Kafka transactions that atomically commit consumer offsets and produced output records in the same transaction",
+      "Deduplication at the sink using a unique event ID stored in a separate database",
+      "Setting acks=all on producers and enable.auto.commit=true on consumers"
+    ],
+    "correct": 1,
+    "explanation": "Kafka's exactly-once semantics (EOS) uses transactions to atomically commit consumer offset advances and produced output records. The transactional producer begins a transaction, processes input records, writes outputs, and commits offsets \u2014 all as one atomic operation. If any step fails, the entire transaction is aborted, ensuring no double-counting.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-011",
+    "level": 4,
+    "category": "Ad Click Event Aggregation",
+    "question": "In a MapReduce-based ad click aggregation, the combiner runs on the mapper side. Why can a combiner be used for click counting but NOT for computing median click-to-conversion time?",
+    "options": [
+      "Combiners cannot handle floating-point values, only integers",
+      "A combiner requires the operation to be commutative and associative \u2014 sum/count is, but median is not",
+      "Combiners only run when the mapper output exceeds a memory threshold",
+      "The median function produces too many intermediate values for the combiner buffer"
+    ],
+    "correct": 1,
+    "explanation": "A combiner is a local pre-aggregation that must produce the same final result regardless of how data is partitioned. This requires the operation to be commutative and associative. Count and sum satisfy this \u2014 combining partial counts yields the correct total. Median does not: the median of local medians is not the global median, so a combiner would produce incorrect results.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-012",
+    "level": 4,
+    "category": "Ad Click Event Aggregation",
+    "question": "Your ad click aggregation uses tumbling windows of 1 minute. During a network partition, events from one data center arrive 3 minutes late. With allowed lateness of 2 minutes, what happens?",
+    "options": [
+      "The late events are buffered until the next window opens and counted there",
+      "The late events are dropped because they exceed the allowed lateness, and must be reconciled through a separate batch pipeline",
+      "The late events trigger a new window computation that replaces the original result",
+      "The late events are automatically assigned to the correct historical window and re-emitted"
+    ],
+    "correct": 1,
+    "explanation": "Events arriving after the watermark has advanced beyond their window end time plus the allowed lateness are considered irrecoverably late and are dropped by the streaming engine. A lambda architecture approach handles this gap \u2014 a batch pipeline periodically reprocesses raw data to reconcile counts, ensuring eventual correctness despite dropped late events.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-013",
+    "level": 4,
+    "category": "Ad Click Event Aggregation",
+    "question": "An ad aggregation system uses HyperLogLog for counting unique users who clicked an ad. The system reports 1,000,000 unique clickers. What is the approximate expected error range with a standard HyperLogLog using 16,384 registers?",
+    "options": [
+      "\u00b10.01% (approximately \u00b1100 users)",
+      "\u00b10.81% (approximately \u00b18,100 users)",
+      "\u00b15% (approximately \u00b150,000 users)",
+      "\u00b110% (approximately \u00b1100,000 users)"
+    ],
+    "correct": 1,
+    "explanation": "HyperLogLog's standard error is approximately 1.04 / \u221am, where m is the number of registers. With 16,384 (2^14) registers, the error is about 1.04 / \u221a16384 \u2248 0.81%. For 1M unique users, this translates to roughly \u00b18,100 users. This trade-off of ~12KB memory for sub-1% error is why HLL is widely used in streaming aggregation.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-014",
+    "level": 4,
+    "category": "Ad Click Event Aggregation",
+    "question": "In a streaming ad click aggregation system, you need to join click events with impression events within a 30-second window. What is the primary challenge with a stream-stream join in this context?",
+    "options": [
+      "The join key (ad_id) has too high cardinality for in-memory storage",
+      "Both sides must buffer events for the join window, creating state that grows with traffic volume and requires consistent checkpointing for fault tolerance",
+      "Stream-stream joins cannot handle events arriving out of order",
+      "The join requires both streams to have identical partitioning, which is impossible with different producers"
+    ],
+    "correct": 1,
+    "explanation": "A stream-stream join buffers events from both sides for the duration of the join window. Each incoming click must be matched against buffered impressions and vice versa. This state grows linearly with event rate and window size, must be checkpointed for recovery, and must be cleaned up as windows expire \u2014 making it one of the most operationally expensive streaming operations.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-015",
+    "level": 4,
+    "category": "Google Maps",
+    "question": "Google Maps uses a hierarchical tile system. At zoom level z, how many tiles cover the entire world in a standard Web Mercator tiling scheme?",
+    "options": [
+      "2^z tiles total",
+      "4^z tiles total (2^z \u00d7 2^z grid)",
+      "z\u00b2 tiles total",
+      "2^(2z+1) tiles total"
+    ],
+    "correct": 1,
+    "explanation": "At zoom level z, the world is divided into a 2^z \u00d7 2^z grid, giving 4^z total tiles. Zoom 0 is 1 tile covering the world, zoom 1 is 4 tiles, zoom 2 is 16 tiles, and so on. Each zoom level quadruples the number of tiles from the previous level. At zoom 20, there are over 1 trillion tiles, which is why on-demand rendering and caching are essential.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-016",
+    "level": 4,
+    "category": "Google Maps",
+    "question": "For real-time ETA prediction, Google Maps combines historical travel times with live data. Which approach best handles the problem that GPS probe data is sparse on low-traffic roads?",
+    "options": [
+      "Default to speed limits for roads with fewer than 10 GPS probes per hour",
+      "Use graph neural networks that propagate learned speed patterns from adjacent well-observed road segments to sparse ones",
+      "Exclude low-traffic roads from ETA calculations entirely",
+      "Apply a global average speed multiplier based on time of day"
+    ],
+    "correct": 1,
+    "explanation": "Graph neural networks (GNNs) model the road network as a graph where learned traffic patterns propagate from data-rich segments to neighboring sparse ones. This captures spatial correlations \u2014 a congested highway off-ramp reliably predicts slower speeds on connected local roads \u2014 producing far better estimates than speed limits or global averages for low-traffic segments.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-017",
+    "level": 4,
+    "category": "Google Maps",
+    "question": "A* is commonly used for point-to-point routing. For continent-scale routing in Google Maps, why is plain A* insufficient and what technique addresses this?",
+    "options": [
+      "A* cannot handle one-way streets; bidirectional BFS replaces it",
+      "A* explores too many nodes at continental scale; contraction hierarchies precompute shortcuts to reduce the search space by orders of magnitude",
+      "A* requires integer edge weights; floating-point road distances need Bellman-Ford",
+      "A* only works on planar graphs; road networks with overpasses need Dijkstra's algorithm"
+    ],
+    "correct": 1,
+    "explanation": "Plain A* on a continental road network with tens of millions of nodes is too slow for real-time queries. Contraction hierarchies preprocess the graph by iteratively contracting less important nodes and adding shortcut edges, creating a hierarchy where queries only explore a small fraction of nodes. This reduces query time from seconds to milliseconds while guaranteeing optimal paths.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-018",
+    "level": 4,
+    "category": "Google Maps",
+    "question": "When rendering vector map tiles on a mobile device, what is the primary advantage of vector tiles over pre-rendered raster tiles for a maps application?",
+    "options": [
+      "Vector tiles load faster because they are always smaller in byte size",
+      "Vector tiles allow client-side styling, smooth rotation/tilt, and resolution-independent rendering without re-fetching data",
+      "Vector tiles eliminate the need for a GPU on the client device",
+      "Vector tiles can be rendered without any client-side processing"
+    ],
+    "correct": 1,
+    "explanation": "Vector tiles send geometric data (points, lines, polygons) rather than pixels. The client renders them, enabling dynamic style changes (dark mode, custom themes), smooth zoom/rotation/tilt without pixelation, and label placement optimization for the current viewport. While vector tiles may sometimes be larger than compressed raster tiles, the flexibility and quality improvements make them standard for modern map applications.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-019",
+    "level": 4,
+    "category": "Google Maps",
+    "question": "Google Maps must handle live traffic rerouting. When a major highway incident is detected, what is the main challenge in recalculating routes for millions of active navigations simultaneously?",
+    "options": [
+      "The incident data takes too long to propagate from the GPS probes",
+      "Naive per-user recalculation creates a thundering herd; the system must update affected edge weights and incrementally invalidate only routes traversing the impacted segment",
+      "Road closure data can only be entered manually by traffic operators",
+      "The contraction hierarchy must be fully rebuilt for any edge weight change"
+    ],
+    "correct": 1,
+    "explanation": "Recalculating millions of routes simultaneously would overwhelm the routing infrastructure. Instead, the system updates edge weights for affected segments and identifies which active navigations traverse them. Only those routes are recalculated, often using customizable contraction hierarchies that support metric updates without full reconstruction, or by combining precomputed shortcuts with local Dijkstra around the changed region.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-020",
+    "level": 4,
+    "category": "S3-like Object Storage",
+    "question": "An S3-like system uses Reed-Solomon erasure coding with a 6+3 configuration. What does this mean and how many simultaneous node failures can it tolerate?",
+    "options": [
+      "6 data chunks and 3 parity chunks; tolerates up to 2 failures",
+      "6 data chunks and 3 parity chunks; tolerates up to 3 simultaneous failures",
+      "6 total chunks with 3 replicas each; tolerates up to 3 failures per chunk",
+      "6 parity chunks and 3 data chunks; tolerates up to 6 failures"
+    ],
+    "correct": 1,
+    "explanation": "A 6+3 Reed-Solomon code splits data into 6 data chunks and generates 3 parity chunks, for 9 total. Any 6 of the 9 chunks are sufficient to reconstruct the original data, meaning up to 3 simultaneous chunk (node) losses can be tolerated. This provides similar durability to 3x replication but at 1.5x storage overhead instead of 3x.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-021",
+    "level": 4,
+    "category": "S3-like Object Storage",
+    "question": "In an S3-like storage system, the metadata service must handle billions of objects. Why is a simple key-value store insufficient for the metadata layer, and what structure is typically used?",
+    "options": [
+      "Key-value stores cannot handle binary keys; a relational database with B-tree indexes is required",
+      "Key-value stores lack range queries needed for LIST operations with prefix filtering; a distributed sorted key store (like a sharded B-tree or LSM-tree) is used",
+      "Key-value stores are too slow for the read throughput required; an in-memory cache replaces them entirely",
+      "Key-value stores cannot enforce the conditional PUT semantics S3 requires"
+    ],
+    "correct": 1,
+    "explanation": "S3's LIST API supports prefix-based filtering and lexicographic ordering, which requires range scan capability. A hash-based KV store scatters keys and cannot efficiently list objects under a prefix. Systems like DynamoDB (which backs S3's metadata) use a sorted key structure within partitions, enabling efficient prefix scans while maintaining the horizontal scalability needed for billions of objects.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-022",
+    "level": 4,
+    "category": "S3-like Object Storage",
+    "question": "When designing data placement for an S3-like system, why is consistent hashing with virtual nodes preferred over simple modulo-based sharding?",
+    "options": [
+      "Consistent hashing provides lower latency for read operations",
+      "When nodes are added or removed, consistent hashing only remaps ~1/N of objects (where N is nodes) instead of remapping nearly all objects",
+      "Consistent hashing automatically replicates data across availability zones",
+      "Modulo-based sharding cannot handle variable-sized objects"
+    ],
+    "correct": 1,
+    "explanation": "Modulo hashing (hash(key) % N) remaps almost every key when N changes, causing massive data migration. Consistent hashing maps both keys and nodes onto a ring; adding or removing a node only affects the keys in its immediate range, approximately K/N keys where K is total keys. Virtual nodes further improve balance by giving each physical node multiple positions on the ring, preventing hot spots from uneven key distribution.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-023",
+    "level": 4,
+    "category": "S3-like Object Storage",
+    "question": "An S3-like system must handle both small objects (< 1KB metadata records) and large objects (multi-GB videos). What architectural challenge does this bimodal distribution create?",
+    "options": [
+      "The encryption overhead for small objects exceeds the object size itself",
+      "Small objects are dominated by per-object metadata and IOPS overhead, while large objects are bandwidth-bound \u2014 a single storage engine optimized for one performs poorly for the other",
+      "Large objects cannot be stored on the same disk type as small objects",
+      "The consistent hashing ring becomes unbalanced because large objects consume more ring space"
+    ],
+    "correct": 1,
+    "explanation": "Small objects are IOPS-bound \u2014 the per-object overhead (metadata lookup, disk seek, network round-trip) dominates actual data transfer. Large objects are throughput-bound \u2014 sequential read/write bandwidth matters most. Optimizing for one hurts the other. Solutions include tiering (inline small objects within metadata, stream large objects to dedicated storage) or separate storage engines tuned for each access pattern.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-024",
+    "level": 4,
+    "category": "S3-like Object Storage",
+    "question": "To ensure durability, an S3-like system writes data to multiple availability zones before acknowledging. What consistency challenge does cross-AZ replication introduce for read-after-write consistency?",
+    "options": [
+      "Cross-AZ bandwidth is too low to support synchronous replication",
+      "A read routed to an AZ that hasn't received the write yet returns stale data or 404; the system must either synchronously replicate before ack or route reads to the write's AZ",
+      "Cross-AZ replication makes versioning impossible",
+      "The metadata service cannot track which AZ holds the latest version"
+    ],
+    "correct": 1,
+    "explanation": "If a PUT is acknowledged after writing to AZ-A but before replicating to AZ-B, a subsequent GET routed to AZ-B may return a 404 or stale data. S3 achieves read-after-write consistency by either synchronously replicating to multiple AZs before acknowledging, or ensuring the metadata layer consistently routes reads for recently written keys to the AZ that accepted the write, often using a strongly consistent metadata store.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-025",
+    "level": 4,
+    "category": "S3-like Object Storage",
+    "question": "In garbage collection for an S3-like system with erasure coding, why is deleting an object not as simple as removing its metadata entry?",
+    "options": [
+      "Erasure-coded chunks are immutable and cannot be deleted individually",
+      "Chunks may be packed into larger storage blocks with other objects' data; immediate deletion would require rewriting the entire block, so lazy GC with compaction is used instead",
+      "The parity chunks reference data chunks bidirectionally and must be deleted in a specific order",
+      "Deleted object metadata must be retained for 30 days for compliance"
+    ],
+    "correct": 1,
+    "explanation": "To optimize I/O and space, many object stores pack multiple small chunks into large immutable blocks (similar to SSTable segments). Deleting one object's chunks means marking them as dead within those blocks. A background compaction/GC process periodically rewrites blocks with too many dead chunks, reclaiming space. Immediate per-object deletion would cause excessive write amplification.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-026",
+    "level": 4,
+    "category": "Digital Wallet",
+    "question": "A digital wallet uses event sourcing. When reconstructing a wallet's balance, why is snapshotting necessary even though the event log is the source of truth?",
+    "options": [
+      "Event logs have a maximum size limit that requires periodic pruning",
+      "Replaying thousands of events from the beginning on every read is too slow; periodic snapshots capture aggregate state so replay starts from the latest snapshot instead of event zero",
+      "Snapshots are required for regulatory audit compliance",
+      "Event logs cannot be stored in a distributed manner without snapshots"
+    ],
+    "correct": 1,
+    "explanation": "An active wallet may accumulate millions of events over its lifetime. Replaying all events to compute the current balance for every read would introduce unacceptable latency. Snapshots periodically capture the materialized state (current balance, last event sequence number), allowing the system to replay only events after the snapshot. The event log remains the authoritative source \u2014 snapshots are a performance optimization that can be rebuilt from events.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-027",
+    "level": 4,
+    "category": "Digital Wallet",
+    "question": "In a CQRS-based digital wallet, the command side processes a transfer and writes to the event store. The query side reads from a materialized view. What consistency guarantee does this architecture inherently provide?",
+    "options": [
+      "Strong consistency \u2014 reads always reflect the latest write",
+      "Eventual consistency \u2014 the query side asynchronously processes events and may lag behind the command side",
+      "Linearizability \u2014 all operations appear to occur in real time",
+      "Causal consistency \u2014 reads always reflect causally related writes"
+    ],
+    "correct": 1,
+    "explanation": "CQRS separates write (command) and read (query) models. The command side writes events, and the query side's materialized views are updated asynchronously by consuming these events. This means a read immediately after a write may not reflect that write \u2014 eventual consistency is the inherent guarantee. Achieving stronger consistency requires additional mechanisms like synchronous projections or read-your-writes routing.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-028",
+    "level": 4,
+    "category": "Digital Wallet",
+    "question": "A digital wallet must transfer $100 from Wallet A to Wallet B across two microservices. Using the Saga pattern with compensating transactions, what happens if debiting Wallet A succeeds but crediting Wallet B fails?",
+    "options": [
+      "The entire transaction is rolled back automatically by the database",
+      "A compensating transaction credits $100 back to Wallet A, and the saga is marked as failed",
+      "The system retries crediting Wallet B indefinitely until it succeeds",
+      "Wallet B's service holds a lock until the credit can be applied"
+    ],
+    "correct": 1,
+    "explanation": "In a saga, each step has a compensating action. If the credit to Wallet B fails after debiting Wallet A, the orchestrator triggers a compensating transaction that reverses the debit by crediting $100 back to Wallet A. Unlike distributed transactions, sagas don't hold locks across services \u2014 they achieve atomicity through the sequence of compensations. The compensating transaction itself must be idempotent to handle retries.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-029",
+    "level": 4,
+    "category": "Digital Wallet",
+    "question": "A digital wallet's event store uses optimistic concurrency control. When two concurrent transactions attempt to debit the same wallet, how is a double-spend prevented?",
+    "options": [
+      "The event store uses row-level database locks to serialize writes",
+      "Each event is appended with an expected version number; a concurrent write that finds a version mismatch is rejected, forcing retry with the updated state",
+      "A distributed lock service (like ZooKeeper) coordinates access to each wallet",
+      "The CQRS query model validates the balance before the command side writes"
+    ],
+    "correct": 1,
+    "explanation": "Optimistic concurrency appends events conditionally \u2014 the writer specifies the expected current version (e.g., 'append event 7 only if the stream is at version 6'). If two transactions both read version 6 and try to write version 7, only one succeeds; the other gets a concurrency conflict and must reload the current state and retry. This avoids locking while preventing double-spend.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-030",
+    "level": 4,
+    "category": "Digital Wallet",
+    "question": "A digital wallet system uses the Outbox pattern for reliable event publishing. What problem does this solve compared to publishing events directly after committing the database transaction?",
+    "options": [
+      "The Outbox pattern ensures events are published in order across all wallets",
+      "If the service crashes after the DB commit but before publishing the event, the event is lost; the Outbox writes the event to a DB table in the same transaction, and a relay process publishes it, ensuring the event is never lost",
+      "The Outbox pattern reduces message broker load by batching events",
+      "Direct publishing creates duplicate events that the Outbox pattern deduplicates"
+    ],
+    "correct": 1,
+    "explanation": "The dual-write problem occurs when two systems (database and message broker) must be updated atomically but cannot share a transaction. If the app commits to the DB then crashes before publishing, the event is lost and the systems diverge. The Outbox pattern writes events to an outbox table within the same DB transaction, then a separate relay (via polling or CDC) publishes them. This guarantees at-least-once delivery.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-031",
+    "level": 4,
+    "category": "Digital Wallet",
+    "question": "In an event-sourced digital wallet, an auditor asks for the wallet balance as of 3 months ago. How does event sourcing uniquely enable this?",
+    "options": [
+      "The system stores daily balance snapshots in a time-series database",
+      "By replaying all events up to the requested timestamp and stopping, reconstructing the exact state at that point in time from the immutable event log",
+      "The CQRS read model maintains a separate history table with balance-at-time records",
+      "Event sourcing versions the entire database schema, enabling point-in-time schema rollback"
+    ],
+    "correct": 1,
+    "explanation": "Event sourcing stores every state change as an immutable event. To get the balance at any historical point, replay events from the beginning (or from a snapshot before that time) up to the target timestamp. This temporal query capability is inherent to the architecture \u2014 no additional time-series or audit infrastructure is needed. The event log IS the complete audit trail.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-032",
+    "level": 4,
+    "category": "Digital Wallet",
+    "question": "A digital wallet system must ensure idempotency for top-up requests sent over an unreliable network. What is the standard mechanism?",
+    "options": [
+      "Assign each request a server-generated sequence number and reject non-sequential requests",
+      "Require each request to carry a client-generated idempotency key; the server checks if this key was already processed and returns the cached result instead of re-executing",
+      "Use TCP's built-in exactly-once delivery guarantee to prevent duplicates",
+      "Hash the request body and reject requests with identical hashes"
+    ],
+    "correct": 1,
+    "explanation": "The client generates a unique idempotency key (typically a UUID) for each logical operation. The server records this key when processing the request and its result. If the same key arrives again (due to retry), the server returns the cached result without re-executing the operation. Body hashing fails because legitimate repeat top-ups of the same amount would have identical hashes.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-033",
+    "level": 4,
+    "category": "Stock Exchange",
+    "question": "In a stock exchange's matching engine, why is a FIFO (price-time priority) matching algorithm insufficient for all order types, and what extension handles iceberg orders?",
+    "options": [
+      "FIFO cannot handle market orders; a separate queue processes them",
+      "Iceberg orders expose only a visible portion; when that portion is filled, the hidden quantity re-enters the book at the BACK of the price-time queue, not its original position",
+      "Iceberg orders bypass the matching engine entirely and are filled by market makers",
+      "FIFO treats iceberg orders identically to regular limit orders with the full quantity visible"
+    ],
+    "correct": 1,
+    "explanation": "An iceberg order has a disclosed quantity and a hidden reserve. The matching engine matches against the visible portion using standard price-time priority. When the visible portion is filled, it is replenished from the reserve and re-enters the queue at the current time (losing its original time priority). This prevents large orders from front-running by revealing size, while ensuring fair queue position for each displayed slice.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-034",
+    "level": 4,
+    "category": "Stock Exchange",
+    "question": "A stock exchange uses a sequencer to assign monotonically increasing sequence numbers to all incoming orders. What is the primary reason for this design?",
+    "options": [
+      "Sequence numbers enable efficient binary search in the order book",
+      "A single sequencer establishes a total order of events, making the matching engine deterministic and allowing exact replay for auditing, disaster recovery, and regulatory compliance",
+      "Sequence numbers prevent duplicate orders from being processed",
+      "The sequencer load-balances orders across multiple matching engine instances"
+    ],
+    "correct": 1,
+    "explanation": "The sequencer creates a single, authoritative ordering of all events. This makes the matching engine purely deterministic \u2014 given the same sequence of inputs, it produces identical outputs. This property is essential for disaster recovery (replay the sequence on a standby), regulatory audit (prove exactly what happened and when), and debugging (reproduce any state by replaying to a sequence number).",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-035",
+    "level": 4,
+    "category": "Stock Exchange",
+    "question": "Modern exchange matching engines achieve sub-microsecond latency. Why do they typically use a single-threaded event loop rather than a multi-threaded architecture?",
+    "options": [
+      "Single-threaded engines consume less memory than multi-threaded ones",
+      "A single thread eliminates lock contention and context-switch overhead; since the matching engine is pure CPU-bound computation on in-memory data, one thread pinned to a core with no syscalls is the lowest-latency path",
+      "Multi-threaded matching engines cannot maintain price-time priority",
+      "Regulatory requirements mandate single-threaded execution for auditability"
+    ],
+    "correct": 1,
+    "explanation": "Lock contention, context switches, and cache invalidation from multiple threads accessing shared order book data introduce unpredictable latency spikes. A single-threaded engine pinned to an isolated CPU core, with the order book entirely in L1/L2 cache, processes each event in a deterministic, minimal number of cycles. The LMAX Disruptor pattern exemplifies this \u2014 a lock-free ring buffer feeds a single-threaded consumer with mechanical sympathy.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-036",
+    "level": 4,
+    "category": "Stock Exchange",
+    "question": "In a stock exchange system, kernel bypass networking (e.g., DPDK or Solarflare OpenOnload) is used. What specific kernel overhead does this eliminate?",
+    "options": [
+      "It eliminates TCP checksum computation, which is offloaded to the NIC",
+      "It bypasses the kernel network stack entirely \u2014 no interrupt handling, no context switch to kernel mode, no socket buffer copies \u2014 delivering packets directly from the NIC to user-space memory via memory-mapped buffers",
+      "It replaces TCP with a custom reliable protocol that has lower overhead",
+      "It eliminates DNS resolution overhead for market data connections"
+    ],
+    "correct": 1,
+    "explanation": "The standard kernel network path involves hardware interrupts, context switches between user and kernel space, and data copies through socket buffers. Kernel bypass maps the NIC's receive ring buffer directly into user-space memory, allowing the application to poll for packets without any kernel involvement. This can reduce network latency from ~10-50\u03bcs to ~1-5\u03bcs, which is significant when total matching engine latency targets are in single-digit microseconds.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-037",
+    "level": 4,
+    "category": "Stock Exchange",
+    "question": "An exchange's matching engine must handle a market-wide circuit breaker trigger. What is the correct behavioral sequence when the circuit breaker activates?",
+    "options": [
+      "All pending orders are immediately cancelled and the order book is cleared",
+      "New orders are rejected, existing orders remain on the book, the engine enters an auction mode where orders accumulate without matching, and trading resumes with an opening auction",
+      "Only market orders are halted; limit orders continue to be matched",
+      "The matching engine shuts down completely and restarts with a clean state"
+    ],
+    "correct": 1,
+    "explanation": "A circuit breaker halt stops continuous matching but preserves the order book. The engine transitions to an auction mode \u2014 new orders can be entered or existing ones modified/cancelled, but no matching occurs. When the cooling period ends, an opening auction determines the resumption price by finding the price that maximizes matched volume, then continuous trading resumes. This prevents panic cascades while allowing orderly price discovery.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-038",
+    "level": 4,
+    "category": "Stock Exchange",
+    "question": "A stock exchange replicates its matching engine state to a hot standby for disaster recovery. Why is deterministic replay preferred over state-machine replication (like Raft) for this purpose?",
+    "options": [
+      "Raft cannot achieve the consensus latency required for exchange operations",
+      "Deterministic replay sends only the sequenced input journal to the standby, which independently derives the same state \u2014 this avoids the overhead of replicating every state mutation and guarantees identical state through deterministic execution",
+      "State-machine replication cannot handle the throughput of a modern exchange",
+      "Raft requires an odd number of nodes, but exchanges use exactly two (primary and standby)"
+    ],
+    "correct": 1,
+    "explanation": "With a deterministic engine, the standby only needs the sequenced input stream \u2014 it processes the same events in the same order and arrives at the same state. This is far more bandwidth-efficient than replicating every order book mutation. The standby can verify its state matches by comparing periodic checksums. On failover, the standby continues from its last processed sequence number with guaranteed state consistency, exactly because execution is deterministic.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-039",
+    "level": 4,
+    "category": "Stock Exchange",
+    "question": "In a stock exchange, co-location services place trading firms' servers in the same data center as the exchange. What subtle fairness problem does co-location NOT solve?",
+    "options": [
+      "Co-location does not guarantee equal network cable lengths between all co-located servers and the matching engine, creating micro-latency advantages for racks physically closer to the exchange switch",
+      "Co-location does not prevent firms from using faster CPUs",
+      "Co-location does not equalize the speed of different trading algorithms",
+      "Co-location does not prevent high-frequency traders from placing more orders"
+    ],
+    "correct": 0,
+    "explanation": "Even within a co-location facility, physical cable length differences between racks create measurable latency disparities (nanoseconds matter at exchange speeds). Exchanges address this by offering equal-length cross-connects or using network switches that buffer and release messages simultaneously. Some exchanges went further with randomized micro-delays to prevent any physical proximity advantage.",
+    "relatedCards": []
+  },
+  {
+    "id": "Q4-040",
+    "level": 4,
+    "category": "Stock Exchange",
+    "question": "An exchange processes 1 million orders per second. The order book for a popular symbol has 10,000 price levels. What data structure provides the best trade-off for the order book's price level index?",
+    "options": [
+      "A hash map for O(1) price level lookup",
+      "A sorted array of price levels with binary search for O(log n) lookup and O(1) best-bid/ask access via array ends, leveraging cache locality for the small working set",
+      "A red-black tree for O(log n) balanced insertions and deletions",
+      "A skip list for probabilistic O(log n) access with simpler concurrency"
+    ],
+    "correct": 1,
+    "explanation": "For a single-threaded matching engine where the price level count is bounded and fits in cache, a sorted array wins due to cache locality \u2014 sequential memory access patterns dominate random pointer chasing. Best bid/ask is O(1) at the array ends. While insertions require shifting, the working set (active price levels near the spread) is small and hot in L1 cache. Red-black trees and skip lists have better theoretical insertion costs but suffer from pointer chasing and cache misses.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-001",
+    "level": 1,
+    "category": "DSA for System Design",
+    "question": "Why are B-trees preferred over binary search trees for database indexes?",
+    "options": [
+      "B-trees minimize disk I/O by storing many keys per node, reducing tree height",
+      "B-trees are always faster for in-memory operations than BSTs",
+      "B-trees do not require rebalancing after insertions",
+      "B-trees use less total memory than BSTs for the same dataset"
+    ],
+    "correct": 0,
+    "explanation": "B-trees have a high branching factor, storing hundreds of keys per node. This keeps tree height at 3-4 levels even for billions of keys, minimizing the number of disk seeks needed to find a record. BSTs have branching factor 2, leading to much taller trees and more I/O.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-002",
+    "level": 1,
+    "category": "DSA for System Design",
+    "question": "A Bloom filter reports that an element is 'possibly in the set.' What does this mean in practice?",
+    "options": [
+      "The element is definitely in the set",
+      "The element may or may not be in the set \u2014 a false positive is possible",
+      "The element is definitely not in the set",
+      "The Bloom filter needs to be resized before it can give an accurate answer"
+    ],
+    "correct": 1,
+    "explanation": "Bloom filters are probabilistic: they can produce false positives (saying an element is present when it isn't) but never false negatives. A 'possibly present' result means you must verify with a definitive lookup (e.g., disk read), while a 'not present' result is guaranteed correct.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-003",
+    "level": 1,
+    "category": "DSA for System Design",
+    "question": "LSM trees achieve high write throughput primarily by:",
+    "options": [
+      "Writing directly to sorted on-disk structures",
+      "Buffering writes in memory (memtable) and flushing sorted runs to disk sequentially",
+      "Using B-tree indexes internally for each write",
+      "Avoiding any form of compaction or merging"
+    ],
+    "correct": 1,
+    "explanation": "LSM (Log-Structured Merge) trees buffer all writes in an in-memory sorted structure (memtable). When full, the memtable is flushed as an immutable sorted run (SSTable) to disk using sequential I/O, which is orders of magnitude faster than random writes. Background compaction merges SSTables to maintain read performance.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-004",
+    "level": 1,
+    "category": "DSA for System Design",
+    "question": "What is the primary trade-off of using a Bloom filter in front of a database lookup?",
+    "options": [
+      "It eliminates all unnecessary disk reads but increases write latency",
+      "It reduces unnecessary disk reads for absent keys at the cost of a small false positive rate",
+      "It guarantees zero false positives but uses significant memory",
+      "It speeds up writes but slows down reads"
+    ],
+    "correct": 1,
+    "explanation": "Bloom filters sit in memory and quickly reject lookups for keys that definitely don't exist, saving expensive disk reads. The cost is a tunable false positive rate (typically 1-2%), meaning a small fraction of absent-key lookups still hit disk. Memory usage is modest \u2014 about 10 bits per element for 1% FPR.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-005",
+    "level": 1,
+    "category": "DSA for System Design",
+    "question": "What problem does compaction solve in an LSM tree-based storage engine?",
+    "options": [
+      "It converts B-trees to LSM trees for better write performance",
+      "It merges and deduplicates sorted runs on disk to bound read amplification and reclaim space",
+      "It prevents the memtable from exceeding memory limits",
+      "It encrypts data at rest during idle periods"
+    ],
+    "correct": 1,
+    "explanation": "Without compaction, reads degrade because they must check an ever-growing number of SSTables. Compaction merges overlapping sorted runs, removes deleted/overwritten entries, and produces fewer, larger sorted files \u2014 bounding the number of files a read must consult and reclaiming disk space from obsolete entries.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-006",
+    "level": 1,
+    "category": "Scale Numbers",
+    "question": "What is a reasonable approximation for single-instance Redis throughput on standard hardware?",
+    "options": [
+      "1,000 operations/sec",
+      "10,000 operations/sec",
+      "100,000+ operations/sec",
+      "10,000,000 operations/sec"
+    ],
+    "correct": 2,
+    "explanation": "A single Redis instance can typically handle 100K-300K+ simple operations per second (GET/SET) on modern hardware. This is achieved through single-threaded event-loop architecture that avoids context switching and lock contention, combined with in-memory data access.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-007",
+    "level": 1,
+    "category": "Scale Numbers",
+    "question": "What is the approximate random read latency of a modern NVMe SSD?",
+    "options": [
+      "~1 nanosecond",
+      "~100 microseconds (0.1 ms)",
+      "~10 milliseconds",
+      "~100 milliseconds"
+    ],
+    "correct": 1,
+    "explanation": "Modern NVMe SSDs have random read latency around 50-200 microseconds. This is roughly 100x faster than spinning disks (~10ms seek time) but about 1000x slower than DRAM access (~100ns). Understanding this hierarchy \u2014 DRAM (100ns) \u2192 SSD (100\u03bcs) \u2192 HDD (10ms) \u2014 is critical for capacity planning.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-008",
+    "level": 1,
+    "category": "Scale Numbers",
+    "question": "What is the typical round-trip time (RTT) for a network call within the same data center?",
+    "options": [
+      "~500 microseconds (0.5 ms)",
+      "~50 milliseconds",
+      "~200 milliseconds",
+      "~1 second"
+    ],
+    "correct": 0,
+    "explanation": "Intra-datacenter RTT is typically 0.1-1ms. Cross-region RTT (e.g., US-East to US-West) is ~60-80ms, and cross-continent (US to Europe) is ~100-150ms. These numbers matter for system design: a service making 10 sequential cross-region calls adds 600-800ms of pure network latency.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-009",
+    "level": 1,
+    "category": "Cloud Service Mapping",
+    "question": "What is the GCP equivalent of AWS DynamoDB?",
+    "options": [
+      "Cloud SQL",
+      "Cloud Bigtable",
+      "Cloud Spanner",
+      "Firestore (Datastore mode)"
+    ],
+    "correct": 3,
+    "explanation": "Firestore in Datastore mode is the closest GCP equivalent to DynamoDB \u2014 both are serverless, fully managed NoSQL document databases with automatic scaling and single-digit millisecond latency. Bigtable is closer to wide-column stores (like Cassandra), while Spanner is a globally distributed relational database.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-010",
+    "level": 1,
+    "category": "Cloud Service Mapping",
+    "question": "Which Azure service is equivalent to AWS SQS (Simple Queue Service)?",
+    "options": [
+      "Azure Event Hubs",
+      "Azure Service Bus Queues",
+      "Azure Event Grid",
+      "Azure Queue Storage"
+    ],
+    "correct": 1,
+    "explanation": "Azure Service Bus Queues is the closest match to AWS SQS \u2014 both provide fully managed message queuing with at-least-once delivery, visibility timeouts, and dead-letter queues. Azure Queue Storage is a simpler/cheaper option. Event Hubs is more like Kinesis (streaming), and Event Grid is more like EventBridge (event routing).",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-011",
+    "level": 1,
+    "category": "Cloud Service Mapping",
+    "question": "What is the AWS equivalent of GCP's Cloud Pub/Sub?",
+    "options": [
+      "AWS SQS",
+      "AWS SNS + SQS (fan-out pattern)",
+      "AWS Kinesis Data Streams",
+      "AWS EventBridge"
+    ],
+    "correct": 1,
+    "explanation": "Cloud Pub/Sub combines topic-based publish-subscribe with per-subscriber message queuing. The closest AWS equivalent is the SNS+SQS fan-out pattern, where SNS handles topic-based routing and SQS provides durable per-subscriber queues. Kinesis is for ordered streaming (closer to Kafka), and EventBridge is for event routing.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-012",
+    "level": 1,
+    "category": "Cloud Service Mapping",
+    "question": "Which GCP service is equivalent to AWS Lambda?",
+    "options": [
+      "Cloud Run",
+      "Cloud Functions",
+      "App Engine",
+      "Compute Engine"
+    ],
+    "correct": 1,
+    "explanation": "GCP Cloud Functions is the direct equivalent of AWS Lambda \u2014 both are event-driven, serverless function-as-a-service platforms that scale to zero and bill per invocation. Cloud Run is closer to AWS Fargate (container-based serverless). App Engine is a PaaS closer to Elastic Beanstalk.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-013",
+    "level": 1,
+    "category": "Microservices",
+    "question": "What is the primary purpose of a service discovery mechanism like Consul or Eureka in a microservices architecture?",
+    "options": [
+      "To encrypt all inter-service communication",
+      "To allow services to find and communicate with each other without hardcoded addresses",
+      "To enforce rate limiting between services",
+      "To provide a shared database for all microservices"
+    ],
+    "correct": 1,
+    "explanation": "Service discovery enables dynamic service-to-service communication in environments where instances scale up/down and IP addresses change frequently. Services register themselves on startup and query the registry to find other services, eliminating the need for hardcoded endpoints or static config files.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-014",
+    "level": 1,
+    "category": "Microservices",
+    "question": "An API gateway in a microservices architecture typically does NOT handle which of the following?",
+    "options": [
+      "Request routing to backend services",
+      "Authentication and rate limiting",
+      "Business logic execution and database transactions",
+      "SSL termination and request/response transformation"
+    ],
+    "correct": 2,
+    "explanation": "An API gateway is an edge layer handling cross-cutting concerns: routing, auth, rate limiting, SSL termination, and protocol translation. Business logic and database operations belong in the individual microservices. Putting business logic in the gateway creates a monolithic bottleneck that defeats the purpose of microservices.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-015",
+    "level": 1,
+    "category": "Microservices",
+    "question": "What is the key difference between client-side and server-side service discovery?",
+    "options": [
+      "Client-side discovery is only for monoliths; server-side is only for microservices",
+      "In client-side discovery, the client queries the registry and selects an instance; in server-side, a load balancer does this",
+      "Server-side discovery is always faster than client-side",
+      "Client-side discovery requires no registry at all"
+    ],
+    "correct": 1,
+    "explanation": "In client-side discovery (e.g., Netflix Eureka + Ribbon), the client queries the service registry directly and chooses which instance to call, enabling fine-grained load balancing. In server-side discovery (e.g., AWS ALB, Kubernetes Services), the client sends requests to a load balancer/proxy that handles registry lookup and routing.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-016",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "A circuit breaker in the 'half-open' state allows:",
+    "options": [
+      "All requests to pass through normally",
+      "No requests \u2014 it remains fully open",
+      "A limited number of trial requests to test if the downstream service has recovered",
+      "Only read requests, blocking all writes"
+    ],
+    "correct": 2,
+    "explanation": "After the open timeout expires, the circuit breaker transitions to half-open and permits a small number of probe requests. If they succeed, the breaker closes (normal operation resumes). If they fail, it reopens. This avoids thundering herd \u2014 instead of all waiting requests flooding a recovering service, only a controlled trickle tests it.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-017",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "Which pattern is most effective at preventing cascading failures when a downstream dependency becomes slow (not down)?",
+    "options": [
+      "Increasing the retry count with longer timeouts",
+      "Setting aggressive timeouts combined with bulkhead isolation",
+      "Adding more instances of the calling service",
+      "Switching to synchronous communication"
+    ],
+    "correct": 1,
+    "explanation": "A slow dependency is more dangerous than a dead one \u2014 requests pile up, threads/connections exhaust, and the failure cascades upstream. Aggressive timeouts (fail fast) prevent thread exhaustion, and bulkhead isolation (separate thread pools per dependency) ensures one slow service can't consume all resources. More retries with longer timeouts makes it worse.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-018",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "What triggers a circuit breaker to transition from 'closed' (healthy) to 'open' (tripped)?",
+    "options": [
+      "A single failed request to the downstream service",
+      "The failure rate exceeding a configured threshold within a sliding window",
+      "The downstream service sending an explicit 'circuit-open' header",
+      "A deployment event detected by the service mesh"
+    ],
+    "correct": 1,
+    "explanation": "Circuit breakers track failure rates (errors, timeouts) over a sliding window (time-based or count-based). When failures exceed the threshold (e.g., 50% of last 20 requests), the breaker opens and short-circuits all calls for a configurable timeout, returning a fallback or error immediately instead of waiting for the failing service.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-019",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "The 'bulkhead' resilience pattern is named after ship compartments. In software, it prevents:",
+    "options": [
+      "Data corruption across microservices by isolating databases",
+      "A failure in one dependency from exhausting shared resources (threads, connections) and taking down unrelated functionality",
+      "Unauthorized access between service boundaries",
+      "Network partitions from affecting service availability"
+    ],
+    "correct": 1,
+    "explanation": "Bulkheads isolate resource pools per dependency or call path. If Service A calls Service B and Service C using the same thread pool, a slow Service B can exhaust all threads and block calls to the healthy Service C. Separate pools (bulkheads) ensure each dependency can only consume its allocated resources, containing blast radius.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-020",
+    "level": 2,
+    "category": "Failure Modes",
+    "question": "A 'retry storm' occurs when multiple clients simultaneously retry failed requests. What is the standard mitigation?",
+    "options": [
+      "Disable retries entirely",
+      "Exponential backoff with jitter",
+      "Increase the server's connection pool size",
+      "Switch from HTTP to gRPC"
+    ],
+    "correct": 1,
+    "explanation": "Exponential backoff spaces retries further apart with each attempt (1s, 2s, 4s, 8s...). Adding randomized jitter ensures clients don't all retry at the exact same intervals, spreading load. Without jitter, synchronized retries create periodic spikes. This is a standard pattern in AWS SDKs and gRPC libraries.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-021",
+    "level": 2,
+    "category": "API Design",
+    "question": "When would you choose gRPC over REST for service-to-service communication?",
+    "options": [
+      "When you need browser clients to call the API directly without a proxy",
+      "When you need high-throughput, low-latency communication with strict schema contracts between internal services",
+      "When the API must be easily testable with curl",
+      "When you want maximum flexibility in response format negotiation"
+    ],
+    "correct": 1,
+    "explanation": "gRPC uses HTTP/2 (multiplexing, header compression), Protocol Buffers (compact binary serialization), and strong schema contracts (.proto files) \u2014 yielding 2-10x smaller payloads and lower latency than JSON/REST. Ideal for internal service-to-service calls. REST is better for public APIs, browser clients, and discoverability.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-022",
+    "level": 2,
+    "category": "API Design",
+    "question": "Cursor-based pagination is preferred over offset-based pagination because:",
+    "options": [
+      "It uses less memory on the client side",
+      "It is immune to data drift \u2014 insertions/deletions between pages don't cause skipped or duplicated items",
+      "It allows jumping to arbitrary page numbers efficiently",
+      "It is simpler to implement in SQL"
+    ],
+    "correct": 1,
+    "explanation": "Offset pagination (OFFSET 100 LIMIT 10) breaks when rows are inserted/deleted between requests \u2014 items shift position, causing duplicates or gaps. Cursor pagination uses a stable pointer (e.g., 'after: last_seen_id') so each page starts from a fixed anchor regardless of mutations. Trade-off: you lose the ability to jump to 'page 50.'",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-023",
+    "level": 2,
+    "category": "API Design",
+    "question": "An API endpoint is 'idempotent' if:",
+    "options": [
+      "It always returns the same response regardless of input",
+      "Making the same request multiple times produces the same result as making it once",
+      "It can only be called once per session",
+      "It never modifies server state"
+    ],
+    "correct": 1,
+    "explanation": "Idempotency means repeated identical requests have the same effect as a single request. This is critical for reliability \u2014 if a client times out on a payment API call, it must safely retry without double-charging. Common implementation: the client sends an idempotency key; the server deduplicates by storing results keyed by that token.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-024",
+    "level": 2,
+    "category": "API Design",
+    "question": "GraphQL's primary advantage over REST for a mobile client consuming data from multiple backend services is:",
+    "options": [
+      "It is always faster due to binary serialization",
+      "The client can request exactly the fields it needs in a single query, avoiding over-fetching and multiple round trips",
+      "It automatically handles caching better than REST",
+      "It requires no schema definition"
+    ],
+    "correct": 1,
+    "explanation": "REST APIs return fixed response shapes, so a mobile screen needing data from /users, /posts, and /comments makes 3 calls and receives many unused fields. GraphQL lets the client specify exactly which fields from which types it needs in one request, reducing bandwidth (critical on mobile) and latency (one round trip vs. many).",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-025",
+    "level": 2,
+    "category": "API Design",
+    "question": "Which HTTP method is NOT idempotent by specification?",
+    "options": [
+      "GET",
+      "PUT",
+      "DELETE",
+      "POST"
+    ],
+    "correct": 3,
+    "explanation": "Per HTTP spec: GET, PUT, DELETE, HEAD, OPTIONS are idempotent \u2014 repeating them has the same effect. POST is not idempotent by default: POSTing the same order twice creates two orders. PATCH is also not guaranteed idempotent (depends on the operation). This is why payment APIs use idempotency keys on POST requests.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-026",
+    "level": 2,
+    "category": "Async Processing",
+    "question": "A dead letter queue (DLQ) is used to:",
+    "options": [
+      "Store messages that have been successfully processed for audit purposes",
+      "Capture messages that repeatedly fail processing so they don't block the main queue",
+      "Prioritize high-importance messages over low-importance ones",
+      "Encrypt messages at rest in the primary queue"
+    ],
+    "correct": 1,
+    "explanation": "When a message fails processing after a configured number of retries (e.g., 3 attempts), it's moved to the DLQ instead of being retried forever or dropped. This prevents poison messages from blocking the queue while preserving them for investigation. DLQs should be monitored \u2014 a growing DLQ signals a systemic problem.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-027",
+    "level": 2,
+    "category": "Async Processing",
+    "question": "Back pressure in a message processing system means:",
+    "options": [
+      "The system drops all incoming messages when overloaded",
+      "Consumers signal producers to slow down when they cannot keep up, preventing resource exhaustion",
+      "Messages are processed in reverse order during high load",
+      "The queue automatically scales to infinite capacity"
+    ],
+    "correct": 1,
+    "explanation": "Back pressure is a flow-control mechanism where downstream systems communicate their capacity limits upstream. Without it, a fast producer overwhelms a slow consumer \u2014 the queue grows unboundedly, memory exhausts, and the system crashes. Implementations include blocking producers, returning HTTP 429, or using bounded queues that reject when full.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-028",
+    "level": 2,
+    "category": "Async Processing",
+    "question": "When choosing between a message queue (SQS/RabbitMQ) and a log-based broker (Kafka), a key deciding factor is:",
+    "options": [
+      "Kafka is always faster for all workloads",
+      "Traditional queues delete messages after consumption; log-based brokers retain messages and support multiple independent consumers replaying from any offset",
+      "Message queues support higher throughput than Kafka",
+      "Log-based brokers don't support consumer groups"
+    ],
+    "correct": 1,
+    "explanation": "Message queues use destructive reads \u2014 once consumed, a message is gone (or invisible). Kafka retains messages for a configurable period, allowing multiple consumer groups to read the same stream independently and replay from any offset. Choose queues for simple task distribution; choose Kafka when you need event sourcing, replay, or fan-out to independent consumers.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-029",
+    "level": 2,
+    "category": "Async Processing",
+    "question": "To guarantee exactly-once processing semantics with at-least-once delivery, consumers must:",
+    "options": [
+      "Use a FIFO queue, which handles this automatically",
+      "Implement idempotent message handling \u2014 track processed message IDs and skip duplicates",
+      "Set the visibility timeout to infinity",
+      "Disable message retries entirely"
+    ],
+    "correct": 1,
+    "explanation": "Most queue systems provide at-least-once delivery (messages may be delivered more than once due to retries, network issues). To achieve effectively-exactly-once processing, consumers must be idempotent: track processed message IDs (in a database or cache) and skip duplicates. FIFO queues reduce but don't eliminate duplicates across failure scenarios.",
+    "relatedCards": []
+  },
+  {
+    "id": "QE-030",
+    "level": 2,
+    "category": "Async Processing",
+    "question": "What happens when a message queue consumer crashes AFTER processing a message but BEFORE acknowledging it?",
+    "options": [
+      "The message is permanently lost",
+      "The message becomes visible again after the visibility timeout expires and is redelivered to another consumer",
+      "The queue automatically detects the crash and marks the message as processed",
+      "The message is moved directly to the dead letter queue"
+    ],
+    "correct": 1,
+    "explanation": "Most queues (SQS, RabbitMQ) use a visibility timeout / acknowledgment model: a consumed message becomes invisible to other consumers for a timeout period. If not acknowledged (acked) before timeout \u2014 whether due to crash or slow processing \u2014 the message reappears and is redelivered. This is why consumers must be idempotent.",
+    "relatedCards": []
   }
 ]
