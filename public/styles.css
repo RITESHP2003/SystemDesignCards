@@ -114,10 +114,9 @@ body.theme-dark{background:linear-gradient(160deg,#0a0a14 0%,#0d0d1f 40%,#121228
 .card-counter{font-size:.72rem;color:var(--text-muted);white-space:nowrap}
 
 /* ══ Flashcard — GLASS, fills available space ══ */
-.flashcard{width:100%;max-width:420px;flex:1;min-height:0;perspective:1200px;cursor:pointer;position:relative;touch-action:none}
+.flashcard{width:100%;max-width:420px;flex:1;min-height:0;perspective:1200px;cursor:pointer;position:relative;touch-action:auto}
 .card-inner{width:100%;height:100%;position:relative;transition:transform .55s cubic-bezier(.4,.2,.2,1);transform-style:preserve-3d}
 .flashcard.flipped .card-inner{transform:rotateY(180deg);transition:transform .55s cubic-bezier(.4,.2,.2,1)}
-.flashcard.swiping .card-inner{transition:none}
 .card-front,.card-back{position:absolute;inset:0;backface-visibility:hidden;border-radius:20px;padding:20px;display:flex;flex-direction:column;
   background:var(--surface);border:1px solid var(--glass-border);
   box-shadow:0 8px 32px rgba(0,0,0,.2),inset 0 1px 0 rgba(255,255,255,.05);
@@ -141,16 +140,6 @@ body.theme-dark{background:linear-gradient(160deg,#0a0a14 0%,#0d0d1f 40%,#121228
 .card-source{font-size:.58rem;color:var(--text-dim);margin-top:6px;text-align:right}
 
 /* ── Swipe indicators ── */
-.swipe-indicator{position:absolute;font-size:.82rem;font-weight:700;opacity:0;transition:opacity .15s;pointer-events:none;z-index:10;padding:6px 12px;border-radius:10px}
-.swipe-left-indicator{left:8px;top:50%;transform:translateY(-50%);color:var(--red);background:rgba(248,113,113,.12);text-shadow:0 0 12px rgba(248,113,113,.5)}
-.swipe-right-indicator{right:8px;top:50%;transform:translateY(-50%);color:var(--green);background:rgba(52,211,153,.12);text-shadow:0 0 12px rgba(52,211,153,.5)}
-.swipe-up-indicator{top:8px;left:50%;transform:translateX(-50%);color:var(--accent2);background:rgba(124,108,240,.12);text-shadow:0 0 12px rgba(124,108,240,.5)}
-.swipe-down-indicator{bottom:8px;left:50%;transform:translateX(-50%);color:var(--orange);background:rgba(251,146,60,.12);text-shadow:0 0 12px rgba(251,146,60,.5)}
-.flashcard.swipe-left .swipe-left-indicator{opacity:1}
-.flashcard.swipe-right .swipe-right-indicator{opacity:1}
-.flashcard.swipe-up .swipe-up-indicator{opacity:1}
-.flashcard.swipe-down .swipe-down-indicator{opacity:1}
-.flashcard.fly-out{transition:transform .3s ease-out,opacity .3s ease-out;opacity:0}
 
 /* Category progress line */
 .category-progress{width:100%;max-width:420px;text-align:center;font-size:.7rem;color:var(--text-muted);padding:4px 0;flex-shrink:0}

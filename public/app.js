@@ -596,8 +596,7 @@ function startStudy(){
 function showCard(){
   if(studyIndex>=studyQueue.length){finishSession();return}
   var c=studyQueue[studyIndex],fc=$("flashcard");fc.classList.remove("flipped");
-  fc.style.transform="";fc.style.opacity="";fc.classList.remove("fly-out","swipe-left","swipe-right","swipe-up","swipe-down","swiping");
-  fc.setAttribute("data-card-level",c.level);
+    fc.setAttribute("data-card-level",c.level);
   $("card-level-tag").textContent="L"+c.level;$("card-level-tag-back").textContent="L"+c.level;
   $("card-category").textContent=c.category;$("card-question").textContent=c.front;
   $("card-answer").textContent=c.back;$("card-source").textContent=c.source||"";
@@ -608,6 +607,7 @@ function showCard(){
   $("category-progress").classList.add("hidden");
   $("category-progress").style.display="none";
   $("card-counter").textContent=(studyIndex+1)+"/"+studyQueue.length;
+  $("btn-prev-card").textContent=studyIndex===0?"← Back":"◀ Prev";
   $("card-progress-fill").style.setProperty("--progress",studyIndex/studyQueue.length*100+"%");
 }
 function flipCard(){
@@ -658,58 +658,11 @@ function finishSession(){
 // ═══ SWIPE GESTURES (LEFT=Forgot, DOWN=Hard, RIGHT=Good, UP=Easy) ═══
 function setupSwipeGestures(){
   var fc=$("flashcard");
-  var startX=0,startY=0,dx=0,dy=0,isSwiping=false;
-  var THRESHOLD=60;
+    
 
-  fc.addEventListener("touchstart",function(e){
-    if(!fc.classList.contains("flipped"))return;
-    var t=e.touches[0];startX=t.clientX;startY=t.clientY;dx=0;dy=0;isSwiping=true;
-    fc.classList.add("swiping");
-  },{passive:true});
 
-  fc.addEventListener("touchmove",function(e){
-    if(!isSwiping||!fc.classList.contains("flipped"))return;
-    var t=e.touches[0];dx=t.clientX-startX;dy=t.clientY-startY;
-    var rotate=dx*0.08;
-    fc.style.transform="translateX("+dx+"px) translateY("+dy+"px) rotate("+rotate+"deg)";
-    // Show indicators based on direction
-    var absX=Math.abs(dx),absY=Math.abs(dy);
-    fc.classList.toggle("swipe-left",dx<-THRESHOLD/2&&absX>absY);
-    fc.classList.toggle("swipe-right",dx>THRESHOLD/2&&absX>absY);
-    fc.classList.toggle("swipe-up",dy<-THRESHOLD/2&&absY>absX);
-    fc.classList.toggle("swipe-down",dy>THRESHOLD/2&&absY>absX);
-    if(absX>10||absY>10)e.preventDefault(); // Only prevent scroll when actually swiping, not on taps
-  },{passive:false});
 
-  fc.addEventListener("touchend",function(){
-    if(!isSwiping)return; // Don't touch transform — let CSS handle the flip
-    isSwiping=false;
-    fc.classList.remove("swiping");
-    var absX=Math.abs(dx),absY=Math.abs(dy);
-    if(dy<-THRESHOLD&&absY>absX){
-      // Swipe UP = Easy (4)
-      flyOut(0,-1);rateCard(4);
-    }else if(dy>THRESHOLD&&absY>absX){
-      // Swipe DOWN = Hard (2)
-      flyOut(0,1);rateCard(2);
-    }else if(dx<-THRESHOLD&&absX>absY){
-      // Swipe LEFT = Forgot (1)
-      flyOut(-1,0);rateCard(1);
-    }else if(dx>THRESHOLD&&absX>absY){
-      // Swipe RIGHT = Good (3)
-      flyOut(1,0);rateCard(3);
-    }else{
-      fc.style.transform="";
-      fc.classList.remove("swipe-left","swipe-right","swipe-up","swipe-down");
-    }
-  },{passive:true});
-
-  function flyOut(dirX,dirY){
-    fc.classList.add("fly-out");
-    fc.style.transform="translateX("+(dirX*300)+"px) translateY("+(dirY*300)+"px) rotate("+(dirX*20)+"deg)";
-    fc.classList.remove("swipe-left","swipe-right","swipe-up","swipe-down");
   }
-}
 
 // ═══ EXPORT / IMPORT ═══
 function setupExportImport(){
@@ -951,9 +904,10 @@ function updateSummary(){
   $("total-cards-count").textContent=allCards.length;
   // Show unlock requirements on study info
   var masteredCount=Object.values(cardState).filter(function(s){return s.status==="mastered"}).length;
+  var learningCount=Object.values(cardState).filter(function(s){return s.status==="learning"}).length;
   var unlockInfo="";
-  if(gam.unlockedLevels.indexOf(3)===-1)unlockInfo="🔒 Master "+LEVEL_THRESHOLDS[3]+" cards to unlock L3 ("+masteredCount+"/"+LEVEL_THRESHOLDS[3]+")";
-  else if(gam.unlockedLevels.indexOf(4)===-1)unlockInfo="🔒 Master "+LEVEL_THRESHOLDS[4]+" cards to unlock L4 ("+masteredCount+"/"+LEVEL_THRESHOLDS[4]+")";
+  if(gam.unlockedLevels.indexOf(3)===-1)unlockInfo="🔒 Master "+LEVEL_THRESHOLDS[3]+" cards to unlock L3 ("+masteredCount+" mastered, "+learningCount+" learning)";
+  else if(gam.unlockedLevels.indexOf(4)===-1)unlockInfo="🔒 Master "+LEVEL_THRESHOLDS[4]+" cards to unlock L4 ("+masteredCount+" mastered, "+learningCount+" learning)";
   if(unlockInfo&&$("unlock-info"))$("unlock-info").textContent=unlockInfo;
   else if($("unlock-info"))$("unlock-info").textContent="";
 
@@ -1227,9 +1181,9 @@ function finishQuiz(){
 
 // ═══ EVENTS ═══
 function setupEvents(){
-  $("flashcard").addEventListener("click",function(e){if(!e.target.closest(".flip-back-btn")&&!e.target.closest(".swipe-indicator"))flipCard()});
+  $("flashcard").addEventListener("click",function(e){if(!e.target.closest(".flip-back-btn"))flipCard()});
   $("btn-flip-back").addEventListener("click",function(e){e.stopPropagation();$("flashcard").classList.remove("flipped");$("rating-buttons").classList.add("hidden");$("category-progress").classList.add("hidden")});
-  $("btn-prev-card").addEventListener("click",function(){if(studyIndex>0){studyIndex--;showCard()}});
+  $("btn-prev-card").addEventListener("click",function(){if(studyIndex>0){studyIndex--;showCard()}else{$("card-area").classList.add("hidden");$("study-summary").classList.remove("hidden");updateAll()}});
   var rateBtns=document.querySelectorAll(".rate-btn");for(var i=0;i<rateBtns.length;i++){(function(b){b.addEventListener("click",function(e){e.stopPropagation();rateCard(parseInt(b.dataset.rating))})})(rateBtns[i])}
   $("btn-start-study").addEventListener("click",startStudy);
   $("btn-more-cards").addEventListener("click",startStudy);
