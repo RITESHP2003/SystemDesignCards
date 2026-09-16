@@ -112,6 +112,7 @@ function getNotifDue(n){
 }
 
 var allCards=[],cardState={},gam={xp:0,streak:0,lastStudyDate:null,unlockedLevels:[1,2],seenMilestones:[],quizUnlockedLevels:[1]},settings={theme:"dark",newPerDay:10};
+var quizBank=[];
 var studyQueue=[],studyIndex=0,sessionStats={reviewed:0,correct:0,xpEarned:0},selectedLevel="all",savedCards=new Set();
 var readBook="vol1",readPage=1,readManifests={},readInit=false;
 var sessionSeenCategories={};
