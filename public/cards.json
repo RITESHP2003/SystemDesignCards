@@ -1,0 +1,2692 @@
+[
+  {
+    "id": "L1-001",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "What is the simplest starting architecture for a web application?",
+    "back": "A single server setup where everything runs on one machine: web app, database, cache, etc. Users access it via DNS which resolves to the server's IP, and the server returns HTML or JSON responses.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p5-6"
+  },
+  {
+    "id": "L1-002",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "What is the DNS request flow when a user visits a website?",
+    "back": "1) User enters domain name (e.g., api.mysite.com). 2) DNS resolves it to an IP address. 3) Browser sends HTTP requests to that IP. 4) Web server returns HTML pages or JSON. DNS is typically a paid third-party service.",
+    "diagram": "graph LR\n  User-->|domain name|DNS\n  DNS-->|IP address|User\n  User-->|HTTP request|WebServer\n  WebServer-->|HTML/JSON|User",
+    "source": "Vol1 Ch1 p7"
+  },
+  {
+    "id": "L1-003",
+    "level": 1,
+    "category": "Database",
+    "type": "concept",
+    "front": "What are the two main categories of databases?",
+    "back": "Relational databases (RDBMS/SQL) like MySQL, PostgreSQL, Oracle \u2014 store data in tables/rows and support SQL joins. Non-relational databases (NoSQL) like Cassandra, DynamoDB, MongoDB \u2014 grouped into key-value, graph, column, and document stores.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p8"
+  },
+  {
+    "id": "L1-004",
+    "level": 1,
+    "category": "Database",
+    "type": "concept",
+    "front": "When should you consider using a NoSQL database over a relational one?",
+    "back": "Choose NoSQL when: your app requires super-low latency, your data is unstructured or has no relational data, you only need to serialize/deserialize data (JSON, XML, YAML), or you need to store a massive amount of data.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p8"
+  },
+  {
+    "id": "L1-005",
+    "level": 1,
+    "category": "Scaling",
+    "type": "comparison",
+    "front": "What is vertical scaling vs horizontal scaling?",
+    "back": "Vertical scaling (scale up) means adding more CPU/RAM to existing servers. Horizontal scaling (scale out) means adding more servers to the pool. Vertical is simpler but has hard limits and no redundancy. Horizontal is preferred for large-scale apps.",
+    "diagram": "graph TD\n  A[Scaling] --> B[Vertical / Scale Up]\n  A --> C[Horizontal / Scale Out]\n  B --> D[More CPU, RAM to one server]\n  C --> E[Add more servers]",
+    "source": "Vol1 Ch1 p9"
+  },
+  {
+    "id": "L1-006",
+    "level": 1,
+    "category": "Scaling",
+    "type": "tradeoff",
+    "front": "What are the limitations of vertical scaling?",
+    "back": "1) Hard hardware limit \u2014 you cannot add unlimited CPU/RAM to a single server. 2) No failover or redundancy \u2014 if the server goes down, everything goes down. 3) Higher cost \u2014 powerful servers are much more expensive.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p9"
+  },
+  {
+    "id": "L1-007",
+    "level": 1,
+    "category": "Load Balancing",
+    "type": "concept",
+    "front": "What is a load balancer and why is it needed?",
+    "back": "A load balancer evenly distributes incoming traffic among web servers in a load-balanced set. It solves failover issues (if one server dies, traffic routes to others) and improves availability. Users connect to the load balancer's public IP, while servers use private IPs.",
+    "diagram": "graph LR\n  Users-->|Public IP|LB[Load Balancer]\n  LB-->|Private IP|S1[Server 1]\n  LB-->|Private IP|S2[Server 2]",
+    "source": "Vol1 Ch1 p10"
+  },
+  {
+    "id": "L1-008",
+    "level": 1,
+    "category": "Load Balancing",
+    "type": "concept",
+    "front": "How does a load balancer handle server failures?",
+    "back": "If server 1 goes offline, all traffic is routed to server 2, preventing website downtime. A new healthy server is added to the pool to rebalance. If traffic grows, you simply add more servers and the load balancer distributes requests to them automatically.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p10"
+  },
+  {
+    "id": "L1-009",
+    "level": 1,
+    "category": "Database",
+    "type": "concept",
+    "front": "What is database replication and the master/slave model?",
+    "back": "Database replication copies data across multiple servers. The master database handles all write operations (insert, delete, update). Slave databases receive copies from the master and handle read operations only. There are usually more slaves than masters since reads outnumber writes.",
+    "diagram": "graph TD\n  App-->|writes|Master[(Master DB)]\n  App-->|reads|S1[(Slave 1)]\n  App-->|reads|S2[(Slave 2)]\n  Master-->|replication|S1\n  Master-->|replication|S2",
+    "source": "Vol1 Ch1 p12"
+  },
+  {
+    "id": "L1-010",
+    "level": 1,
+    "category": "Database",
+    "type": "tradeoff",
+    "front": "What are the advantages of database replication?",
+    "back": "1) Better performance \u2014 reads distributed across slaves, more parallel queries. 2) Reliability \u2014 data preserved across multiple locations even if one server is destroyed. 3) High availability \u2014 website stays operational even if one database goes offline.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p12-13"
+  },
+  {
+    "id": "L1-011",
+    "level": 1,
+    "category": "Database",
+    "type": "concept",
+    "front": "What happens when the master database goes offline?",
+    "back": "A slave database is promoted to be the new master. All database operations temporarily execute on the new master. A new slave replaces the old one for replication. In practice, this is complex because slave data may not be fully up-to-date, requiring data recovery scripts.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p13"
+  },
+  {
+    "id": "L1-012",
+    "level": 1,
+    "category": "Caching",
+    "type": "concept",
+    "front": "What is a cache and a cache tier?",
+    "back": "A cache is temporary storage that keeps expensive responses or frequently accessed data in memory for faster subsequent requests. The cache tier sits between the web server and database \u2014 the server checks cache first, and only queries the database on a cache miss.",
+    "diagram": "graph LR\n  Client-->WebServer\n  WebServer-->|check|Cache\n  Cache-->|hit|WebServer\n  Cache-->|miss|DB[(Database)]\n  DB-->Cache\n  Cache-->WebServer",
+    "source": "Vol1 Ch1 p15"
+  },
+  {
+    "id": "L1-013",
+    "level": 1,
+    "category": "Caching",
+    "type": "concept",
+    "front": "What is the read-through caching strategy?",
+    "back": "When a web server receives a request, it first checks the cache. If the data is there (cache hit), it returns it directly. If not (cache miss), it queries the database, stores the response in cache, then returns it to the client.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p15"
+  },
+  {
+    "id": "L1-014",
+    "level": 1,
+    "category": "Caching",
+    "type": "tradeoff",
+    "front": "What are key considerations when using a cache?",
+    "back": "1) Use cache for data read frequently but modified infrequently. 2) Set expiration policies \u2014 too short causes frequent DB reloads, too long serves stale data. 3) Maintain consistency between cache and data store. 4) Avoid single point of failure \u2014 use multiple cache servers across data centers.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p15-16"
+  },
+  {
+    "id": "L1-015",
+    "level": 1,
+    "category": "Caching",
+    "type": "concept",
+    "front": "What are common cache eviction policies?",
+    "back": "LRU (Least Recently Used) is the most popular \u2014 evicts the item not accessed for the longest time. LFU (Least Frequently Used) evicts the item used fewest times. FIFO (First In First Out) evicts the oldest item. Used when cache is full and new items need space.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p16"
+  },
+  {
+    "id": "L1-016",
+    "level": 1,
+    "category": "CDN",
+    "type": "concept",
+    "front": "What is a CDN and what does it cache?",
+    "back": "A Content Delivery Network is a network of geographically dispersed servers that cache and deliver static content (images, videos, CSS, JavaScript). The CDN server closest to the user delivers content, reducing load times. The further users are from CDN servers, the slower the load.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p17"
+  },
+  {
+    "id": "L1-017",
+    "level": 1,
+    "category": "CDN",
+    "type": "concept",
+    "front": "How does the CDN workflow operate?",
+    "back": "1) User requests an asset via CDN URL. 2) If CDN doesn't have it, it fetches from the origin server (e.g., S3). 3) Origin returns the file with a TTL header. 4) CDN caches and returns it. 5) Subsequent users get it from cache until TTL expires.",
+    "diagram": "graph TD\n  UserA-->|request|CDN\n  CDN-->|miss|Origin[Origin Server]\n  Origin-->|file + TTL|CDN\n  CDN-->|cached response|UserA\n  UserB-->|request|CDN\n  CDN-->|cache hit|UserB",
+    "source": "Vol1 Ch1 p17-18"
+  },
+  {
+    "id": "L1-018",
+    "level": 1,
+    "category": "CDN",
+    "type": "tradeoff",
+    "front": "What are key considerations when using a CDN?",
+    "back": "1) Cost \u2014 CDNs charge for data transfer, so avoid caching infrequently used assets. 2) Set appropriate cache expiry \u2014 too long serves stale content, too short causes repeated origin fetches. 3) Have a CDN fallback plan. 4) Invalidate files via API or use object versioning (e.g., image.png?v=2).",
+    "diagram": null,
+    "source": "Vol1 Ch1 p18"
+  },
+  {
+    "id": "L1-019",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "What is the difference between stateful and stateless web tiers?",
+    "back": "A stateful server remembers client data (like sessions) between requests, requiring sticky sessions in the load balancer. A stateless server keeps no state \u2014 session data is stored in external persistent storage (Redis, NoSQL, RDBMS). Stateless is simpler, more robust, and easier to scale.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p20-21"
+  },
+  {
+    "id": "L1-020",
+    "level": 1,
+    "category": "Scaling",
+    "type": "tradeoff",
+    "front": "Why is a stateless web tier preferred for horizontal scaling?",
+    "back": "In a stateful architecture, every request from a client must route to the same server (sticky sessions), making it hard to add/remove servers and handle failures. In stateless, any server can handle any request since state is in a shared store, enabling easy auto-scaling based on traffic.",
+    "diagram": "graph LR\n  Users-->LB[Load Balancer]\n  LB-->S1[Server 1]\n  LB-->S2[Server 2]\n  LB-->S3[Server 3]\n  S1-->Store[(Shared Data Store)]\n  S2-->Store\n  S3-->Store",
+    "source": "Vol1 Ch1 p20-22"
+  },
+  {
+    "id": "L1-021",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "What is a multi-data-center architecture and geoDNS?",
+    "back": "Multiple data centers in different regions serve users closest to them. GeoDNS resolves domain names to IP addresses based on user location. If one data center goes offline, all traffic is redirected to healthy data centers. Challenges include data synchronization and consistent deployments.",
+    "diagram": "graph TD\n  Users-->GeoDNS\n  GeoDNS-->|US users|DC1[US-East DC]\n  GeoDNS-->|EU users|DC2[US-West DC]\n  DC1<-->|data sync|DC2",
+    "source": "Vol1 Ch1 p23-24"
+  },
+  {
+    "id": "L1-022",
+    "level": 1,
+    "category": "Scaling",
+    "type": "tradeoff",
+    "front": "What are the technical challenges of a multi-data-center setup?",
+    "back": "1) Traffic redirection \u2014 need geoDNS to route users to nearest DC. 2) Data synchronization \u2014 users in different regions use different local DBs/caches; need async replication. 3) Test and deployment \u2014 must test at different locations and use automated deployment tools for consistency.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p24"
+  },
+  {
+    "id": "L1-023",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "What is a message queue and why is it used?",
+    "back": "A message queue is a durable in-memory component supporting asynchronous communication. Producers publish messages; consumers process them. It decouples components so they can be scaled independently. Producers can post when consumers are down, and consumers can read when producers are down.",
+    "diagram": "graph LR\n  Producer-->|publish|MQ[Message Queue]\n  MQ-->|consume|Consumer1[Worker 1]\n  MQ-->|consume|Consumer2[Worker 2]",
+    "source": "Vol1 Ch1 p25"
+  },
+  {
+    "id": "L1-024",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "How does a message queue help with photo processing at scale?",
+    "back": "Web servers publish photo processing jobs (crop, sharpen, blur) to a message queue. Worker servers pick up jobs asynchronously. When the queue grows large, add more workers to reduce processing time. When the queue is empty, reduce workers. Producer and consumer scale independently.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p25"
+  },
+  {
+    "id": "L1-025",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "What are logging, metrics, and automation in a large-scale system?",
+    "back": "Logging: monitor error logs per server or aggregate to a centralized service. Metrics: host-level (CPU, memory), aggregated (DB/cache tier performance), and business metrics (DAU, revenue). Automation: CI/CD to detect problems early and automate build/test/deploy.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p26"
+  },
+  {
+    "id": "L1-026",
+    "level": 1,
+    "category": "Database",
+    "type": "concept",
+    "front": "What is database sharding?",
+    "back": "Sharding is horizontal database scaling \u2014 separating a large database into smaller parts called shards. Each shard shares the same schema but holds unique data. A hash function on the sharding key (e.g., user_id % 4) determines which shard stores/retrieves the data.",
+    "diagram": "graph TD\n  App-->|user_id % 4|Router\n  Router-->|0|Shard0[(Shard 0)]\n  Router-->|1|Shard1[(Shard 1)]\n  Router-->|2|Shard2[(Shard 2)]\n  Router-->|3|Shard3[(Shard 3)]",
+    "source": "Vol1 Ch1 p28-29"
+  },
+  {
+    "id": "L1-027",
+    "level": 1,
+    "category": "Database",
+    "type": "concept",
+    "front": "What is a sharding key (partition key) and how do you choose one?",
+    "back": "A sharding key consists of one or more columns that determine how data is distributed across shards. The most important criterion is choosing a key that evenly distributes data. For example, user_id is a common sharding key that allows efficient routing of queries to the correct shard.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p29"
+  },
+  {
+    "id": "L1-028",
+    "level": 1,
+    "category": "Database",
+    "type": "tradeoff",
+    "front": "What are the challenges introduced by database sharding?",
+    "back": "1) Resharding \u2014 needed when shards are unevenly filled; solved with consistent hashing. 2) Celebrity/hotspot problem \u2014 popular data overwhelms one shard. 3) Join and de-normalization \u2014 cross-shard joins are hard; workaround is de-normalizing so queries hit a single table.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p30"
+  },
+  {
+    "id": "L1-029",
+    "level": 1,
+    "category": "Database",
+    "type": "concept",
+    "front": "What is the celebrity problem (hotspot key problem) in sharding?",
+    "back": "When excessive access targets a specific shard because popular entities (e.g., celebrities on social media) all hash to the same shard. Solution: allocate a dedicated shard for each celebrity, or further partition that shard.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p30"
+  },
+  {
+    "id": "L1-030",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "What is the summary checklist for scaling a system to millions of users?",
+    "back": "Keep web tier stateless. Build redundancy at every tier. Cache data as much as you can. Support multiple data centers. Host static assets in CDN. Scale data tier by sharding. Split tiers into individual services. Monitor your system and use automation tools.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p32"
+  },
+  {
+    "id": "L1-031",
+    "level": 1,
+    "category": "Estimation",
+    "type": "concept",
+    "front": "What is back-of-the-envelope estimation in system design?",
+    "back": "Estimates you create using thought experiments and common performance numbers to evaluate which designs meet your requirements. You need to understand power of two, latency numbers, and availability numbers. The process matters more than precise results.",
+    "diagram": null,
+    "source": "Vol1 Ch2 p34"
+  },
+  {
+    "id": "L1-032",
+    "level": 1,
+    "category": "Estimation",
+    "type": "concept",
+    "front": "What are the key data volume units (powers of 2) to know?",
+    "back": "1 byte = 8 bits (one ASCII character). 1 KB = 1,024 bytes. 1 MB = ~1 million bytes. 1 GB = ~1 billion bytes. 1 TB = ~1 trillion bytes. 1 PB = ~1,000 TB. These are essential for back-of-the-envelope calculations in distributed systems.",
+    "diagram": null,
+    "source": "Vol1 Ch2 p35"
+  },
+  {
+    "id": "L1-033",
+    "level": 1,
+    "category": "Estimation",
+    "type": "concept",
+    "front": "What are key takeaways from latency numbers every programmer should know?",
+    "back": "Memory is fast but disk is slow. Avoid disk seeks if possible. Simple compression algorithms are fast. Compress data before sending over the internet. Data center round trips are expensive. 1 ns = 10\u207b\u2079s, 1 \u00b5s = 10\u207b\u2076s, 1 ms = 10\u207b\u00b3s.",
+    "diagram": null,
+    "source": "Vol1 Ch2 p36-37"
+  },
+  {
+    "id": "L1-034",
+    "level": 1,
+    "category": "Estimation",
+    "type": "concept",
+    "front": "What is high availability and how is it measured?",
+    "back": "High availability is the ability of a system to be continuously operational. Measured as a percentage \u2014 100% means zero downtime. Measured in 'nines': 99% (two nines) allows ~3.65 days/year downtime; 99.99% (four nines) allows ~52.6 minutes/year. Cloud providers typically offer 99.9%+ SLAs.",
+    "diagram": null,
+    "source": "Vol1 Ch2 p38"
+  },
+  {
+    "id": "L1-035",
+    "level": 1,
+    "category": "Estimation",
+    "type": "concept",
+    "front": "What is a Service Level Agreement (SLA)?",
+    "back": "An SLA is a formal agreement between a service provider and customer defining the level of uptime the service will deliver. Amazon, Google, and Microsoft set their SLAs at 99.9% or above. The more nines of availability, the less downtime allowed.",
+    "diagram": null,
+    "source": "Vol1 Ch2 p38"
+  },
+  {
+    "id": "L1-036",
+    "level": 1,
+    "category": "Estimation",
+    "type": "estimation",
+    "front": "How would you estimate Twitter's QPS and storage? (300M MAU, 50% DAU, 2 tweets/day, 10% have media)",
+    "back": "DAU = 300M \u00d7 50% = 150M. Tweets QPS = 150M \u00d7 2 / 86400 \u2248 3,500. Peak QPS = 2 \u00d7 3,500 = 7,000. Media storage/day = 150M \u00d7 2 \u00d7 10% \u00d7 1MB = 30TB/day. 5-year storage = 30TB \u00d7 365 \u00d7 5 \u2248 55PB.",
+    "diagram": null,
+    "source": "Vol1 Ch2 p39"
+  },
+  {
+    "id": "L1-037",
+    "level": 1,
+    "category": "Estimation",
+    "type": "concept",
+    "front": "What are the tips for doing back-of-the-envelope estimation in interviews?",
+    "back": "1) Use rounding and approximation \u2014 don't waste time on precise math (99,987/9.1 \u2248 100,000/10). 2) Write down your assumptions for reference. 3) Always label your units (5 KB vs 5 MB). 4) Practice common estimates: QPS, peak QPS, storage, cache, number of servers.",
+    "diagram": null,
+    "source": "Vol1 Ch2 p40"
+  },
+  {
+    "id": "L1-038",
+    "level": 1,
+    "category": "Interview Framework",
+    "type": "concept",
+    "front": "What are the 4 steps of the system design interview framework?",
+    "back": "Step 1: Understand the problem and establish design scope (3-10 min). Step 2: Propose high-level design and get buy-in (10-15 min). Step 3: Design deep dive (10-25 min). Step 4: Wrap up (3-5 min). Total ~45 minutes.",
+    "diagram": "graph TD\n  S1[Step 1: Understand Problem\n3-10 min]-->S2[Step 2: High-Level Design\n10-15 min]\n  S2-->S3[Step 3: Deep Dive\n10-25 min]\n  S3-->S4[Step 4: Wrap Up\n3-5 min]",
+    "source": "Vol1 Ch3 p43,50"
+  },
+  {
+    "id": "L1-039",
+    "level": 1,
+    "category": "Interview Framework",
+    "type": "concept",
+    "front": "Why is Step 1 (understanding the problem) the most critical step?",
+    "back": "Answering without understanding requirements is a huge red flag. Ask clarifying questions: What features to build? How many users? Expected scale in 3/6/12 months? Existing tech stack? Write down assumptions. Don't be like 'Jimmy' who rushes to answer without thinking.",
+    "diagram": null,
+    "source": "Vol1 Ch3 p43"
+  },
+  {
+    "id": "L1-040",
+    "level": 1,
+    "category": "Interview Framework",
+    "type": "concept",
+    "front": "What should you do in Step 2 (high-level design)?",
+    "back": "Develop an initial blueprint and get interviewer buy-in. Draw box diagrams with key components (clients, APIs, web servers, data stores, cache, CDN, message queue). Do back-of-the-envelope calculations. Walk through concrete use cases to discover edge cases.",
+    "diagram": null,
+    "source": "Vol1 Ch3 p44"
+  },
+  {
+    "id": "L1-041",
+    "level": 1,
+    "category": "Interview Framework",
+    "type": "concept",
+    "front": "What should you focus on during Step 3 (design deep dive)?",
+    "back": "Work with the interviewer to identify and prioritize components to deep dive. Senior candidates may focus on performance bottlenecks and resource estimation. Time management is essential \u2014 don't get carried away with minute details that don't demonstrate your ability.",
+    "diagram": null,
+    "source": "Vol1 Ch3 p46"
+  },
+  {
+    "id": "L1-042",
+    "level": 1,
+    "category": "Interview Framework",
+    "type": "concept",
+    "front": "What should you discuss during Step 4 (wrap up)?",
+    "back": "Identify bottlenecks and potential improvements. Recap your design. Discuss error cases (server failure, network loss). Mention operational issues (monitoring, logging, rollouts). Discuss next scale curve (1M to 10M users). Propose refinements if you had more time.",
+    "diagram": null,
+    "source": "Vol1 Ch3 p49"
+  },
+  {
+    "id": "L1-043",
+    "level": 1,
+    "category": "Interview Framework",
+    "type": "concept",
+    "front": "What are the key Dos and Don'ts for system design interviews?",
+    "back": "Dos: Ask for clarification, understand requirements, suggest multiple approaches, design critical components first, collaborate with interviewer, never give up. Don'ts: Don't jump into a solution without clarifying, don't over-detail one component early, don't think in silence, don't assume you're done until told.",
+    "diagram": null,
+    "source": "Vol1 Ch3 p50"
+  },
+  {
+    "id": "L1-044",
+    "level": 1,
+    "category": "Interview Framework",
+    "type": "concept",
+    "front": "What is over-engineering and why is it a red flag in system design interviews?",
+    "back": "Over-engineering means delighting in design purity and ignoring tradeoffs. Many engineers are unaware of the compounding costs of over-engineered systems. Companies pay a high price for it. Interviewers also watch for narrow-mindedness and stubbornness.",
+    "diagram": null,
+    "source": "Vol1 Ch3 p42"
+  },
+  {
+    "id": "L1-045",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "Why should you separate web tier and data tier onto different servers?",
+    "back": "Separating web/mobile traffic (web tier) from the database (data tier) allows them to be scaled independently. You can add more web servers without changing the database, or upgrade the database without affecting web servers.",
+    "diagram": "graph TD\n  Users-->WebTier[Web Tier]\n  WebTier-->DataTier[Data Tier]\n  WebTier-->|scale independently|WebTier\n  DataTier-->|scale independently|DataTier",
+    "source": "Vol1 Ch1 p8"
+  },
+  {
+    "id": "L1-046",
+    "level": 1,
+    "category": "Caching",
+    "type": "concept",
+    "front": "What is a Single Point of Failure (SPOF) and how do you avoid it with caching?",
+    "back": "A SPOF is a part of a system that, if it fails, stops the entire system from working. A single cache server is a potential SPOF. Avoid it by using multiple cache servers across different data centers and overprovisioning memory to buffer against usage increases.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p16"
+  },
+  {
+    "id": "L1-047",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "What is auto-scaling and what enables it?",
+    "back": "Auto-scaling means adding or removing web servers automatically based on traffic load. It is enabled by making the web tier stateless \u2014 moving session data to a shared data store (Redis, Memcached, NoSQL). Once state is externalized, servers become interchangeable.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p22"
+  },
+  {
+    "id": "L1-048",
+    "level": 1,
+    "category": "Database",
+    "type": "comparison",
+    "front": "How does vertical vs horizontal database scaling differ?",
+    "back": "Vertical: add more CPU/RAM/disk to existing DB server (e.g., Amazon RDS with 24TB RAM). Simple but expensive, has hardware limits, and risks SPOF. Horizontal (sharding): add more DB servers, each holding a subset of data. More complex but handles massive scale.",
+    "diagram": null,
+    "source": "Vol1 Ch1 p28"
+  },
+  {
+    "id": "L1-049",
+    "level": 1,
+    "category": "Scaling",
+    "type": "concept",
+    "front": "What is the complete request flow in a scaled web architecture?",
+    "back": "1) User gets load balancer IP from DNS. 2) Connects to load balancer. 3) HTTP request routed to a web server. 4) Web server reads from slave DB for reads. 5) Write/update/delete operations go to master DB. Static assets served from CDN, hot data from cache.",
+    "diagram": "graph TD\n  User-->DNS\n  DNS-->User\n  User-->LB[Load Balancer]\n  LB-->WS[Web Server]\n  WS-->Cache\n  WS-->|reads|Slave[(Slave DB)]\n  WS-->|writes|Master[(Master DB)]\n  User-->CDN[CDN for static assets]",
+    "source": "Vol1 Ch1 p14"
+  },
+  {
+    "id": "L1-050",
+    "level": 1,
+    "category": "Estimation",
+    "type": "estimation",
+    "front": "How do you convert MAU to QPS in an estimation problem?",
+    "back": "First find DAU from MAU (e.g., 300M MAU \u00d7 50% = 150M DAU). Then QPS = DAU \u00d7 actions_per_user / 86,400 (seconds/day). Peak QPS is typically 2\u00d7 average QPS. Example: 150M \u00d7 2 tweets / 86,400 \u2248 3,500 QPS, peak \u2248 7,000.",
+    "diagram": null,
+    "source": "Vol1 Ch2 p39"
+  },
+  {
+    "id": "L2-001",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "concept",
+    "front": "What are the key requirements to clarify when designing a rate limiter?",
+    "back": "Clarify: client-side vs server-side, throttling criteria (IP, user ID, API endpoint), scale of system, standalone service vs API gateway, whether to inform users when throttled. Decide if distributed environment is needed and what HTTP response codes to return (429 Too Many Requests).",
+    "diagram": null,
+    "source": "Vol1 Ch4 p51-52"
+  },
+  {
+    "id": "L2-002",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "diagram",
+    "front": "Draw the high-level architecture of a rate limiter system.",
+    "back": "Client requests hit the rate limiter middleware before reaching API servers. The middleware checks rules from cache, fetches counters from Redis, and either forwards the request or returns HTTP 429. Rules are stored on disk and pulled by workers into cache.",
+    "diagram": "graph LR\n    Client -->|request| RateLimiter[Rate Limiter Middleware]\n    RateLimiter -->|allowed| API[API Servers]\n    RateLimiter -->|rejected 429| Client\n    RateLimiter <-->|counters| Redis[(Redis Cache)]\n    Workers[Rule Workers] -->|pull rules| Disk[(Rules on Disk)]\n    Workers -->|store| Cache[(Rules Cache)]\n    RateLimiter -->|load rules| Cache",
+    "source": "Vol1 Ch4 p63-65"
+  },
+  {
+    "id": "L2-003",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "concept",
+    "front": "How does the Token Bucket algorithm work for rate limiting?",
+    "back": "A bucket has a pre-defined capacity and is refilled at a preset rate. Each request consumes one token. If tokens are available, the request is forwarded; otherwise it's dropped. Two parameters: bucket size (max tokens) and refill rate (tokens/second). Used by Amazon and Stripe.",
+    "diagram": null,
+    "source": "Vol1 Ch4 p55-57"
+  },
+  {
+    "id": "L2-004",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "concept",
+    "front": "How does the Leaking Bucket algorithm differ from Token Bucket?",
+    "back": "Leaking Bucket processes requests at a fixed rate using a FIFO queue. When a request arrives, it's added to the queue if not full, otherwise dropped. Parameters: bucket size (queue size) and outflow rate (fixed processing rate). It smooths output rate but a burst of traffic fills the queue with old requests, starving recent ones.",
+    "diagram": null,
+    "source": "Vol1 Ch4 p58"
+  },
+  {
+    "id": "L2-005",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "comparison",
+    "front": "Compare Fixed Window Counter, Sliding Window Log, and Sliding Window Counter algorithms.",
+    "back": "Fixed Window Counter: divides timeline into fixed windows with a counter per window; simple but allows burst at window edges (up to 2x limit). Sliding Window Log: tracks each request timestamp in a sorted set, very accurate but memory-heavy. Sliding Window Counter: hybrid of both\u2014uses weighted count from current and previous windows. Memory efficient and smooths traffic spikes.",
+    "diagram": null,
+    "source": "Vol1 Ch4 p59-63"
+  },
+  {
+    "id": "L2-006",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "tradeoff",
+    "front": "What are the tradeoffs between different rate limiting algorithms?",
+    "back": "Token Bucket: allows bursts, memory efficient, but hard to tune parameters. Leaking Bucket: smooth output, but bursts fill queue with stale requests. Fixed Window: simple but edge-of-window burst problem. Sliding Window Log: most accurate but high memory. Sliding Window Counter: good balance of accuracy and memory, but approximate.",
+    "diagram": null,
+    "source": "Vol1 Ch4 p57-63"
+  },
+  {
+    "id": "L2-007",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "tradeoff",
+    "front": "What challenges arise with rate limiting in a distributed environment?",
+    "back": "Two main challenges: (1) Race conditions\u2014concurrent reads of the same counter can allow excess requests; solved with Lua scripts or sorted sets in Redis. (2) Synchronization\u2014multiple rate limiter instances need shared state; solved using centralized Redis store and eventual consistency model.",
+    "diagram": null,
+    "source": "Vol1 Ch4 p66-68"
+  },
+  {
+    "id": "L2-008",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "concept",
+    "front": "What HTTP headers should a rate limiter return, and what do they indicate?",
+    "back": "X-Ratelimit-Remaining: number of allowed requests left in the window. X-Ratelimit-Limit: total calls allowed per window. X-Ratelimit-Retry-After: seconds to wait before retrying. When throttled, return HTTP 429 (Too Many Requests) with these headers so clients can adjust behavior.",
+    "diagram": null,
+    "source": "Vol1 Ch4 p64-65"
+  },
+  {
+    "id": "L2-009",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "type": "concept",
+    "front": "What problem does consistent hashing solve, and what is the basic principle?",
+    "back": "Traditional hash-mod-N mapping remaps nearly all keys when servers are added/removed. Consistent hashing maps both servers and keys onto a hash ring (0 to 2^160-1 using SHA-1). A key is assigned to the first server found clockwise on the ring. When a server is added/removed, only k/n keys need remapping on average.",
+    "diagram": null,
+    "source": "Vol1 Ch5 p71-78"
+  },
+  {
+    "id": "L2-010",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "type": "diagram",
+    "front": "Draw a consistent hashing ring with virtual nodes.",
+    "back": "Servers are mapped to multiple points (virtual nodes) on the hash ring. Keys go clockwise to the nearest virtual node. Virtual nodes solve the non-uniform distribution problem. More virtual nodes = better balance but higher space cost. Used by Dynamo, Cassandra, Discord, and Akamai CDN.",
+    "diagram": "graph TD\n    subgraph Hash Ring\n        A[s0_0] --> B[s1_0]\n        B --> C[s0_1]\n        C --> D[s2_0]\n        D --> E[s1_1]\n        E --> F[s2_1]\n        F --> A\n    end\n    K1[key1] -.->|clockwise| B\n    K2[key2] -.->|clockwise| D\n    K3[key3] -.->|clockwise| A",
+    "source": "Vol1 Ch5 p79-84"
+  },
+  {
+    "id": "L2-011",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "type": "tradeoff",
+    "front": "What are the pros and cons of virtual nodes in consistent hashing?",
+    "back": "Pros: More uniform key distribution across servers, easier to handle heterogeneous servers (give more powerful servers more virtual nodes), only a small fraction of keys remap when a server changes. Cons: More virtual nodes means more space to store metadata. The tradeoff is tuning the number of virtual nodes to balance distribution vs storage cost.",
+    "diagram": null,
+    "source": "Vol1 Ch5 p80-84"
+  },
+  {
+    "id": "L2-012",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "type": "concept",
+    "front": "Why does basic consistent hashing (without virtual nodes) have two fundamental problems?",
+    "back": "Problem 1: Non-uniform partition sizes\u2014when a server is added/removed, partitions can become wildly uneven (one server's partition could be 2x another's). Problem 2: Non-uniform key distribution\u2014keys can cluster on the ring, causing hotspots. Virtual nodes solve both by spreading each server across many positions on the ring.",
+    "diagram": null,
+    "source": "Vol1 Ch5 p78-80"
+  },
+  {
+    "id": "L2-013",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "concept",
+    "front": "What are the key requirements for a distributed key-value store?",
+    "back": "Small key-value pairs (<10 KB), high availability (responds even during failures), high scalability (supports large data sets), automatic scaling (add/remove servers based on traffic), tunable consistency, and low latency. Must handle data partitioning, replication, versioning, and failure detection.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p87-88"
+  },
+  {
+    "id": "L2-014",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "concept",
+    "front": "What is the CAP theorem and why can't a CA system exist in practice?",
+    "back": "CAP theorem states a distributed system can only guarantee two of three: Consistency (all clients see same data), Availability (every request gets a response), Partition Tolerance (system works despite network splits). Since network partitions are unavoidable in distributed systems, you must choose between CP (block writes during partition) or AP (accept writes, tolerate stale reads). CA cannot exist in real-world distributed systems.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p90-92"
+  },
+  {
+    "id": "L2-015",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "tradeoff",
+    "front": "In a network partition, what's the tradeoff between choosing CP vs AP?",
+    "back": "CP: Block all writes to prevent inconsistency; system becomes unavailable for writes. Best for systems requiring strong consistency (banking). AP: Keep accepting reads/writes, serving potentially stale data; sync when partition heals. Best for systems prioritizing availability (social media). The choice depends on business requirements\u2014is incorrect data or unavailability worse?",
+    "diagram": null,
+    "source": "Vol1 Ch6 p91-92"
+  },
+  {
+    "id": "L2-016",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "concept",
+    "front": "How does quorum consensus work with N, W, and R parameters?",
+    "back": "N = number of replicas, W = write quorum (ack from W replicas to confirm write), R = read quorum (read from R replicas). If W + R > N, strong consistency is guaranteed (at least one overlapping node has latest data). Typical setup: N=3, W=R=2. R=1, W=N optimizes for fast reads. W=1, R=N optimizes for fast writes. W + R <= N allows eventual consistency.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p95-96"
+  },
+  {
+    "id": "L2-017",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "comparison",
+    "front": "Compare strong consistency, weak consistency, and eventual consistency.",
+    "back": "Strong: every read returns the most recent write; achieved by blocking replicas until all agree. Weak: reads may not see the latest write. Eventual: a specific form of weak consistency where, given enough time, all replicas converge. Dynamo and Cassandra use eventual consistency. Strong consistency blocks new operations and hurts availability; eventual consistency is recommended for high-availability key-value stores.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p96-97"
+  },
+  {
+    "id": "L2-018",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "concept",
+    "front": "How do vector clocks resolve conflicts in a distributed key-value store?",
+    "back": "Vector clocks track [server, version] pairs for each data item. When server Si handles a write, it increments its own counter. Conflicts are detected when neither vector dominates the other (concurrent writes on different nodes). The client must reconcile conflicting versions. Downside: vector clocks can grow large with many servers; a threshold can truncate old pairs, but this risks imprecise reconciliation.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p97-99"
+  },
+  {
+    "id": "L2-019",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "concept",
+    "front": "How does the gossip protocol detect node failures in a distributed system?",
+    "back": "Each node maintains a membership list with member IDs and heartbeat counters. Each node periodically increments its own counter and sends heartbeats to random nodes, which propagate further. If a heartbeat hasn't been updated beyond a threshold, the node is considered offline. This is decentralized\u2014no single point of failure for failure detection.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p100"
+  },
+  {
+    "id": "L2-020",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "concept",
+    "front": "What is sloppy quorum and hinted handoff, and why are they useful?",
+    "back": "Sloppy quorum: instead of requiring W/R responses from the designated replicas, the system picks the first W/R healthy servers on the hash ring, ignoring offline ones. Hinted handoff: when a server is down, another temporarily handles its data; when it recovers, data is handed back. Together they improve availability during failures while maintaining eventual consistency.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p101-102"
+  },
+  {
+    "id": "L2-021",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "concept",
+    "front": "How do Merkle trees help detect inconsistencies between replicas?",
+    "back": "Merkle trees are hash trees where each non-leaf node is the hash of its children. To compare replicas: (1) divide key space into buckets, (2) hash each key in a bucket, (3) build tree upward from bucket hashes. Compare root hashes\u2014if they match, replicas are identical. If not, traverse down to find differing buckets. Only the differing data needs synchronization, minimizing data transfer.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p102-104"
+  },
+  {
+    "id": "L2-022",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "diagram",
+    "front": "Draw the write path architecture of a distributed key-value store.",
+    "back": "Writes go to a commit log first (for durability), then to an in-memory cache (memtable). When the memtable is full, it's flushed to an SSTable (Sorted String Table) on disk. Reads check memtable first, then use a Bloom filter to determine which SSTable might contain the key, avoiding unnecessary disk reads.",
+    "diagram": "graph TD\n    Client -->|write| Node[Coordinator Node]\n    Node --> CommitLog[Commit Log]\n    Node --> MemTable[In-Memory MemTable]\n    MemTable -->|full| SSTable[SSTable on Disk]\n    Client -->|read| Node\n    Node -->|1. check| MemTable\n    Node -->|2. check| BloomFilter[Bloom Filter]\n    BloomFilter -->|maybe exists| SSTable",
+    "source": "Vol1 Ch6 p105-107"
+  },
+  {
+    "id": "L2-023",
+    "level": 2,
+    "category": "Unique ID Generator",
+    "type": "concept",
+    "front": "What are the key requirements for a unique ID generator in distributed systems?",
+    "back": "IDs must be unique, numeric only, fit within 64 bits, ordered by date (newer IDs are larger), and the system must generate 10,000+ IDs per second. Options include multi-master replication, UUID, ticket servers, and Twitter's Snowflake approach. The constraints of sortability and 64-bit size eliminate UUID (128-bit, not sortable).",
+    "diagram": null,
+    "source": "Vol1 Ch7 p110-111"
+  },
+  {
+    "id": "L2-024",
+    "level": 2,
+    "category": "Unique ID Generator",
+    "type": "comparison",
+    "front": "Compare multi-master replication, UUID, ticket server, and Snowflake for ID generation.",
+    "back": "Multi-master: uses DB auto_increment by k (# of servers); doesn't scale well across datacenters, IDs don't grow with time. UUID: 128-bit, no coordination needed, but not numeric-only or sortable. Ticket server: centralized auto_increment (Flickr uses it); simple but single point of failure. Snowflake: 64-bit IDs with timestamp+datacenter+machine+sequence; sortable, scalable, distributed.",
+    "diagram": null,
+    "source": "Vol1 Ch7 p112-115"
+  },
+  {
+    "id": "L2-025",
+    "level": 2,
+    "category": "Unique ID Generator",
+    "type": "diagram",
+    "front": "Draw the bit layout of a Twitter Snowflake ID and explain each section.",
+    "back": "A 64-bit Snowflake ID: 1 bit sign (always 0) + 41 bits timestamp (ms since epoch, ~69 years) + 5 bits datacenter ID (32 DCs) + 5 bits machine ID (32 machines/DC) + 12 bits sequence (4096 IDs/ms/machine). The timestamp in the most significant bits ensures IDs are roughly time-sortable. Max throughput: ~4096 \u00d7 1000 = 4M IDs/sec per machine.",
+    "diagram": "graph LR\n    subgraph 64-bit Snowflake ID\n        A[1 bit\\nSign=0] --> B[41 bits\\nTimestamp ms]\n        B --> C[5 bits\\nDatacenter ID]\n        C --> D[5 bits\\nMachine ID]\n        D --> E[12 bits\\nSequence 0-4095]\n    end",
+    "source": "Vol1 Ch7 p115-116"
+  },
+  {
+    "id": "L2-026",
+    "level": 2,
+    "category": "Unique ID Generator",
+    "type": "tradeoff",
+    "front": "What is the clock synchronization problem in Snowflake ID generation?",
+    "back": "Snowflake assumes clocks are synchronized across servers. If a server's clock drifts backward (e.g., NTP adjustment), it could generate duplicate IDs or break time-ordering guarantees. Mitigation: use NTP (Network Time Protocol) for clock sync, detect clock skew and refuse to generate IDs if clock goes backward. Multi-datacenter setups are especially vulnerable.",
+    "diagram": null,
+    "source": "Vol1 Ch7 p116-117"
+  },
+  {
+    "id": "L2-027",
+    "level": 2,
+    "category": "URL Shortener",
+    "type": "concept",
+    "front": "What are the key requirements and back-of-envelope estimates for a URL shortener?",
+    "back": "Requirements: shorten URL, redirect to original, high availability/scalability. Estimates: 100M URLs/day write, 10:1 read:write ratio = 1B redirects/day. Write QPS: ~1160, Read QPS: ~11,600. Over 10 years: 365B records. Storage: 365B \u00d7 100 bytes = ~36.5 TB. Short URL needs 7 characters using base-62 (62^7 \u2248 3.5 trillion combinations).",
+    "diagram": null,
+    "source": "Vol1 Ch8 p119-121"
+  },
+  {
+    "id": "L2-028",
+    "level": 2,
+    "category": "URL Shortener",
+    "type": "diagram",
+    "front": "Draw the URL shortener system architecture showing the shorten and redirect flows.",
+    "back": "Shorten flow: client POST \u2192 web server \u2192 check if URL exists in DB \u2192 if not, generate unique ID \u2192 convert to base-62 short URL \u2192 store in DB \u2192 return short URL. Redirect flow: client GET short URL \u2192 web server \u2192 lookup in cache/DB \u2192 return 301/302 redirect to long URL. Use cache (like Redis) for hot URLs.",
+    "diagram": "graph TD\n    subgraph Shorten Flow\n        C1[Client] -->|POST /shorten| WS1[Web Server]\n        WS1 --> IDGen[ID Generator]\n        IDGen --> B62[Base-62 Converter]\n        B62 --> DB1[(Database)]\n        DB1 -->|shortURL| C1\n    end\n    subgraph Redirect Flow\n        C2[Client] -->|GET /zn9edcu| WS2[Web Server]\n        WS2 --> Cache[(Cache)]\n        Cache -->|miss| DB2[(Database)]\n        DB2 -->|longURL| WS2\n        WS2 -->|301/302 redirect| C2\n    end",
+    "source": "Vol1 Ch8 p121-129"
+  },
+  {
+    "id": "L2-029",
+    "level": 2,
+    "category": "URL Shortener",
+    "type": "tradeoff",
+    "front": "What is the tradeoff between 301 and 302 redirects in a URL shortener?",
+    "back": "301 (Permanent): browser caches the mapping, subsequent requests go directly to the long URL\u2014reduces server load but loses analytics data. 302 (Temporary): every request hits the shortener first\u2014more server load but enables tracking click rate, source, and other analytics. Choose 301 if reducing load is priority; 302 if analytics is important.",
+    "diagram": null,
+    "source": "Vol1 Ch8 p122-123"
+  },
+  {
+    "id": "L2-030",
+    "level": 2,
+    "category": "URL Shortener",
+    "type": "comparison",
+    "front": "Compare hash+collision resolution vs base-62 conversion for URL shortening.",
+    "back": "Hash+collision: apply CRC32/MD5/SHA-1, take first 7 chars; collisions require DB lookup and retry with appended string\u2014dependent on DB. Base-62 conversion: assign a unique auto-increment ID, convert to base-62 ([0-9a-zA-Z]); no collisions, but requires a unique ID generator. Base-62 produces fixed-length URLs that grow with ID; hash approach gives fixed-length but has collision overhead.",
+    "diagram": null,
+    "source": "Vol1 Ch8 p125-128"
+  },
+  {
+    "id": "L2-031",
+    "level": 2,
+    "category": "URL Shortener",
+    "type": "concept",
+    "front": "How does base-62 conversion work in URL shortening?",
+    "back": "Base-62 uses 62 characters: 0-9 (10), a-z (26), A-Z (26). A unique numeric ID is repeatedly divided by 62, with remainders mapped to characters. Example: 11157 in base-10 = 2\u00d762\u00b2 + 55\u00d762\u00b9 + 59\u00d762\u2070 = '2TX' in base-62. The short URL length grows with the ID but 7 chars (62^7 \u2248 3.5T) covers most use cases.",
+    "diagram": null,
+    "source": "Vol1 Ch8 p127-128"
+  },
+  {
+    "id": "L2-032",
+    "level": 2,
+    "category": "Web Crawler",
+    "type": "concept",
+    "front": "What are the key requirements for designing a web crawler?",
+    "back": "Scalability (billions of pages), robustness (handle bad HTML, crashes, traps), politeness (don't overwhelm servers\u2014respect robots.txt, add delays), extensibility (support new content types easily). Scale estimate: 1B pages/month \u2248 400 pages/sec. Average page ~500KB, so ~500TB/month storage. Must handle duplicate content detection and URL deduplication.",
+    "diagram": null,
+    "source": "Vol1 Ch9 p132-135"
+  },
+  {
+    "id": "L2-033",
+    "level": 2,
+    "category": "Web Crawler",
+    "type": "diagram",
+    "front": "Draw the high-level architecture of a web crawler system.",
+    "back": "Seed URLs \u2192 URL Frontier (FIFO queue) \u2192 HTML Downloader (with DNS resolver) \u2192 Content Parser \u2192 Content Seen? (dedup via hash) \u2192 Link Extractor \u2192 URL Filter \u2192 URL Seen? (dedup via bloom filter/set) \u2192 back to URL Frontier. The URL Frontier is split into front queues (priority) and back queues (politeness).",
+    "diagram": "graph TD\n    Seed[Seed URLs] --> Frontier[URL Frontier]\n    Frontier --> Downloader[HTML Downloader]\n    Downloader <--> DNS[DNS Resolver]\n    Downloader --> Parser[Content Parser]\n    Parser --> ContentSeen{Content Seen?}\n    ContentSeen -->|new| Extractor[Link Extractor]\n    ContentSeen -->|duplicate| Discard1[Discard]\n    Extractor --> Filter[URL Filter]\n    Filter --> URLSeen{URL Seen?}\n    URLSeen -->|new| Frontier\n    URLSeen -->|seen| Discard2[Discard]",
+    "source": "Vol1 Ch9 p136-139"
+  },
+  {
+    "id": "L2-034",
+    "level": 2,
+    "category": "Web Crawler",
+    "type": "tradeoff",
+    "front": "Why does a web crawler use BFS instead of DFS, and what are BFS's limitations?",
+    "back": "DFS can go extremely deep into one site (unbounded depth), which is impractical for crawling the broad web. BFS uses a FIFO queue and explores level by level. However, standard BFS has two problems: (1) it doesn't prioritize important URLs (all treated equally), and (2) it doesn't enforce politeness (may flood one host). The URL Frontier solves both via priority queues and per-host rate limiting.",
+    "diagram": null,
+    "source": "Vol1 Ch9 p140-141"
+  },
+  {
+    "id": "L2-035",
+    "level": 2,
+    "category": "Web Crawler",
+    "type": "concept",
+    "front": "How does the URL Frontier enforce politeness and prioritization?",
+    "back": "The URL Frontier has two modules: Front queues manage prioritization (URLs scored by PageRank, traffic, update frequency and routed to priority queues). Back queues manage politeness (one queue per hostname, each served by one worker thread with configurable delay between requests). A mapping table ensures each host's URLs go to the same back queue.",
+    "diagram": null,
+    "source": "Vol1 Ch9 p141-144"
+  },
+  {
+    "id": "L2-036",
+    "level": 2,
+    "category": "Web Crawler",
+    "type": "concept",
+    "front": "What is robots.txt and how should a web crawler handle it?",
+    "back": "Robots.txt (Robots Exclusion Protocol) is a file at a website's root specifying which pages crawlers may/may not access. Before crawling any site, the crawler must fetch and respect its robots.txt. Cache the file to avoid repeated downloads and refresh periodically. Example: Amazon's robots.txt disallows certain directories for Googlebot.",
+    "diagram": null,
+    "source": "Vol1 Ch9 p145-146"
+  },
+  {
+    "id": "L2-037",
+    "level": 2,
+    "category": "Web Crawler",
+    "type": "concept",
+    "front": "How does a web crawler handle duplicate content detection?",
+    "back": "Two levels of dedup: (1) Content Seen\u2014hash the page content (e.g., simhash/fingerprint) and compare against a store of seen hashes. If the hash exists, the page is a duplicate and discarded. (2) URL Seen\u2014use a Bloom filter or hash set to track visited URLs, preventing re-crawling the same URL. Both are essential to avoid wasting bandwidth on ~30% duplicate web content.",
+    "diagram": null,
+    "source": "Vol1 Ch9 p138-139"
+  },
+  {
+    "id": "L2-038",
+    "level": 2,
+    "category": "Web Crawler",
+    "type": "tradeoff",
+    "front": "What are the storage tradeoffs for the URL Frontier?",
+    "back": "The frontier can hold hundreds of millions of URLs. All-in-memory: fast but not durable or scalable. All-on-disk: durable but slow, becomes a bottleneck. Hybrid approach: majority of URLs on disk, buffers/enqueue/dequeue in memory. This balances speed and capacity. Recrawl scheduling based on page update history further prioritizes which URLs stay hot.",
+    "diagram": null,
+    "source": "Vol1 Ch9 p145"
+  },
+  {
+    "id": "L2-039",
+    "level": 2,
+    "category": "Web Crawler",
+    "type": "concept",
+    "front": "What robustness measures should a web crawler implement?",
+    "back": "Consistent hashing for distributing URLs across downloaders. Save crawl state to disk for crash recovery. Exception handling for malformed HTML. Data validation to filter out bad/ads content. Spider trap detection (extremely deep or infinite URLs from dynamic pages)\u2014set a max URL length and allow manual blacklisting. Distributed crawling with hundreds of stateless servers for horizontal scaling.",
+    "diagram": null,
+    "source": "Vol1 Ch9 p147-149"
+  },
+  {
+    "id": "L2-040",
+    "level": 2,
+    "category": "Notification System",
+    "type": "concept",
+    "front": "What are the key requirements for a notification system?",
+    "back": "Support push notifications (iOS via APNs, Android via FCM), SMS (via Twilio/Nexmo), and email (via SendGrid/Mailchimp). Soft real-time delivery (slight delay acceptable). Scale: 10M push, 1M SMS, 5M emails/day. Must handle contact info gathering, opt-in/out settings, rate limiting, retry mechanisms, and security (appKey/appSecret authentication).",
+    "diagram": null,
+    "source": "Vol1 Ch10 p151-153"
+  },
+  {
+    "id": "L2-041",
+    "level": 2,
+    "category": "Notification System",
+    "type": "diagram",
+    "front": "Draw the high-level notification system architecture.",
+    "back": "Services trigger notifications via API \u2192 Notification servers validate, fetch user preferences, and construct notification payloads \u2192 Messages placed into per-channel queues (iOS, Android, SMS, Email) \u2192 Workers pull from queues and send via third-party services (APNs, FCM, Twilio, SendGrid) \u2192 Devices receive notifications. Message queues decouple components and handle bursts.",
+    "diagram": "graph TD\n    Svc[Services] -->|API call| NS[Notification Servers]\n    NS --> |validate & route| Q1[iOS Queue]\n    NS --> Q2[Android Queue]\n    NS --> Q3[SMS Queue]\n    NS --> Q4[Email Queue]\n    Q1 --> W1[iOS Worker] --> APNs\n    Q2 --> W2[Android Worker] --> FCM\n    Q3 --> W3[SMS Worker] --> Twilio\n    Q4 --> W4[Email Worker] --> SendGrid\n    NS <--> DB[(User Preferences DB)]\n    NS <--> Cache[(Cache)]",
+    "source": "Vol1 Ch10 p155-159"
+  },
+  {
+    "id": "L2-042",
+    "level": 2,
+    "category": "Notification System",
+    "type": "concept",
+    "front": "How do iOS push notifications work with APNs?",
+    "back": "Provider (your server) constructs a notification with: device token (unique per app+device), payload (JSON with alert, badge, sound), and sends to Apple Push Notification Service (APNs). APNs delivers to the iOS device. Device tokens are collected when users install the app and stored in your database. APNs handles the last-mile delivery to the device.",
+    "diagram": null,
+    "source": "Vol1 Ch10 p153-154"
+  },
+  {
+    "id": "L2-043",
+    "level": 2,
+    "category": "Notification System",
+    "type": "tradeoff",
+    "front": "How do you prevent data loss and handle reliability in a notification system?",
+    "back": "Persist notifications in a database and add a notification log to track status. Use retry mechanisms with exponential backoff for failed deliveries. Implement a dedup mechanism (check notification event ID) to avoid sending duplicate notifications. For critical notifications, add a dedicated retry queue. Accept that 100% delivery isn't possible\u2014some messages will fail permanently (bad tokens, uninstalled apps).",
+    "diagram": null,
+    "source": "Vol1 Ch10 p160-162"
+  },
+  {
+    "id": "L2-044",
+    "level": 2,
+    "category": "Notification System",
+    "type": "concept",
+    "front": "What are notification templates and why are they important?",
+    "back": "Notification templates are pre-formatted messages with customizable parameters (e.g., 'Hi {name}, your order {order_id} ships tomorrow'). Benefits: maintain consistency across millions of notifications, reduce development time, enable A/B testing of message formats. Templates are stored separately and rendered at send time with user-specific data.",
+    "diagram": null,
+    "source": "Vol1 Ch10 p161"
+  },
+  {
+    "id": "L2-045",
+    "level": 2,
+    "category": "Notification System",
+    "type": "concept",
+    "front": "What deep-dive components improve a notification system beyond the basic design?",
+    "back": "Rate limiting (avoid overwhelming users\u2014e.g., max 5 notifications/day). Notification settings (user opt-in/out per channel stored in DB, checked before sending). Security (appKey/appSecret for push APIs). Event tracking (open rates, click rates via analytics). Monitor queued notifications to detect buildup. Retry with exponential backoff for transient failures.",
+    "diagram": null,
+    "source": "Vol1 Ch10 p160-164"
+  },
+  {
+    "id": "L2-046",
+    "level": 2,
+    "category": "News Feed",
+    "type": "concept",
+    "front": "What are the key requirements for a news feed system?",
+    "back": "Support mobile and web. Users can publish posts and see friends' posts sorted by reverse chronological order. Feed may contain text, images, and videos. Assume 10M daily active users. Two main flows: feed publishing (user creates a post, it propagates to friends' feeds) and news feed building (aggregating and serving a user's personalized feed).",
+    "diagram": null,
+    "source": "Vol1 Ch11 p166-168"
+  },
+  {
+    "id": "L2-047",
+    "level": 2,
+    "category": "News Feed",
+    "type": "diagram",
+    "front": "Draw the news feed system architecture showing both publishing and retrieval flows.",
+    "back": "Publishing: user POST \u2192 load balancer \u2192 web server \u2192 post service writes to post DB/cache \u2192 fanout service reads friend list from graph DB \u2192 pushes post ID to friends' news feed caches \u2192 notification service alerts friends. Retrieval: user GET /feed \u2192 web server \u2192 news feed service reads post IDs from cache \u2192 hydrates with user/post data from caches \u2192 returns full feed.",
+    "diagram": "graph TD\n    subgraph Feed Publishing\n        U1[User] -->|POST /feed| LB1[Load Balancer]\n        LB1 --> WS1[Web Server]\n        WS1 --> PostSvc[Post Service]\n        PostSvc --> PostDB[(Post DB + Cache)]\n        WS1 --> Fanout[Fanout Service]\n        Fanout --> GraphDB[(Friend Graph DB)]\n        Fanout --> MQ[Message Queue]\n        MQ --> Workers[Fanout Workers]\n        Workers --> FeedCache[(News Feed Cache)]\n    end\n    subgraph Feed Retrieval\n        U2[User] -->|GET /feed| LB2[Load Balancer]\n        LB2 --> WS2[Web Server]\n        WS2 --> FeedSvc[News Feed Service]\n        FeedSvc --> FeedCache\n        FeedSvc --> UserCache[(User Cache)]\n        FeedSvc --> PostCache[(Post Cache)]\n    end",
+    "source": "Vol1 Ch11 p168-175"
+  },
+  {
+    "id": "L2-048",
+    "level": 2,
+    "category": "News Feed",
+    "type": "comparison",
+    "front": "Compare fanout-on-write (push) vs fanout-on-read (pull) for news feed.",
+    "back": "Fanout-on-write (push): pre-compute feed at write time, deliver to friends' caches immediately. Pros: real-time, fast reads. Cons: slow for users with many friends (hotkey problem), wastes resources on inactive users. Fanout-on-read (pull): generate feed on demand when user loads page. Pros: no wasted compute for inactive users, no hotkey problem. Cons: slow reads. Best approach: hybrid\u2014push for normal users, pull for celebrities.",
+    "diagram": null,
+    "source": "Vol1 Ch11 p171-173"
+  },
+  {
+    "id": "L2-049",
+    "level": 2,
+    "category": "News Feed",
+    "type": "tradeoff",
+    "front": "Why use a hybrid fanout approach and how does it work?",
+    "back": "Pure push is slow for celebrities (millions of followers create a hotkey problem). Pure pull makes feed loading slow for normal users. Hybrid: use push for the majority of users (fast feed retrieval). For celebrities/power users, followers pull their posts on demand. Consistent hashing helps distribute the fanout load. The news feed cache stores only post IDs (not full content) to keep memory small.",
+    "diagram": null,
+    "source": "Vol1 Ch11 p172-174"
+  },
+  {
+    "id": "L2-050",
+    "level": 2,
+    "category": "News Feed",
+    "type": "concept",
+    "front": "How is the news feed cache architecture structured?",
+    "back": "Five cache layers: (1) News Feed cache\u2014stores lists of post IDs per user. (2) Content cache\u2014stores post data, with hot cache for popular posts. (3) Social Graph cache\u2014user relationship data (friends list). (4) Action cache\u2014likes, comments, shares. (5) Counter cache\u2014like counts, reply counts. The feed stores only IDs, then hydrates by fetching user/post objects from respective caches.",
+    "diagram": null,
+    "source": "Vol1 Ch11 p175-176"
+  },
+  {
+    "id": "L2-051",
+    "level": 2,
+    "category": "News Feed",
+    "type": "concept",
+    "front": "How does the fanout service decide which friends receive a new post?",
+    "back": "Fanout service fetches the friend list from the graph database, then filters based on user settings (muted users, blocked users, selective sharing). The filtered list of friend IDs is sent to a message queue. Fanout workers pull from the queue and append the <post_id, user_id> to each friend's news feed cache. Only IDs are stored to minimize memory; a configurable limit caps how many posts are kept per user.",
+    "diagram": null,
+    "source": "Vol1 Ch11 p172-174"
+  },
+  {
+    "id": "L2-052",
+    "level": 2,
+    "category": "News Feed",
+    "type": "concept",
+    "front": "How does news feed retrieval work step by step?",
+    "back": "1. User requests GET /v1/me/feed. 2. Load balancer routes to web server. 3. News feed service fetches post IDs from news feed cache. 4. Service hydrates IDs by fetching full user objects (user cache) and post objects (post cache, including images/videos from CDN). 5. Fully assembled feed returned as JSON. Media content served from CDN for fast retrieval.",
+    "diagram": null,
+    "source": "Vol1 Ch11 p174-175"
+  },
+  {
+    "id": "L2-053",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "concept",
+    "front": "Where should you place a rate limiter: client-side, server-side, or middleware?",
+    "back": "Client-side: unreliable because clients can be forged. Server-side: full control but adds load to API servers. Middleware (API gateway): recommended for microservices\u2014centralized, handles SSL termination, authentication, and rate limiting. Choose based on tech stack, team resources, and existing infrastructure. Cloud API gateways (AWS API Gateway) are popular choices.",
+    "diagram": null,
+    "source": "Vol1 Ch4 p53-54"
+  },
+  {
+    "id": "L2-054",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "diagram",
+    "front": "Draw the overall system architecture of a distributed key-value store.",
+    "back": "Fully decentralized architecture where every node has the same responsibilities. Clients can connect to any node. Nodes use consistent hashing for data partitioning, replicate to N clockwise neighbors on the ring, use gossip protocol for failure detection, and vector clocks for conflict resolution. No single point of failure.",
+    "diagram": "graph TD\n    Client[Client] --> Any[Any Node]\n    subgraph Decentralized Ring\n        N1[Node 1] <-->|gossip| N2[Node 2]\n        N2 <-->|gossip| N3[Node 3]\n        N3 <-->|gossip| N4[Node 4]\n        N4 <-->|gossip| N1\n    end\n    N1 -->|replicate| N2\n    N1 -->|replicate| N3\n    Any --> N1",
+    "source": "Vol1 Ch6 p104-107"
+  },
+  {
+    "id": "L2-055",
+    "level": 2,
+    "category": "Unique ID Generator",
+    "type": "tradeoff",
+    "front": "What are the pros and cons of using a centralized ticket server for ID generation?",
+    "back": "Pros: Simple to implement (single DB with auto_increment), numeric IDs, easy to manage, works for small-medium scale. Cons: Single point of failure\u2014if ticket server goes down, all dependent systems are affected. Multiple ticket servers introduce data synchronization challenges. Not ideal for distributed systems with strict availability requirements.",
+    "diagram": null,
+    "source": "Vol1 Ch7 p113-114"
+  },
+  {
+    "id": "L2-056",
+    "level": 2,
+    "category": "URL Shortener",
+    "type": "concept",
+    "front": "What is the complete URL shortening flow using base-62 conversion?",
+    "back": "1. Receive longURL. 2. Generate a unique ID using a distributed ID generator (e.g., Snowflake). 3. Convert the numeric ID to a base-62 string (the shortURL hash). 4. Store ID, shortURL, and longURL in the database. 5. Return the shortURL to the client. Example: ID 2009215674938 converts to 'zn9edcu'. No collision checking needed since IDs are unique.",
+    "diagram": null,
+    "source": "Vol1 Ch8 p128-129"
+  },
+  {
+    "id": "L2-057",
+    "level": 2,
+    "category": "Web Crawler",
+    "type": "concept",
+    "front": "What performance optimizations should a web crawler implement?",
+    "back": "1. Distributed crawling\u2014partition URL space across multiple downloaders via consistent hashing. 2. DNS resolver cache\u2014avoid repeated DNS lookups by caching results. 3. Locality\u2014crawl servers geographically close to target websites. 4. Short timeouts\u2014set maximum wait times to avoid getting stuck on slow/unresponsive servers. 5. Recrawl based on page update history to prioritize fresh content.",
+    "diagram": null,
+    "source": "Vol1 Ch9 p146-148"
+  },
+  {
+    "id": "L2-058",
+    "level": 2,
+    "category": "Notification System",
+    "type": "tradeoff",
+    "front": "Why use message queues in a notification system, and what problem does it solve?",
+    "back": "Without queues: notification server directly calls third-party services, creating tight coupling, SPOF risk, and inability to handle traffic spikes. With per-channel message queues (iOS, Android, SMS, Email): decouples producers and consumers, buffers during traffic bursts, enables independent scaling of workers per channel, and provides retry capability for failed deliveries. Each channel can scale its worker pool independently.",
+    "diagram": null,
+    "source": "Vol1 Ch10 p157-159"
+  },
+  {
+    "id": "L2-059",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "concept",
+    "front": "How does data replication work in a consistent-hashing-based key-value store?",
+    "back": "After a key maps to a position on the hash ring, it's replicated to the next N-1 nodes clockwise (N is configurable). To avoid replicas landing on virtual nodes of the same physical server, only distinct physical servers are chosen. For disaster tolerance, replicas should be placed in different data centers connected by high-speed networks.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p93-94"
+  },
+  {
+    "id": "L2-060",
+    "level": 2,
+    "category": "Consistent Hashing",
+    "type": "concept",
+    "front": "What real-world systems use consistent hashing?",
+    "back": "Amazon Dynamo DB for data partitioning, Apache Cassandra for data distribution across clusters, Discord for chat application routing, Akamai CDN for content distribution, and Maglev (Google's network load balancer). The technique is fundamental whenever data must be distributed across a changing set of nodes with minimal redistribution.",
+    "diagram": null,
+    "source": "Vol1 Ch5 p84-85"
+  },
+  {
+    "id": "L2-061",
+    "level": 2,
+    "category": "Rate Limiting",
+    "type": "algorithm",
+    "front": "How does the Sliding Window Counter algorithm work?",
+    "back": "Combines fixed window counter and sliding window log. Calculates: requests in current window + requests in previous window \u00d7 overlap percentage. Example: if limit is 7/min, previous window had 5 requests, current has 3, and we're 30% into the current window, count = 3 + 5 \u00d7 0.7 = 6.5. Since 6.5 < 7, request is allowed. Memory efficient (only two counters) with good accuracy.",
+    "diagram": null,
+    "source": "Vol1 Ch4 p62-63"
+  },
+  {
+    "id": "L2-062",
+    "level": 2,
+    "category": "Key-Value Store",
+    "type": "algorithm",
+    "front": "How does the write path work with LSM-tree storage (MemTable + SSTable)?",
+    "back": "1. Write is first logged to a commit log (write-ahead log) for durability. 2. Data is added to an in-memory sorted structure (MemTable). 3. When MemTable exceeds a size threshold, it's flushed to disk as an immutable SSTable (Sorted String Table). 4. SSTables are periodically merged and compacted to remove deleted/overwritten data. Reads check MemTable first, then use Bloom filters to identify which SSTable to read.",
+    "diagram": null,
+    "source": "Vol1 Ch6 p105-107"
+  },
+  {
+    "id": "L2-063",
+    "level": 2,
+    "category": "Unique ID Generator",
+    "type": "concept",
+    "front": "Why is UUID not ideal for distributed ID generation despite being simple?",
+    "back": "UUID is 128 bits (requirement is 64 bits), not numeric only (contains letters and hyphens like 09c93e62-50b4-468d-bf8a-c07e1040bfb2), and not sortable by time. Pros: simple generation, no coordination needed, scales easily. But it fails the core requirements of being 64-bit, numeric-only, and time-sortable that most distributed systems need.",
+    "diagram": null,
+    "source": "Vol1 Ch7 p112-113"
+  },
+  {
+    "id": "L2-064",
+    "level": 2,
+    "category": "URL Shortener",
+    "type": "tradeoff",
+    "front": "What are the security and additional considerations for a URL shortener?",
+    "back": "Rate limiting to prevent malicious mass-creation of short URLs. URL validation to block phishing/malicious URLs. Database scaling via sharding and replication for high availability. Analytics tracking (click count, referrer, geographic data) if using 302 redirects. Cache frequently accessed URLs in memory. Consider URL expiration and custom alias support.",
+    "diagram": null,
+    "source": "Vol1 Ch8 p130-131"
+  },
+  {
+    "id": "L2-065",
+    "level": 2,
+    "category": "Notification System",
+    "type": "comparison",
+    "front": "Compare the three notification channels: push notification, SMS, and email.",
+    "back": "Push (APNs/FCM): real-time, free to send, requires app install, device token needed, JSON payload with alert/badge/sound. SMS (Twilio/Nexmo): reaches any phone, commercial cost per message, phone number needed, limited to text. Email (SendGrid/Mailchimp): rich formatting, very low cost, high delivery rate, email address needed. Each requires different third-party services and has different opt-in/gathering flows.",
+    "diagram": null,
+    "source": "Vol1 Ch10 p153-155"
+  },
+  {
+    "id": "L3-001",
+    "level": 3,
+    "category": "Chat System",
+    "type": "concept",
+    "front": "Why is WebSocket preferred over HTTP polling for a chat system, and when is HTTP still used?",
+    "back": "WebSocket provides a persistent, bi-directional connection ideal for real-time messaging with low latency. HTTP polling wastes resources by repeatedly checking for new messages. However, HTTP is still used for non-real-time features like signup, login, and user profile updates since they are client-initiated request/response flows.",
+    "diagram": null,
+    "source": "Vol1 Ch12 p182"
+  },
+  {
+    "id": "L3-002",
+    "level": 3,
+    "category": "Chat System",
+    "type": "concept",
+    "front": "What are the key components in a chat system's high-level architecture?",
+    "back": "The architecture includes: chat servers (handle real-time messaging via WebSocket), presence servers (manage online/offline status), push notification servers (for offline users), key-value stores (chat history persistence), and API servers (handle login, signup, profile). A load balancer distributes connections, and service discovery (e.g., Zookeeper) routes clients to the best chat server.",
+    "diagram": "graph LR\n  Client -->|WebSocket| LB[Load Balancer]\n  LB --> CS[Chat Servers]\n  LB --> API[API Servers]\n  CS --> KV[Key-Value Store]\n  CS --> PS[Presence Servers]\n  CS --> PN[Push Notification]",
+    "source": "Vol1 Ch12 p184"
+  },
+  {
+    "id": "L3-003",
+    "level": 3,
+    "category": "Chat System",
+    "type": "concept",
+    "front": "Why use a key-value store (like HBase or Cassandra) instead of a relational DB for chat history?",
+    "back": "Chat history has enormous volume (Facebook/WhatsApp process 60B messages/day), mostly sequential access of recent data, a 1:1 read-to-write ratio, and long-tail data patterns. Key-value stores provide easy horizontal scaling, low-latency access, and handle long-tail data better than relational DBs where large indexes make random access expensive. Facebook Messenger uses HBase; Discord uses Cassandra.",
+    "diagram": null,
+    "source": "Vol1 Ch12 p187"
+  },
+  {
+    "id": "L3-004",
+    "level": 3,
+    "category": "Chat System",
+    "type": "concept",
+    "front": "How does message ordering work in a chat system, and why can't we use created_at timestamps?",
+    "back": "Two messages can be created at the same time, so created_at is insufficient for ordering. Message IDs must be unique and sortable by time. Options include a local sequence number generator per chat (auto-increment within a 1-on-1 or group channel) which is simpler than global unique ID generators. The local approach works because ordering only needs to be maintained within one channel, not globally.",
+    "diagram": null,
+    "source": "Vol1 Ch12 p189"
+  },
+  {
+    "id": "L3-005",
+    "level": 3,
+    "category": "Chat System",
+    "type": "concept",
+    "front": "How does a 1-on-1 chat message flow differ from a group chat message flow?",
+    "back": "In 1-on-1 chat, a message is sent to the chat server via WebSocket, stored in the KV store, and forwarded to the recipient's chat server (or push notification if offline). In group chat, messages use a message queue per recipient \u2014 each member has their own inbox queue. This fan-out approach works for small groups (< 100) but becomes expensive at scale, which is why large groups use different delivery mechanisms.",
+    "diagram": null,
+    "source": "Vol1 Ch12 p190"
+  },
+  {
+    "id": "L3-006",
+    "level": 3,
+    "category": "Chat System",
+    "type": "concept",
+    "front": "How does the online presence system work in a chat application?",
+    "back": "When a user logs in, their status is set to online in the presence server and broadcast to friends via a pub/sub model. A heartbeat mechanism maintains the status \u2014 the client sends heartbeats every few seconds. If no heartbeat is received within a threshold (e.g., 30 seconds), the user is marked offline. For large groups, status is fetched on-demand when entering a group rather than broadcasting to all members.",
+    "diagram": null,
+    "source": "Vol1 Ch12 p194"
+  },
+  {
+    "id": "L3-007",
+    "level": 3,
+    "category": "Chat System",
+    "type": "concept",
+    "front": "How does service discovery help with WebSocket connections in a chat system?",
+    "back": "Service discovery (e.g., Apache Zookeeper) recommends the best chat server for a client based on criteria like geographic location, server capacity, and current load. When a client connects, it queries service discovery to get assigned to a specific chat server, then establishes a persistent WebSocket connection. If a chat server goes offline, Zookeeper helps clients reconnect to a new server.",
+    "diagram": null,
+    "source": "Vol1 Ch12 p185"
+  },
+  {
+    "id": "L3-008",
+    "level": 3,
+    "category": "Chat System",
+    "type": "concept",
+    "front": "What is the difference between the message table schema for 1-on-1 chat vs. group chat?",
+    "back": "For 1-on-1 chat, the primary key is message_id, and messages are queried by the pair of users. For group chat, a composite primary key of (channel_id, message_id) is used, where channel_id is the partition key. This ensures all queries in a group chat operate within a single channel/partition, enabling efficient range queries on messages within a group.",
+    "diagram": null,
+    "source": "Vol1 Ch12 p188"
+  },
+  {
+    "id": "L3-009",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "type": "concept",
+    "front": "What is a Trie and why is it the core data structure for search autocomplete?",
+    "back": "A Trie (prefix tree) is a tree-like structure that compactly stores strings. The root represents an empty string, and each node stores a character with up to 26 children. It enables efficient prefix-based retrieval \u2014 given a prefix, you traverse to its node and explore the subtree for completions. Relational DBs with LIKE queries are too slow for real-time autocomplete at scale.",
+    "diagram": null,
+    "source": "Vol1 Ch13 p206"
+  },
+  {
+    "id": "L3-010",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "type": "concept",
+    "front": "What two key optimizations make a basic Trie fast enough for real-time autocomplete?",
+    "back": "1) Limit max prefix length \u2014 users rarely type long queries, so capping at e.g. 50 characters bounds traversal to O(small constant). 2) Cache top-K search queries at each node \u2014 instead of traversing the entire subtree and sorting at query time (O(c log c)), pre-compute and store the top results at each node, reducing lookup to O(1) after reaching the prefix node.",
+    "diagram": null,
+    "source": "Vol1 Ch13 p209"
+  },
+  {
+    "id": "L3-011",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "type": "concept",
+    "front": "How is the Trie updated in a search autocomplete system?",
+    "back": "Two options: 1) Weekly rebuild \u2014 workers create a new Trie from aggregated analytics data and replace the old one, best for large-scale systems. 2) Direct node update \u2014 update individual nodes and propagate changes up to the root, acceptable only for small Tries. Weekly rebuilds are preferred because direct updates are slow and require updating all ancestor nodes.",
+    "diagram": null,
+    "source": "Vol1 Ch13 p215"
+  },
+  {
+    "id": "L3-012",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "type": "concept",
+    "front": "How does the autocomplete system handle filtering of inappropriate suggestions?",
+    "back": "A filter layer sits in front of the Trie cache to remove hateful, violent, sexually explicit, or dangerous suggestions in real-time. This gives flexibility to apply different filter rules without modifying the Trie itself. Unwanted suggestions are also removed physically from the database asynchronously so the correct dataset is used when building the Trie in the next update cycle.",
+    "diagram": null,
+    "source": "Vol1 Ch13 p216"
+  },
+  {
+    "id": "L3-013",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "type": "concept",
+    "front": "How is the Trie scaled when it grows too large for one server?",
+    "back": "Sharding by first character is naive (a-m on server 1, n-z on server 2) but creates uneven distribution since some letters are far more popular. A better approach uses a shard map that distributes based on historical query patterns \u2014 high-frequency prefixes get dedicated shards while low-frequency ones share shards. This ensures even load distribution.",
+    "diagram": null,
+    "source": "Vol1 Ch13 p216"
+  },
+  {
+    "id": "L3-014",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "type": "concept",
+    "front": "What is the role of data sampling in a large-scale autocomplete system?",
+    "back": "Logging every search query requires enormous processing power and storage. Data sampling reduces this cost \u2014 for instance, only 1 out of every N requests is logged. The sampled data is aggregated by analytics services and used to build/update the Trie. This trade-off between precision and efficiency is acceptable because autocomplete needs approximate popularity rankings, not exact counts.",
+    "diagram": null,
+    "source": "Vol1 Ch13 p214"
+  },
+  {
+    "id": "L3-015",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "type": "concept",
+    "front": "What is the high-level architecture of a search autocomplete system?",
+    "back": "Two main flows: 1) Data gathering \u2014 search queries are logged, aggregated by analytics workers, and used to build the Trie weekly. 2) Query serving \u2014 the client sends a prefix to API servers, which query the Trie cache (not the DB directly) and return top-K suggestions. The Trie is stored in memory across distributed servers with a cache layer (e.g., browser caching results for 1 hour) to reduce load.",
+    "diagram": "graph TD\n  A[Search Queries] --> B[Analytics Log]\n  B --> C[Aggregation Workers]\n  C --> D[Trie DB]\n  D --> E[Trie Cache Servers]\n  F[Client Prefix] --> G[API Servers]\n  G --> E\n  E --> G\n  G --> F",
+    "source": "Vol1 Ch13 p211"
+  },
+  {
+    "id": "L3-016",
+    "level": 3,
+    "category": "Search Autocomplete",
+    "type": "concept",
+    "front": "How does browser caching improve autocomplete performance?",
+    "back": "Autocomplete suggestions for the same prefix rarely change in a short period. The response header includes 'cache-control: private, max-age=3600', caching results in the browser for 1 hour. 'Private' ensures results are user-specific and not cached by shared CDN caches. This dramatically reduces backend calls since subsequent keystrokes for the same prefix are served from the browser cache.",
+    "diagram": null,
+    "source": "Vol1 Ch13 p214"
+  },
+  {
+    "id": "L3-017",
+    "level": 3,
+    "category": "YouTube Design",
+    "type": "concept",
+    "front": "What are the two parallel flows when a video is uploaded to YouTube?",
+    "back": "Flow A (video upload): Video goes to original storage, transcoding servers convert it to multiple formats, transcoded videos go to transcoded storage and CDN, completion events are queued. Flow B (metadata update): In parallel, the client sends metadata (filename, size, format) to API servers which update the metadata DB and cache. Both flows run simultaneously to reduce upload latency.",
+    "diagram": null,
+    "source": "Vol1 Ch14 p226"
+  },
+  {
+    "id": "L3-018",
+    "level": 3,
+    "category": "YouTube Design",
+    "type": "concept",
+    "front": "What is video transcoding and why is it necessary in a YouTube-like system?",
+    "back": "Transcoding (video encoding) converts raw video into multiple formats (MPEG-DASH, HLS, etc.) and resolutions to support different devices, bandwidth capabilities, and screen sizes. Raw video is extremely large and incompatible across devices. The system uses a DAG (directed acyclic graph) of tasks for transcoding \u2014 splitting video into GOP (Group of Pictures) chunks enables parallel processing.",
+    "diagram": null,
+    "source": "Vol1 Ch14 p225"
+  },
+  {
+    "id": "L3-019",
+    "level": 3,
+    "category": "YouTube Design",
+    "type": "concept",
+    "front": "How do pre-signed URLs improve video upload security?",
+    "back": "Pre-signed URLs ensure only authorized users upload videos to the correct storage location. The flow: 1) Client requests a pre-signed URL from API servers, 2) API servers generate and return the URL with temporary access permission, 3) Client uploads directly to cloud storage (e.g., S3) using that URL. This removes the need for the API server to proxy the large video upload while maintaining access control.",
+    "diagram": null,
+    "source": "Vol1 Ch14 p238"
+  },
+  {
+    "id": "L3-020",
+    "level": 3,
+    "category": "YouTube Design",
+    "type": "concept",
+    "front": "How does a YouTube-like system optimize CDN costs given the long-tail distribution of video views?",
+    "back": "Research shows video streams follow a long-tail distribution \u2014 a few popular videos get most views while many have few/no viewers. Cost optimizations: 1) Only serve popular videos from CDN, others from origin servers. 2) For less popular content, skip encoding short videos. 3) Some videos are only popular in certain regions \u2014 no need to distribute globally. 4) Build your own CDN for popular content and use ISP partnerships.",
+    "diagram": null,
+    "source": "Vol1 Ch14 p239"
+  },
+  {
+    "id": "L3-021",
+    "level": 3,
+    "category": "YouTube Design",
+    "type": "concept",
+    "front": "What streaming protocols are used for video delivery, and why is downloading not used?",
+    "back": "Streaming delivers video progressively so playback starts immediately without downloading the entire file. Popular protocols: MPEG-DASH (Dynamic Adaptive Streaming over HTTP), Apple HLS (HTTP Live Streaming), Microsoft Smooth Streaming, and Adobe HDS. These protocols support adaptive bitrate \u2014 the client automatically adjusts video quality based on available bandwidth, ensuring smooth playback.",
+    "diagram": null,
+    "source": "Vol1 Ch14 p227"
+  },
+  {
+    "id": "L3-022",
+    "level": 3,
+    "category": "YouTube Design",
+    "type": "concept",
+    "front": "How does a YouTube-like system handle video processing errors and ensure reliability?",
+    "back": "For recoverable errors (e.g., malformed video segment), the system retries the operation a few times. If retries fail, it returns a proper error code. For non-recoverable errors (e.g., unsupported format), the system stops processing and returns an error. A completion queue (message queue) tracks transcoding job status, and completion handler workers update metadata on success or trigger error handling on failure.",
+    "diagram": null,
+    "source": "Vol1 Ch14 p236"
+  },
+  {
+    "id": "L3-023",
+    "level": 3,
+    "category": "YouTube Design",
+    "type": "concept",
+    "front": "What are the three main approaches to protect copyrighted videos in a YouTube-like system?",
+    "back": "1) DRM (Digital Rights Management) systems \u2014 Apple FairPlay, Google Widevine, Microsoft PlayReady control how content is played. 2) AES encryption \u2014 encrypt the video and configure authorization policies; the video decrypts upon playback for authorized users only. 3) Visual watermarking \u2014 overlay identifying information (company logo/name) on the video to deter unauthorized redistribution.",
+    "diagram": null,
+    "source": "Vol1 Ch14 p239"
+  },
+  {
+    "id": "L3-024",
+    "level": 3,
+    "category": "YouTube Design",
+    "type": "concept",
+    "front": "Why is a DAG (directed acyclic graph) model used for video transcoding tasks?",
+    "back": "Different video types need different processing pipelines \u2014 some need watermarks, some need thumbnails, some need specific encoding. A DAG model defines tasks as nodes with dependencies as edges, enabling flexible, parallel processing. For example, video splits into audio/video tracks, video encodes in multiple resolutions, then audio merges back. This allows running independent tasks in parallel while respecting dependencies.",
+    "diagram": null,
+    "source": "Vol1 Ch14 p230"
+  },
+  {
+    "id": "L3-025",
+    "level": 3,
+    "category": "Google Drive",
+    "type": "concept",
+    "front": "What is the role of block servers in a Google Drive-like system?",
+    "back": "Block servers split files into blocks (e.g., Dropbox uses 4MB max block size), each with a unique hash value. Only modified blocks are synced rather than entire files \u2014 this is called delta sync. Blocks are compressed (e.g., gzip/bzip2) before upload to reduce storage and bandwidth. Each block is treated as an independent object stored in cloud storage (S3), and a file is reconstructed by joining blocks in order.",
+    "diagram": null,
+    "source": "Vol1 Ch15 p253"
+  },
+  {
+    "id": "L3-026",
+    "level": 3,
+    "category": "Google Drive",
+    "type": "concept",
+    "front": "How does a Google Drive-like system handle sync conflicts when multiple users edit the same file?",
+    "back": "When two users edit the same file simultaneously, the first processed update wins. The second user gets a sync conflict notification showing both their local copy and the latest server version. The user then chooses to merge both versions or override one with the other. The system uses versioning so no data is lost \u2014 all versions are preserved and the conflict resolution is left to the user.",
+    "diagram": null,
+    "source": "Vol1 Ch15 p252"
+  },
+  {
+    "id": "L3-027",
+    "level": 3,
+    "category": "Google Drive",
+    "type": "concept",
+    "front": "What is the notification service's role in a file storage system, and what are the two approaches?",
+    "back": "The notification service informs clients when files are added, edited, or removed elsewhere so they can pull latest changes. Two approaches: 1) Long polling \u2014 client holds open a connection until server has new data or timeout occurs; used by Dropbox. 2) WebSocket \u2014 persistent bi-directional connection, good for real-time. Long polling is preferred here since communication is mostly server-to-client and not bi-directional.",
+    "diagram": null,
+    "source": "Vol1 Ch15 p253"
+  },
+  {
+    "id": "L3-028",
+    "level": 3,
+    "category": "Google Drive",
+    "type": "concept",
+    "front": "How does delta sync save bandwidth in a cloud file storage system?",
+    "back": "Instead of sending the entire file on every change, the system uses a sync algorithm (like rsync) to detect which blocks have been modified. Only changed blocks are transferred to cloud storage. For example, if a 1GB file has a small edit, only the modified 4MB block is uploaded. Combined with compression, this dramatically reduces network traffic and speeds up synchronization.",
+    "diagram": null,
+    "source": "Vol1 Ch15 p255"
+  },
+  {
+    "id": "L3-029",
+    "level": 3,
+    "category": "Google Drive",
+    "type": "concept",
+    "front": "What metadata does a Google Drive-like system store, and where?",
+    "back": "Metadata includes: user data (username, email, profile), file metadata (filename, size, directory, version history), and block metadata (block hash, file-to-block mapping, block order). This is stored in a relational metadata database (separate from the actual file blocks in cloud storage). A metadata cache layer provides fast retrieval. The separation of metadata from file data is a key design principle.",
+    "diagram": null,
+    "source": "Vol1 Ch15 p253"
+  },
+  {
+    "id": "L3-030",
+    "level": 3,
+    "category": "Google Drive",
+    "type": "concept",
+    "front": "How does a Google Drive-like system ensure reliability and durability of stored files?",
+    "back": "Multiple strategies: 1) Data replication \u2014 files replicated across multiple regions/availability zones. 2) Versioning \u2014 all file versions are kept so users can restore previous versions. 3) Cold storage \u2014 inactive data moves to cheaper, durable cold storage (e.g., Amazon Glacier). 4) The offline backup queue stores pending changes for clients that are offline, ensuring eventual consistency when they reconnect.",
+    "diagram": null,
+    "source": "Vol1 Ch15 p254"
+  },
+  {
+    "id": "L3-031",
+    "level": 3,
+    "category": "Google Drive",
+    "type": "concept",
+    "front": "What is the file upload flow in a Google Drive-like system?",
+    "back": "1) Client splits file into blocks and computes hash for each. 2) Client sends metadata to API servers, which store it in metadata DB. 3) Blocks are uploaded to block servers. 4) Block servers compress and encrypt each block, then store in cloud storage (S3). 5) After upload completes, the notification service informs other connected clients about the new/updated file so they can sync.",
+    "diagram": "graph TD\n  A[Client] -->|1. Split into blocks| B[Block Server]\n  A -->|2. Send metadata| C[API Server]\n  C --> D[Metadata DB]\n  B -->|3. Compress and store| E[Cloud Storage]\n  C -->|4. Notify| F[Notification Service]\n  F --> G[Other Clients]",
+    "source": "Vol1 Ch15 p256"
+  },
+  {
+    "id": "L3-032",
+    "level": 3,
+    "category": "Google Drive",
+    "type": "concept",
+    "front": "Why does a Google Drive-like system use cloud storage (S3) instead of a traditional database for file blocks?",
+    "back": "Cloud object storage like S3 provides virtually unlimited storage capacity, 11 nines (99.999999999%) of durability, built-in replication across regions, and cost-effective tiered storage (hot/warm/cold). Traditional databases are not designed for storing large binary objects at petabyte scale. S3 also handles concurrent reads efficiently via CDN integration.",
+    "diagram": null,
+    "source": "Vol1 Ch15 p253"
+  },
+  {
+    "id": "L3-033",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "concept",
+    "front": "What is a Geohash and how does it work for proximity search?",
+    "back": "Geohash converts a 2D latitude/longitude into a 1D string by recursively dividing the world into quadrants. Each additional character increases precision \u2014 e.g., 4 characters cover ~39km x 20km, 6 characters cover ~1.2km x 0.6km. Businesses sharing the same Geohash prefix are geographically close. This enables efficient proximity queries using simple string prefix matching in databases.",
+    "diagram": null,
+    "source": "Vol2 Ch1 p8"
+  },
+  {
+    "id": "L3-034",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "concept",
+    "front": "What is a Quadtree and how is it used for proximity service?",
+    "back": "A Quadtree is an in-memory tree where each node represents a geographic region and has four children (NW, NE, SW, SE). The root represents the entire world. Nodes are recursively subdivided until each leaf contains fewer than a threshold number of businesses (e.g., 100). Dense areas get smaller grids; sparse areas keep larger ones. Searching involves finding the leaf containing the query point, then checking neighbors.",
+    "diagram": null,
+    "source": "Vol2 Ch1 p14"
+  },
+  {
+    "id": "L3-035",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "concept",
+    "front": "What are the trade-offs between Geohash and Quadtree for proximity search?",
+    "back": "Geohash: easy to implement, works well with databases, supports dynamic precision by changing prefix length, but can have boundary issues where nearby places fall in different geohash cells. Quadtree: adapts grid size to business density automatically, efficient for in-memory search, but harder to implement, requires building the entire tree in memory, and updating is complex. Both work well; Geohash is simpler for most cases.",
+    "diagram": null,
+    "source": "Vol2 Ch1 p16"
+  },
+  {
+    "id": "L3-036",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "concept",
+    "front": "How does the proximity service handle the Geohash boundary problem?",
+    "back": "Two businesses on opposite sides of a Geohash grid boundary can be very close but have completely different Geohash prefixes. The solution: query not just the target Geohash cell but also all 8 neighboring cells. This ensures nearby businesses straddling a boundary are included in results. The 9 cells are queried in parallel and results are merged and filtered by actual distance.",
+    "diagram": null,
+    "source": "Vol2 Ch1 p12"
+  },
+  {
+    "id": "L3-037",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "concept",
+    "front": "What is the high-level architecture of a proximity service like Yelp?",
+    "back": "Two main services: 1) Location-Based Service (LBS) \u2014 read-heavy, stateless, handles proximity queries using Geohash/Quadtree, easily scaled horizontally. 2) Business Service \u2014 handles CRUD operations for business data, write-heavy operations propagated to LBS cache. A database stores business data with Geohash index. Redis cache stores Geohash-to-business mappings for fast lookups.",
+    "diagram": "graph LR\n  Client --> LB[Load Balancer]\n  LB --> LBS[Location Service]\n  LB --> BS[Business Service]\n  LBS --> Cache[Redis Cache]\n  BS --> DB[(Business DB)]\n  DB -->|Sync| Cache",
+    "source": "Vol2 Ch1 p5"
+  },
+  {
+    "id": "L3-038",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "concept",
+    "front": "Why does the proximity service use a read-heavy architecture, and how is it scaled?",
+    "back": "Users searching for nearby businesses far outnumber business owners updating data, making the system extremely read-heavy. Scaling strategies: 1) LBS servers are stateless \u2014 add more replicas behind a load balancer. 2) Database read replicas handle read traffic. 3) Redis caches Geohash-to-business mappings. 4) Business data changes are infrequent so eventual consistency is acceptable for the cache.",
+    "diagram": null,
+    "source": "Vol2 Ch1 p6"
+  },
+  {
+    "id": "L3-039",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "concept",
+    "front": "How does a Quadtree handle server startup and operational concerns at scale?",
+    "back": "Building a Quadtree with 200M businesses takes minutes at startup, during which the server cannot serve traffic. Mitigation: roll out new releases incrementally to a small subset of servers at a time, or use blue/green deployment. Updating the Quadtree as businesses change can be done via nightly rebuilds (simpler, acceptable staleness) or on-the-fly updates (complex, requires locking/thread-safety).",
+    "diagram": null,
+    "source": "Vol2 Ch1 p19"
+  },
+  {
+    "id": "L3-040",
+    "level": 3,
+    "category": "Proximity Service",
+    "type": "concept",
+    "front": "How does the proximity service expand the search radius if not enough results are found?",
+    "back": "Start with the Geohash precision matching the requested radius. If insufficient businesses are found, remove the last character of the Geohash to double the search area (lower precision = larger region). Repeat until enough results are found or maximum radius is reached. This is simple with Geohash \u2014 just shorten the prefix string. With Quadtree, traverse to the parent node to expand the search region.",
+    "diagram": null,
+    "source": "Vol2 Ch1 p10"
+  },
+  {
+    "id": "L3-041",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "concept",
+    "front": "How does the Nearby Friends system use WebSocket and a pub/sub model for real-time location updates?",
+    "back": "Each user maintains a WebSocket connection to the server. When a user's location updates, it is sent to a pub/sub channel (Redis Pub/Sub) specific to that user. Each of the user's online friends subscribes to that channel. When a location update is published, all subscribing friends receive it in real-time, compute the distance, and display friends within the 5-mile threshold.",
+    "diagram": "graph LR\n  A[User A Location] -->|WebSocket| WS[WebSocket Server]\n  WS --> PS[Redis Pub/Sub]\n  PS -->|Channel: user_A| F1[Friend 1]\n  PS -->|Channel: user_A| F2[Friend 2]\n  PS -->|Channel: user_A| F3[Friend 3]",
+    "source": "Vol2 Ch2 p40"
+  },
+  {
+    "id": "L3-042",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "concept",
+    "front": "Why is Redis Pub/Sub chosen for the Nearby Friends feature, and what are its memory characteristics?",
+    "back": "Redis Pub/Sub is chosen because creating channels is very lightweight \u2014 a new channel is created when someone subscribes, and if no subscribers exist, published messages are simply dropped (minimal load). Each channel uses a small hash table and linked list. For 100M daily active users with ~400 friends each, the memory requirement for channels is manageable on a Redis cluster. Messages are not persisted \u2014 they are fire-and-forget.",
+    "diagram": null,
+    "source": "Vol2 Ch2 p44"
+  },
+  {
+    "id": "L3-043",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "concept",
+    "front": "How does the Nearby Friends system handle the difference from a static proximity service?",
+    "back": "Unlike proximity services where business locations are static, Nearby Friends deals with constantly moving users updating every ~30 seconds. This means: 1) No spatial indexing (like Geohash) \u2014 locations change too frequently to reindex. 2) Use a location cache (Redis) with TTL instead of a database. 3) Push-based model via Pub/Sub rather than pull-based queries. 4) If a user stops sending updates, TTL expires and they disappear from the nearby list.",
+    "diagram": null,
+    "source": "Vol2 Ch2 p35"
+  },
+  {
+    "id": "L3-044",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "concept",
+    "front": "How is the location cache designed for the Nearby Friends system?",
+    "back": "Redis caches the most recent location of all active users with a TTL on each key, renewed on every update. With 10M active users and ~100 bytes per location, a single Redis server suffices for memory. However, at ~334K updates/second (10M users / 30s interval), sharding by user_id across multiple Redis servers is necessary. Standby replicas per shard provide high availability.",
+    "diagram": null,
+    "source": "Vol2 Ch2 p47"
+  },
+  {
+    "id": "L3-045",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "concept",
+    "front": "How does the Nearby Friends system scale the Redis Pub/Sub layer?",
+    "back": "A single Redis Pub/Sub server is insufficient for 100M+ users. The solution uses a distributed Redis Pub/Sub cluster with a service discovery component (like Zookeeper) that maintains a consistent hash ring mapping user channels to Redis servers. When a WebSocket server receives a location update, it looks up which Redis server hosts the user's channel and publishes there. Subscribers connect to the same server.",
+    "diagram": null,
+    "source": "Vol2 Ch2 p49"
+  },
+  {
+    "id": "L3-046",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "concept",
+    "front": "What happens when a user adds a new friend while the Nearby Friends feature is active?",
+    "back": "When user A adds user B as a friend: 1) A subscribes to B's Pub/Sub channel and B subscribes to A's channel. 2) A's latest cached location is sent to B, and B's latest location is sent to A. 3) Each computes whether the other is within the 5-mile radius. 4) If within range, the friend appears on the nearby list immediately. The subscription persists as long as both users have the feature active.",
+    "diagram": null,
+    "source": "Vol2 Ch2 p43"
+  },
+  {
+    "id": "L3-047",
+    "level": 3,
+    "category": "Nearby Friends",
+    "type": "concept",
+    "front": "How does the Nearby Friends system store location history, and why?",
+    "back": "Location history is stored in a location history database (separate from the real-time location cache). A Kafka-like message queue buffers location updates between WebSocket servers and the database to handle write spikes. Location history is valuable for machine learning (movement patterns, place recommendations) and compliance. The history DB is append-only and optimized for write-heavy time-series workloads.",
+    "diagram": null,
+    "source": "Vol2 Ch2 p45"
+  },
+  {
+    "id": "L3-048",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "type": "concept",
+    "front": "What is a time-series database and why is it ideal for metrics monitoring?",
+    "back": "A time-series database (TSDB) is optimized for storing and querying timestamped data points. Each metric is a time series identified by a name and labels (e.g., CPU.load host=web01 region=us-west). TSDBs are ideal because metrics monitoring is write-heavy (millions of data points/day), queries are time-range based, and data naturally ages out. Examples: InfluxDB, Prometheus, OpenTSDB.",
+    "diagram": null,
+    "source": "Vol2 Ch5 p135"
+  },
+  {
+    "id": "L3-049",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "type": "concept",
+    "front": "What is the data model for metrics in a monitoring system?",
+    "back": "Every time series consists of: a metric name (string, e.g., 'CPU.load'), a set of tags/labels (key-value pairs like host=web01, region=us-west), and an array of (value, timestamp) pairs. The line protocol format is: 'metric_name tag1=v1,tag2=v2 timestamp value'. Tags enable filtering and aggregation \u2014 for example, average CPU load across all servers in a region over the last 10 minutes.",
+    "diagram": null,
+    "source": "Vol2 Ch5 p134"
+  },
+  {
+    "id": "L3-050",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "type": "concept",
+    "front": "How does data aggregation work in a metrics monitoring system, and what are the trade-offs?",
+    "back": "Two approaches: 1) Write-side aggregation \u2014 aggregate data before writing to the DB (e.g., compute per-minute averages from raw per-second data), reducing storage but losing precision. 2) Query-side aggregation \u2014 store raw data, aggregate at query time, preserving full flexibility but slower queries on large datasets. Most systems use a hybrid: keep raw data briefly, then downsample to lower resolutions for older data.",
+    "diagram": null,
+    "source": "Vol2 Ch5 p143"
+  },
+  {
+    "id": "L3-051",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "type": "concept",
+    "front": "What is the high-level architecture of a metrics monitoring and alerting system?",
+    "back": "Components: 1) Metrics sources push data to a metrics collector. 2) Kafka acts as a buffer between collectors and consumers. 3) Consumers write to the time-series DB. 4) A query service with cache layer serves the visualization system (Grafana-like dashboards). 5) An alerting system evaluates rules against metrics and sends notifications (email, PagerDuty, webhook) when thresholds are breached.",
+    "diagram": "graph LR\n  S[Metrics Sources] --> C[Collectors]\n  C --> K[Kafka]\n  K --> W[Consumers]\n  W --> TSDB[(Time Series DB)]\n  TSDB --> QS[Query Service]\n  QS --> V[Visualization]\n  TSDB --> A[Alert Manager]\n  A --> N[Notifications]",
+    "source": "Vol2 Ch5 p138"
+  },
+  {
+    "id": "L3-052",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "type": "concept",
+    "front": "Why is Kafka used as the ingestion pipeline in a metrics monitoring system?",
+    "back": "Kafka decouples data producers (metrics collectors) from consumers (time-series DB writers), providing: 1) Buffer against traffic spikes \u2014 if the DB is slow, Kafka absorbs the backlog. 2) Durability \u2014 data is not lost if consumers fail. 3) Scalability \u2014 partitions enable parallel consumption. 4) Multiple consumers \u2014 the same data can feed real-time alerting AND the time-series DB simultaneously without duplication.",
+    "diagram": null,
+    "source": "Vol2 Ch5 p140"
+  },
+  {
+    "id": "L3-053",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "type": "concept",
+    "front": "How does the alerting system work in a metrics monitoring platform?",
+    "back": "Alert rules are stored as config files in a cache. An alert manager service reads metric data from the time-series DB and evaluates rules (e.g., CPU > 90% for 5 minutes). When a rule triggers, an alert event is sent to Kafka, then dispatched to various channels (email, PagerDuty, HTTP webhooks). The system supports alert deduplication, grouping, and silencing to prevent alert fatigue.",
+    "diagram": null,
+    "source": "Vol2 Ch5 p149"
+  },
+  {
+    "id": "L3-054",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "type": "concept",
+    "front": "How does downsampling reduce storage costs in a metrics monitoring system?",
+    "back": "Downsampling reduces data resolution over time \u2014 for example, keep per-second data for 7 days, per-minute data for 30 days, per-hour data for 1 year. Older data is aggregated (averaged, max, min) into coarser granularity. This dramatically reduces storage while preserving trends for long-term analysis. A retention policy automatically ages out and downsamples data on a schedule.",
+    "diagram": null,
+    "source": "Vol2 Ch5 p147"
+  },
+  {
+    "id": "L3-055",
+    "level": 3,
+    "category": "Metrics Monitoring",
+    "type": "concept",
+    "front": "Should a metrics monitoring system use push or pull for collecting metrics?",
+    "back": "Pull model (like Prometheus): the collector scrapes endpoints at intervals. Simple, easy to debug, but requires service discovery. Push model (like Graphite): agents on each server push metrics to the collector. Better for short-lived jobs and event-driven metrics. At scale, most systems use push with a Kafka buffer. The choice depends on infrastructure \u2014 pull works well in Kubernetes, push for traditional VMs.",
+    "diagram": null,
+    "source": "Vol2 Ch5 p139"
+  },
+  {
+    "id": "L3-056",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "type": "concept",
+    "front": "Why is a relational database chosen over NoSQL for a hotel reservation system?",
+    "back": "Three reasons: 1) Read-heavy workflow \u2014 website visitors far outnumber actual bookings, and RDBMS handles reads well. 2) ACID guarantees are critical \u2014 without atomicity and isolation, double bookings, negative balances, and double charges can occur. 3) Data is well-structured \u2014 relationships between hotels, rooms, room types, and reservations are stable and naturally modeled relationally.",
+    "diagram": null,
+    "source": "Vol2 Ch7 p199"
+  },
+  {
+    "id": "L3-057",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "type": "concept",
+    "front": "What are the three approaches to prevent double-booking in a hotel reservation system?",
+    "back": "1) Pessimistic locking \u2014 lock the database row during the transaction; prevents concurrent access but reduces throughput. 2) Optimistic locking \u2014 use a version number; check version before commit; if changed, retry. Good for low contention. 3) Database constraints \u2014 add CHECK constraint (total_inventory - total_reserved >= 0); the DB rejects invalid transactions automatically. Optimistic locking is preferred for hotel systems due to moderate contention.",
+    "diagram": null,
+    "source": "Vol2 Ch7 p210"
+  },
+  {
+    "id": "L3-058",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "type": "concept",
+    "front": "Why is the reservation data model based on room type inventory rather than individual rooms?",
+    "back": "A room_type_inventory table tracks (hotel_id, room_type_id, date, total_inventory, total_reserved) instead of marking individual rooms. This is because guests typically book a room type (e.g., 'deluxe king'), not a specific room number. Room assignment happens at check-in. This simplifies the reservation logic to a simple counter decrement rather than searching for specific available room IDs.",
+    "diagram": null,
+    "source": "Vol2 Ch7 p202"
+  },
+  {
+    "id": "L3-059",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "type": "concept",
+    "front": "How does idempotency work in a hotel reservation system to prevent duplicate bookings?",
+    "back": "Each reservation request includes a unique idempotency key (e.g., reservation_id generated client-side). Before processing, the system checks if this key exists in the database. If it does, return the existing reservation result instead of creating a new one. This handles network retries, double-clicks, and client-side retries safely. The idempotency key is stored as a unique constraint in the database.",
+    "diagram": null,
+    "source": "Vol2 Ch7 p216"
+  },
+  {
+    "id": "L3-060",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "type": "concept",
+    "front": "How does a hotel reservation system handle traffic surges during big events?",
+    "back": "Strategies: 1) Cache hotel/room data aggressively since it rarely changes. 2) Use a CDN for static content (hotel images, descriptions). 3) Rate limiting prevents abuse. 4) Database connection pooling handles concurrent requests. 5) The reservation service is stateless and horizontally scalable. 6) A queue-based approach can buffer reservation requests during extreme spikes, processing them sequentially per hotel/room-type.",
+    "diagram": null,
+    "source": "Vol2 Ch7 p206"
+  },
+  {
+    "id": "L3-061",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "type": "concept",
+    "front": "What is the high-level architecture of a hotel reservation system?",
+    "back": "Components: 1) Hotel/Room Service \u2014 manages hotel and room type data (read-heavy, cached). 2) Rate Service \u2014 manages room pricing by date. 3) Reservation Service \u2014 handles booking logic with concurrency control. 4) Payment Service \u2014 processes payments after reservation confirmation. An API gateway routes requests, handles auth, and rate-limits. The reservation DB uses RDBMS with optimistic locking.",
+    "diagram": null,
+    "source": "Vol2 Ch7 p198"
+  },
+  {
+    "id": "L3-062",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "type": "concept",
+    "front": "How does caching work in a hotel reservation system, and what are the consistency trade-offs?",
+    "back": "Hotel metadata and room info are heavily cached (Redis) since they rarely change. Inventory data uses a cache-aside pattern \u2014 check cache first, fall back to DB. The trade-off: cached inventory can be slightly stale, showing rooms as available when they are booked. This is acceptable because the actual reservation check uses the DB with concurrency control; a stale cache just means an occasional failed booking attempt.",
+    "diagram": null,
+    "source": "Vol2 Ch7 p218"
+  },
+  {
+    "id": "L3-063",
+    "level": 3,
+    "category": "Hotel Reservation",
+    "type": "concept",
+    "front": "How does a microservices approach benefit the hotel reservation system's scalability?",
+    "back": "Splitting into independent services (Hotel, Rate, Reservation, Payment) allows each to scale independently based on its load profile. The Hotel/Rate services handle high read traffic and can scale out with read replicas and caching. The Reservation service handles lower but critical write traffic with strong consistency. Services communicate via APIs, and each can use the database technology best suited to its workload.",
+    "diagram": null,
+    "source": "Vol2 Ch7 p198"
+  },
+  {
+    "id": "L3-064",
+    "level": 3,
+    "category": "Email Service",
+    "type": "concept",
+    "front": "What are the main email protocols (SMTP, POP, IMAP) and when is each used?",
+    "back": "SMTP (Simple Mail Transfer Protocol) \u2014 used for sending emails between mail servers and from client to server. POP (Post Office Protocol) \u2014 downloads emails to the client and typically deletes from server; simple but no sync across devices. IMAP (Internet Message Access Protocol) \u2014 keeps emails on server, supports folders and sync across multiple devices. Modern webmail uses RESTful APIs over HTTP instead.",
+    "diagram": null,
+    "source": "Vol2 Ch8 p227"
+  },
+  {
+    "id": "L3-065",
+    "level": 3,
+    "category": "Email Service",
+    "type": "concept",
+    "front": "How does email sending work in a distributed email service?",
+    "back": "1) User composes email via webmail API. 2) Email goes to outgoing queue (Kafka) for reliability. 3) SMTP outgoing workers pull from queue and deliver to recipient's mail server. 4) If delivery fails, the message is retried with exponential backoff. 5) If the recipient uses the same service, the email is routed internally without SMTP. 6) Sent emails are stored in the sender's 'Sent' folder asynchronously.",
+    "diagram": null,
+    "source": "Vol2 Ch8 p232"
+  },
+  {
+    "id": "L3-066",
+    "level": 3,
+    "category": "Email Service",
+    "type": "concept",
+    "front": "How does email receiving work in a distributed email system?",
+    "back": "1) External SMTP server connects to our incoming SMTP servers. 2) The incoming email is validated (spam check, virus scan, DKIM/SPF verification). 3) If valid, the email is placed in an incoming queue (Kafka). 4) Mail processing workers consume from the queue, apply rules/filters, and store the email in the recipient's mailbox. 5) If the user is online, a real-time notification is pushed via WebSocket.",
+    "diagram": null,
+    "source": "Vol2 Ch8 p233"
+  },
+  {
+    "id": "L3-067",
+    "level": 3,
+    "category": "Email Service",
+    "type": "concept",
+    "front": "Why do modern email systems move away from traditional file-based storage to distributed databases?",
+    "back": "Early email systems (like Maildir) stored emails as files in local directories. This worked for small user bases but fails at scale \u2014 disk I/O becomes a bottleneck with billions of emails, file directories do not satisfy high availability requirements, and servers can fail. Modern systems use distributed databases (like Cassandra or custom storage) that provide replication, fault tolerance, and efficient querying across petabytes of data.",
+    "diagram": null,
+    "source": "Vol2 Ch8 p229"
+  },
+  {
+    "id": "L3-068",
+    "level": 3,
+    "category": "Email Service",
+    "type": "concept",
+    "front": "How does email search differ from web search, and what technology supports it?",
+    "back": "Email search is scoped to one user's mailbox (not the entire internet), must be near real-time (new emails searchable immediately), and sorts by attributes (date, sender, has-attachment) rather than relevance ranking. Elasticsearch is commonly used \u2014 documents are partitioned by user_id. Reindexing on send/receive/delete is done asynchronously via Kafka.",
+    "diagram": null,
+    "source": "Vol2 Ch8 p243"
+  },
+  {
+    "id": "L3-069",
+    "level": 3,
+    "category": "Email Service",
+    "type": "concept",
+    "front": "How does a distributed email service ensure deliverability and handle spam?",
+    "back": "Deliverability measures: 1) Dedicated IPs with good sender reputation. 2) SPF, DKIM, and DMARC DNS records for email authentication. 3) Gradual IP warm-up for new sending IPs. For incoming spam: multi-layer filtering including IP reputation checks, content analysis, machine learning classifiers, and user-reported spam training. Emails flagged as spam go to the Junk folder.",
+    "diagram": null,
+    "source": "Vol2 Ch8 p245"
+  },
+  {
+    "id": "L3-070",
+    "level": 3,
+    "category": "Email Service",
+    "type": "concept",
+    "front": "What storage and data model is used for email at scale?",
+    "back": "Emails are stored as blob data (headers + body + attachments). The data model uses: folders table (user_id, folder_id, folder_name), emails table (user_id, folder_id, email_id with timestamp, subject, body, is_read), and attachments table. user_id is the partition key for even distribution. Cassandra or similar wide-column stores handle the write-heavy append pattern well. Attachments may be stored separately in S3.",
+    "diagram": null,
+    "source": "Vol2 Ch8 p236"
+  },
+  {
+    "id": "L3-071",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "type": "concept",
+    "front": "Why is Redis Sorted Set the ideal data structure for a real-time gaming leaderboard?",
+    "back": "Redis Sorted Sets store members with scores and maintain them in sorted order automatically. Key operations run in O(log N): ZADD to add/update scores, ZREVRANK to get a user's rank, ZREVRANGE to get top-K players. With 25M DAU, a single Redis instance handles the leaderboard in-memory. SQL alternatives require full table scans for ranking (O(N)), which is unacceptable for real-time leaderboards.",
+    "diagram": null,
+    "source": "Vol2 Ch10 p297"
+  },
+  {
+    "id": "L3-072",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "type": "concept",
+    "front": "What Redis commands power a gaming leaderboard, and what is each one's purpose?",
+    "back": "ZADD \u2014 adds a player with a score (or updates existing). ZINCRBY \u2014 increments a player's score atomically. ZREVRANK \u2014 returns the 0-based rank of a player (descending order), O(log N). ZREVRANGE \u2014 returns players ranked between positions X and Y with scores, for displaying top-K or a page. ZRANGEBYSCORE \u2014 returns players within a score range. All operations are O(log N).",
+    "diagram": null,
+    "source": "Vol2 Ch10 p299"
+  },
+  {
+    "id": "L3-073",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "type": "concept",
+    "front": "Why doesn't a relational database work well for a real-time gaming leaderboard?",
+    "back": "To get a player's rank in SQL, you must sort all rows by score (ORDER BY score DESC), which is a full table scan \u2014 O(N) for millions of players, taking 10+ seconds. Adding an index helps for top-K but not for finding an arbitrary player's rank. The data changes constantly as scores update, making caching infeasible. SQL databases are not designed for continuously changing ranked data at scale.",
+    "diagram": null,
+    "source": "Vol2 Ch10 p296"
+  },
+  {
+    "id": "L3-074",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "type": "concept",
+    "front": "How is a gaming leaderboard scaled when data exceeds a single Redis instance?",
+    "back": "Two approaches: 1) Fixed partitions \u2014 divide score ranges across shards (e.g., shard 1: scores 0-100, shard 2: 101-200). Simple but can create hot partitions. 2) Hash-based sharding \u2014 distribute by user_id across N shards. To get global top-K, query each shard for its top-K and merge results. To get a user's rank, count users with higher scores across all shards. A secondary relational DB stores user profiles.",
+    "diagram": null,
+    "source": "Vol2 Ch10 p306"
+  },
+  {
+    "id": "L3-075",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "type": "concept",
+    "front": "How does a DynamoDB-based alternative work for a gaming leaderboard, and what is write sharding?",
+    "back": "Use a DynamoDB table with game_name#{year-month} as partition key and score as sort key. Problem: all current-month data lands on one partition (hot partition). Solution: write sharding \u2014 append a partition number (user_id % N) to the partition key to spread data across N partitions. Trade-off: reads must query all N partitions and merge results, adding read complexity proportional to the shard count.",
+    "diagram": null,
+    "source": "Vol2 Ch10 p303"
+  },
+  {
+    "id": "L3-076",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "type": "concept",
+    "front": "How does the leaderboard system show a user's relative position (nearby players)?",
+    "back": "After getting the user's rank with ZREVRANK, use ZREVRANGE to fetch players N positions above and below. For example, if a user is ranked #500, fetch ranks #495-#505 to show their neighborhood. This gives context (am I close to the next tier?) and is two O(log N) Redis commands. The same pattern works for showing a friends-only leaderboard by filtering results to the user's friend list.",
+    "diagram": null,
+    "source": "Vol2 Ch10 p301"
+  },
+  {
+    "id": "L3-077",
+    "level": 3,
+    "category": "Gaming Leaderboard",
+    "type": "concept",
+    "front": "What is the system architecture for a real-time gaming leaderboard?",
+    "back": "Components: 1) Game service \u2014 validates game results and sends score updates. 2) Leaderboard service (API layer) \u2014 exposes endpoints for updating scores, fetching top-K, and getting user rank. 3) Redis Sorted Set \u2014 the core storage for real-time ranked data. 4) MySQL/relational DB \u2014 stores user profiles and game metadata. Redis is the source of truth for scores; the relational DB complements it with rich user data.",
+    "diagram": null,
+    "source": "Vol2 Ch10 p298"
+  },
+  {
+    "id": "L3-078",
+    "level": 3,
+    "category": "Payment System",
+    "type": "concept",
+    "front": "What is the pay-in and pay-out flow in a payment system?",
+    "back": "Pay-in flow: buyer clicks 'pay', payment service creates a payment order, calls the Payment Service Provider (PSP) with a token, PSP charges the buyer's card and returns success/failure, payment service updates order status and notifies the wallet service to credit the seller. Pay-out flow: seller requests withdrawal, payment service calls PSP to transfer from platform wallet to seller's bank account.",
+    "diagram": null,
+    "source": "Vol2 Ch11 p319"
+  },
+  {
+    "id": "L3-079",
+    "level": 3,
+    "category": "Payment System",
+    "type": "concept",
+    "front": "What is idempotency in payment systems and why is it critical?",
+    "back": "Idempotency ensures that performing the same operation multiple times produces the same result. In payments, network failures can cause retries \u2014 without idempotency, a user could be charged twice. Implementation: each request carries a unique idempotency key (e.g., order_id). The PSP checks if this key was seen before \u2014 if yes, return the previous result. The database uses the idempotency key as a unique constraint.",
+    "diagram": null,
+    "source": "Vol2 Ch11 p333"
+  },
+  {
+    "id": "L3-080",
+    "level": 3,
+    "category": "Payment System",
+    "type": "concept",
+    "front": "What is the double-entry ledger system and why is it fundamental to payments?",
+    "back": "Double-entry bookkeeping records every transaction in two accounts \u2014 one debited, one credited, with the same amount. For example: buyer account debited $1, seller account credited $1. The sum of all entries must always be 0. This provides end-to-end traceability, ensures no money is created or lost, and is the foundation for accurate financial reconciliation.",
+    "diagram": null,
+    "source": "Vol2 Ch11 p321"
+  },
+  {
+    "id": "L3-081",
+    "level": 3,
+    "category": "Payment System",
+    "type": "concept",
+    "front": "Why do most companies use hosted payment pages instead of handling credit card data directly?",
+    "back": "Storing credit card information requires compliance with PCI DSS (Payment Card Industry Data Security Standard), which is complex and expensive. Instead, companies use hosted payment pages provided by PSPs (like Stripe or PayPal) \u2014 an iframe or widget on the website that captures card details. The card data never touches the company's servers, dramatically reducing compliance burden and security risk.",
+    "diagram": null,
+    "source": "Vol2 Ch11 p322"
+  },
+  {
+    "id": "L3-082",
+    "level": 3,
+    "category": "Payment System",
+    "type": "concept",
+    "front": "How does a payment system handle consistency across multiple services?",
+    "back": "A payment touches multiple services (payment, wallet, ledger). Distributed transactions are avoided due to complexity. Instead: 1) Each service operation is idempotent. 2) A payment event table tracks the state machine (EXECUTING to SUCCESS/FAILED to wallet_updated to ledger_updated). 3) A scheduled job monitors in-flight payments and alerts on timeouts. 4) Eventual consistency is achieved through retry mechanisms and reconciliation.",
+    "diagram": null,
+    "source": "Vol2 Ch11 p320"
+  },
+  {
+    "id": "L3-083",
+    "level": 3,
+    "category": "Payment System",
+    "type": "concept",
+    "front": "How does the PSP integration work using nonce and token in a payment system?",
+    "back": "1) The payment service generates a nonce (unique identifier for the payment order) and sends it to the PSP. 2) The PSP returns a token mapped to that nonce. 3) The token is used for the actual charge. If a retry occurs, the same nonce produces the same token, which the PSP recognizes as a duplicate and returns the previous result. This nonce-token mechanism is the PSP-side idempotency guarantee.",
+    "diagram": null,
+    "source": "Vol2 Ch11 p327"
+  },
+  {
+    "id": "L3-084",
+    "level": 3,
+    "category": "Payment System",
+    "type": "concept",
+    "front": "What is reconciliation in a payment system and why is it necessary?",
+    "back": "Reconciliation compares internal payment records with external PSP settlement files and bank statements to detect discrepancies. It runs periodically (daily/hourly) and catches: missed callbacks, double charges, partial failures, and accounting errors. Any mismatch triggers investigation. This is the last line of defense ensuring financial accuracy and is legally required for financial services.",
+    "diagram": null,
+    "source": "Vol2 Ch11 p336"
+  },
+  {
+    "id": "L3-085",
+    "level": 3,
+    "category": "Payment System",
+    "type": "concept",
+    "front": "What is the payment system's state machine and why use it?",
+    "back": "Payment orders follow a state machine: NOT_STARTED, EXECUTING, SUCCESS/FAILED. Each state transition is recorded in a payment event table with timestamps. Benefits: 1) Clear audit trail. 2) Enables retry logic from the last known state. 3) Scheduled monitoring jobs detect stuck payments. 4) The state machine prevents invalid transitions (e.g., cannot go from SUCCESS back to EXECUTING).",
+    "diagram": "stateDiagram-v2\n  [*] --> NOT_STARTED\n  NOT_STARTED --> EXECUTING\n  EXECUTING --> SUCCESS\n  EXECUTING --> FAILED\n  SUCCESS --> [*]\n  FAILED --> [*]",
+    "source": "Vol2 Ch11 p319"
+  },
+  {
+    "id": "L3-086",
+    "level": 3,
+    "category": "Payment System",
+    "type": "concept",
+    "front": "How does a payment system handle failed payments and retries?",
+    "back": "When a payment fails (network error, PSP timeout), the system retries with exponential backoff using the same idempotency key. The payment event table tracks retry attempts. A scheduled job monitors payments stuck in EXECUTING state and alerts engineers if they exceed a threshold. For user-facing failures (insufficient funds, card declined), the error is returned immediately without retry.",
+    "diagram": null,
+    "source": "Vol2 Ch11 p330"
+  },
+  {
+    "id": "L4-001",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "concept",
+    "front": "How does Google Maps use map tiling to optimize rendering and bandwidth?",
+    "back": "The world is broken into small tiles at each zoom level. Clients download only relevant tiles for their viewport and stitch them like a mosaic. At zoom level 21, there are ~4.4 trillion tiles (256x256 PNG). Lower zoom levels reduce tile count by 4x each level, totaling ~100PB storage across all levels.",
+    "diagram": null,
+    "source": "Vol2 Ch3 p63-68"
+  },
+  {
+    "id": "L4-002",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "concept",
+    "front": "What are routing tiles and why does Google Maps use hierarchical routing tiles for navigation?",
+    "back": "Road networks are divided into small grids called routing tiles, each containing a graph of intersections (nodes) and roads (edges). Three hierarchy levels exist: local roads (small tiles), arterial roads (medium tiles), and highways (large tiles). Cross-level edges connect them. This avoids loading the entire world road graph into memory and allows on-demand loading during pathfinding.",
+    "diagram": "graph TD\n    A[Highway Tile - Large] --> B[Arterial Tile - Medium]\n    B --> C[Local Road Tile - Small]\n    C -->|freeway entrance| A",
+    "source": "Vol2 Ch3 p64-66"
+  },
+  {
+    "id": "L4-003",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "concept",
+    "front": "Why does Google Maps batch GPS location updates on the client rather than sending every second?",
+    "back": "Sending GPS every second for 1B DAU yields ~3M QPS. Batching every 15 seconds reduces this to ~200K QPS (peak 1M). This significantly reduces write volume, saves battery and data on mobile, and allows the client to slow updates when stuck in traffic. Updates are sent via HTTP with keep-alive.",
+    "diagram": null,
+    "source": "Vol2 Ch3 p68-70"
+  },
+  {
+    "id": "L4-004",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "concept",
+    "front": "How does the Google Maps location service architecture handle the high write volume of location updates?",
+    "back": "Location data is written to a database optimized for high write volume and scalability like Cassandra. Updates are also logged to a stream processing engine like Kafka for downstream processing\u2014live traffic detection, new/closed road detection, user behavior analysis, and real-time ETA recalculation.",
+    "diagram": null,
+    "source": "Vol2 Ch3 p70-71"
+  },
+  {
+    "id": "L4-005",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "concept",
+    "front": "How does geohashing enable map tiling in Google Maps?",
+    "back": "Geohashing encodes a geographic area into a short string by recursively dividing the flattened earth into sub-grids (00, 01, 10, 11). Each subdivision halves the area. This encoding maps directly to tile indices at each zoom level, enabling efficient lookup and CDN caching of pre-rendered tile images by their geohash prefix.",
+    "diagram": null,
+    "source": "Vol2 Ch3 p62-63"
+  },
+  {
+    "id": "L4-006",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "concept",
+    "front": "How does map tile storage scale across zoom levels, and what optimization reduces the 440PB raw estimate?",
+    "back": "At zoom 21, ~4.4T tiles \u00d7 100KB = 440PB. Since ~90% of earth's surface is ocean/desert/mountains, these tiles compress well, reducing storage by 80-90% to ~50PB. Each lower zoom level has 4x fewer tiles, forming a geometric series: 50 + 50/4 + 50/16 + ... \u2248 67PB. Total across all zoom levels is ~100PB.",
+    "diagram": null,
+    "source": "Vol2 Ch3 p67-68"
+  },
+  {
+    "id": "L4-007",
+    "level": 4,
+    "category": "Google Maps",
+    "type": "concept",
+    "front": "What is the difference between routing tiles and map tiles in Google Maps' architecture?",
+    "back": "Both cover geographical areas as grids, but map tiles are pre-rendered PNG images served via CDN for visual display, while routing tiles are binary files containing graph data (nodes=intersections, edges=roads) used by pathfinding algorithms. Routing tiles hold references to connected tiles, enabling algorithms to stitch larger graphs on demand.",
+    "diagram": null,
+    "source": "Vol2 Ch3 p65"
+  },
+  {
+    "id": "L4-008",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "What is the difference between a traditional message queue and an event streaming platform, and how does the book's design bridge them?",
+    "back": "Traditional queues (RabbitMQ) don't retain messages after consumption and don't guarantee ordering. Event streaming platforms (Kafka, Pulsar) use append-only logs for long retention and repeated consumption. The book's design adds streaming features\u20142-week retention, ordered delivery, repeated consumption\u2014to a message queue, requiring WAL-based persistence and consumer offset tracking.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p92-93"
+  },
+  {
+    "id": "L4-009",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "Why does the distributed message queue use Write-Ahead Log (WAL) instead of a database for message persistence?",
+    "back": "The access pattern is write-heavy, read-heavy, sequential, with no updates or deletes\u2014making databases suboptimal. WAL is an append-only log with pure sequential I/O. Modern rotational disks in RAID achieve hundreds of MB/s sequential throughput. The OS aggressively caches disk data in memory. WAL files are split into segments; the active segment receives writes, inactive segments serve reads and are truncated after retention expires.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p98-100"
+  },
+  {
+    "id": "L4-010",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "How do topics, partitions, and brokers relate in the distributed message queue architecture?",
+    "back": "A topic is divided into partitions (shards) distributed across brokers. Each partition is a FIFO queue with monotonically increasing offsets. Messages with the same key (via hash(key) % numPartitions) go to the same partition, preserving per-key ordering. Scaling is achieved by adding partitions. Consumers in a group each handle a subset of partitions.",
+    "diagram": "graph LR\n    P[Producer] -->|hash key| T[Topic-A]\n    T --> P1[Partition-1 on Broker-1]\n    T --> P2[Partition-2 on Broker-2]\n    P1 --> C1[Consumer-1]\n    P2 --> C2[Consumer-2]",
+    "source": "Vol2 Ch4 p95-96"
+  },
+  {
+    "id": "L4-011",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "How does the consumer group mechanism support both point-to-point and publish-subscribe models?",
+    "back": "Consumer groups subscribe to topics. Each partition is consumed by exactly one consumer within a group (ensuring ordering). Multiple groups can subscribe to the same topic\u2014each group gets all messages (pub-sub). Putting all consumers in one group simulates point-to-point. If consumers exceed partitions, extras sit idle.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p96-98"
+  },
+  {
+    "id": "L4-012",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "What are In-Sync Replicas (ISR) and how do they enable configurable durability vs. performance?",
+    "back": "ISR is the set of replicas within replica.lag.max.messages of the leader. ACK=all waits for all ISRs (strongest durability, highest latency). ACK=1 waits only for leader persistence (lower latency, risk of data loss if leader dies before replication). ACK=0 sends without any acknowledgment (lowest latency, potential loss). ISR membership is dynamic\u2014slow replicas are removed and re-added when caught up.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p113-116"
+  },
+  {
+    "id": "L4-013",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "Why is batching pervasive in the distributed message queue design, and what is the throughput-latency tradeoff?",
+    "back": "Batching is used in producers (buffer before sending), brokers (append in chunks for sequential disk writes), and consumers (fetch in batches). It amortizes network round-trips, converts small random I/Os into large sequential writes, and enables OS disk caching. Larger batches increase throughput but add latency from accumulation time. Producers tune batch size per use case.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p101-103"
+  },
+  {
+    "id": "L4-014",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "How does consumer rebalancing work when a new consumer joins or an existing one crashes?",
+    "back": "Consumers maintain heartbeats with a coordinator. When a consumer joins/leaves/crashes, the coordinator triggers rebalancing: all consumers rejoin the group, the coordinator elects a leader consumer who generates a partition dispatch plan, and partitions are redistributed. For crashes, the coordinator detects missing heartbeats after a timeout and triggers rebalance automatically.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p108-110"
+  },
+  {
+    "id": "L4-015",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "Explain the three delivery semantics (at-most-once, at-least-once, exactly-once) in the distributed message queue.",
+    "back": "At-most-once: producer sends with ACK=0, consumer commits offset before processing\u2014messages may be lost, never redelivered. At-least-once: producer retries on failure, consumer commits offset after processing\u2014messages may be duplicated. Exactly-once: achieved via idempotent producers (dedup by sequence number) and consumers that commit offset atomically with processing results in a single transaction.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p122-124"
+  },
+  {
+    "id": "L4-016",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "Why does the message queue design embed the routing layer inside the producer instead of as a separate service?",
+    "back": "A standalone routing layer adds network hops and latency and doesn't support request batching. Embedding routing in the producer client library provides: fewer hops (lower latency), custom partition-selection logic, and a buffer that accumulates messages into larger batches before sending\u2014improving sequential disk write throughput on the broker side.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p102-103"
+  },
+  {
+    "id": "L4-017",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "How does the pull model for consumers compare to push, and why does the design favor pull?",
+    "back": "Push delivers messages immediately (low latency) but can overwhelm slow consumers and struggles with diverse processing speeds. Pull lets consumers control their rate, supports both real-time and batch processing, and enables aggressive batching. The downside\u2014wasted resources polling empty queues\u2014is solved by long polling, which waits a configured time for new messages before returning empty.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p104-106"
+  },
+  {
+    "id": "L4-018",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "How does the broker handle failure recovery and scaling when a broker node crashes or is added?",
+    "back": "On crash: the controller detects via coordination service, generates a new replica distribution plan for remaining brokers, and new replicas catch up from leaders. On addition: the controller temporarily allows more replicas than configured, lets the new broker's replicas sync from leaders, then gracefully removes redundant old replicas. This avoids data loss during transitions.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p118-120"
+  },
+  {
+    "id": "L4-019",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "What happens when the number of partitions increases or decreases for a topic?",
+    "back": "Increase: new partition is added, new messages spread across all partitions, no data migration needed for existing messages. Producer is notified, consumer rebalances. Decrease: partition is decommissioned (no new messages), but data must remain accessible until retention expires. During transition, producers use remaining partitions while consumers read from all. Consumer rebalancing occurs after decommissioned partition's retention expires.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p120-122"
+  },
+  {
+    "id": "L4-020",
+    "level": 4,
+    "category": "Ad Click Aggregation",
+    "type": "concept",
+    "front": "What is the high-level architecture for an ad click event aggregation system at Facebook/Google scale?",
+    "back": "Log files from ad servers are ingested into a message queue (Kafka). An aggregation service (MapReduce or stream processing like Flink) reads events in time windows, computing click counts per ad_id. Results flow to an OLAP database for queries. A recalculation service handles late/duplicate events. The system must handle 1B clicks/day with sub-minute aggregation windows.",
+    "diagram": "graph LR\n    A[Ad Servers - Log Files] --> B[Kafka]\n    B --> C[Aggregation Service - Flink]\n    C --> D[OLAP Database]\n    C --> E[Recalculation Service]",
+    "source": "Vol2 Ch6 p159-166"
+  },
+  {
+    "id": "L4-021",
+    "level": 4,
+    "category": "Ad Click Aggregation",
+    "type": "concept",
+    "front": "How does the aggregation service achieve exactly-once processing semantics for ad click events?",
+    "back": "The system uses a combination of: (1) Kafka's offset tracking for at-least-once delivery, (2) idempotent writes to the aggregation store using a unique event ID or watermark, and (3) Flink's checkpoint mechanism which snapshots operator state and Kafka offsets atomically. On failure, Flink restores from the last checkpoint and replays from the saved offset, avoiding both loss and duplication.",
+    "diagram": null,
+    "source": "Vol2 Ch6 p174-180"
+  },
+  {
+    "id": "L4-022",
+    "level": 4,
+    "category": "Ad Click Aggregation",
+    "type": "concept",
+    "front": "What is the MapReduce DAG approach for multi-level ad click aggregation, and why use it?",
+    "back": "Complex aggregation queries (e.g., top 100 most-clicked ads filtered by country) are modeled as a DAG of MapReduce nodes. Each node performs map (filter/transform) and reduce (aggregate) operations. Intermediate results flow between nodes. This allows composing simple operations into complex queries while enabling parallel processing at each stage and different aggregation granularities.",
+    "diagram": "graph TD\n    A[Raw Click Events] --> B[Map: Filter by time window]\n    B --> C[Reduce: Count per ad_id]\n    C --> D[Map: Filter by country]\n    D --> E[Reduce: Top N]",
+    "source": "Vol2 Ch6 p168-170"
+  },
+  {
+    "id": "L4-023",
+    "level": 4,
+    "category": "Ad Click Aggregation",
+    "type": "concept",
+    "front": "How does the system handle late-arriving ad click events and data reconciliation?",
+    "back": "The system uses watermarking: events arriving within a grace period after the window closes are processed into the correct window. Events arriving after the grace period trigger the recalculation service, which re-aggregates the affected time windows using the raw data in batch. A reconciliation service periodically compares real-time aggregation results with batch-computed results to detect and correct discrepancies.",
+    "diagram": null,
+    "source": "Vol2 Ch6 p178-182"
+  },
+  {
+    "id": "L4-024",
+    "level": 4,
+    "category": "Ad Click Aggregation",
+    "type": "concept",
+    "front": "Compare Lambda architecture vs. Kappa architecture for ad click event aggregation.",
+    "back": "Lambda: maintains two parallel pipelines\u2014a speed layer (stream processing for real-time) and a batch layer (periodic recomputation for accuracy). Results are merged in a serving layer. Downside: maintaining two codepaths. Kappa: uses only one stream processing pipeline with the ability to replay the event log for recalculation. Simpler to maintain but requires the streaming framework to handle both real-time and historical reprocessing.",
+    "diagram": null,
+    "source": "Vol2 Ch6 p184-186"
+  },
+  {
+    "id": "L4-025",
+    "level": 4,
+    "category": "Ad Click Aggregation",
+    "type": "concept",
+    "front": "What time windowing strategies are used for ad click aggregation, and what are their tradeoffs?",
+    "back": "Tumbling windows: fixed non-overlapping intervals (e.g., every minute). Simple but boundary effects\u2014a click at 10:00:59 and 10:01:01 land in different windows. Sliding windows: overlapping intervals that slide by a step (e.g., 1-min window sliding every 10s). Better coverage but more computationally expensive. Session windows: dynamic windows based on activity gaps. Used for user-session analytics but complex to implement in distributed settings.",
+    "diagram": null,
+    "source": "Vol2 Ch6 p170-174"
+  },
+  {
+    "id": "L4-026",
+    "level": 4,
+    "category": "Ad Click Aggregation",
+    "type": "concept",
+    "front": "How does the ad click aggregation system use the star schema for analytical queries?",
+    "back": "A star schema with a central fact table (click events with ad_id, timestamp, aggregated count) surrounded by dimension tables (ad metadata, geography, time). This structure optimizes OLAP queries like 'top 100 ads in the US in the last hour' by enabling efficient joins and pre-aggregation. The OLAP database stores aggregated results at multiple granularities for fast query response.",
+    "diagram": null,
+    "source": "Vol2 Ch6 p166-168"
+  },
+  {
+    "id": "L4-027",
+    "level": 4,
+    "category": "Ad Click Aggregation",
+    "type": "concept",
+    "front": "What data filtering strategy prevents fraudulent ad clicks from polluting aggregation results?",
+    "back": "A filtering layer sits before aggregation, applying rules to detect and remove fraudulent clicks: duplicate click detection (same user/IP within short interval), bot detection (abnormal click patterns), and IP-based filtering. Filtered events are flagged but retained for forensic analysis. The aggregation service processes only validated clicks, while a separate ad traffic quality system handles deeper fraud analysis.",
+    "diagram": null,
+    "source": "Vol2 Ch6 p164-166"
+  },
+  {
+    "id": "L4-028",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "How does S3-like object storage separate metadata from data, analogous to UNIX inodes?",
+    "back": "Like UNIX where filenames live in inodes and file data on disk blocks, object storage separates the metadata store (object name \u2192 object_id mapping, bucket info, ACLs) from the data store (actual binary objects keyed by UUID). This separation enables independent optimization: metadata in a transactional DB for consistency, data store optimized for large-scale immutable blob storage with replication.",
+    "diagram": "graph LR\n    A[API Service] --> B[Metadata Store: name\u2192UUID]\n    A --> C[Data Store: UUID\u2192bytes]\n    B --> D[Metadata DB]\n    C --> E[Data Nodes]",
+    "source": "Vol2 Ch9 p257-260"
+  },
+  {
+    "id": "L4-029",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "What is the role of the placement service in S3-like object storage, and how does it ensure durability?",
+    "back": "The placement service maintains a virtual cluster map of the physical topology (data centers, racks, nodes). Given a UUID, it deterministically selects a replication group (primary + 2 secondaries) using consistent hashing, ensuring replicas are in different failure domains (different racks/AZs). It monitors data nodes via heartbeats (15s grace period) and runs as a 5-7 node Paxos/Raft cluster for its own availability.",
+    "diagram": null,
+    "source": "Vol2 Ch9 p264-266"
+  },
+  {
+    "id": "L4-030",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "Why does the data node merge small objects into large files instead of storing each as a separate file?",
+    "back": "Two problems with many small files: (1) wasted disk blocks\u2014a file smaller than the 4KB block size still consumes a full block, and (2) inode exhaustion\u2014the OS has a fixed number of inodes and handles large inode counts poorly. Instead, objects are appended to a large read-write file (like a WAL). When it reaches capacity, it becomes read-only and a new write file is created. An SQLite database on each node maps UUID \u2192 (filename, offset, size) for O(1) lookups.",
+    "diagram": null,
+    "source": "Vol2 Ch9 p267-270"
+  },
+  {
+    "id": "L4-031",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "Explain erasure coding (e.g., 8+4) and compare it with 3-copy replication for object storage.",
+    "back": "Erasure coding splits data into k chunks and computes p parity chunks using mathematical formulas. An (8+4) scheme distributes 12 chunks across 12 failure domains; data survives up to 4 node failures. Storage overhead is 50% vs 200% for 3-copy replication. Erasure coding achieves 11 nines durability vs 6 nines for replication. Tradeoff: higher compute cost, slower reads (must read from multiple nodes), and complex reconstruction on failure.",
+    "diagram": "graph TD\n    A[Original Data] --> B[Split into 8 data chunks]\n    B --> C[Calculate 4 parity chunks]\n    C --> D[12 chunks across 12 failure domains]\n    D --> E[Tolerate up to 4 failures]",
+    "source": "Vol2 Ch9 p271-275"
+  },
+  {
+    "id": "L4-032",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "How does the data persistence flow work in S3-like object storage for strong consistency?",
+    "back": "1) API service sends object to data routing service. 2) Routing service gets UUID and queries placement service for the replication group. 3) Data is sent to the primary node. 4) Primary saves locally and replicates to both secondaries. 5) Primary responds only after ALL secondaries confirm\u2014providing strong consistency. This trades latency for consistency. Alternatives: respond after primary+1 secondary (medium) or primary only (eventual).",
+    "diagram": null,
+    "source": "Vol2 Ch9 p265-267"
+  },
+  {
+    "id": "L4-033",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "How does checksum verification protect against data corruption in object storage?",
+    "back": "Each object gets an MD5 checksum appended after it. When a file is marked read-only, a checksum of the entire file is added. On read: compute checksum of received data and compare with stored checksum. If mismatch, data is corrupted\u2014reconstruct from other replicas or erasure coding parities. This catches in-memory corruption, which is common at scale, unlike full disk failures that are detected at the hardware level.",
+    "diagram": null,
+    "source": "Vol2 Ch9 p275-276"
+  },
+  {
+    "id": "L4-034",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "How does object versioning work in S3-like storage, and what is the garbage collection strategy?",
+    "back": "When versioning is enabled, uploading an object with the same name creates a new version (new UUID) rather than overwriting. The metadata store tracks all versions via (bucket_name, object_name, object_version). Deleting adds a 'delete marker' rather than removing data. Garbage collection runs as a background compaction process: it identifies orphaned objects (no metadata reference), objects past retention, and delete-marked versions, then reclaims their space from data files.",
+    "diagram": null,
+    "source": "Vol2 Ch9 p277-284"
+  },
+  {
+    "id": "L4-035",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "How is the metadata database scaled for S3-like object storage with billions of objects?",
+    "back": "The bucket table is small (~10GB for 1M users \u00d7 10 buckets) and fits on one server. The object table is massive and must be sharded. Sharding by bucket_name groups objects logically. Listing objects by prefix (e.g., all objects starting with 'photos/') requires range queries, so the shard key must support prefix scans. A hash of (bucket_id, object_name) provides even distribution while maintaining prefix locality within a shard.",
+    "diagram": null,
+    "source": "Vol2 Ch9 p276-280"
+  },
+  {
+    "id": "L4-036",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "What are the three categories of storage systems, and where does object storage fit?",
+    "back": "Block storage: raw blocks presented as volumes, used by databases and VMs for maximum performance. File storage: hierarchical directory structure built on block storage, accessed via SMB/NFS. Object storage: flat namespace, RESTful API access, deliberate tradeoff sacrificing performance for high durability, vast scale, and low cost. Object storage targets cold data (archival, backup) and is write-once, read-many. Each layer adds abstraction over the previous.",
+    "diagram": null,
+    "source": "Vol2 Ch9 p253-255"
+  },
+  {
+    "id": "L4-037",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "Why does each data node use SQLite for its object-to-file mapping instead of a centralized database?",
+    "back": "The mapping data (UUID \u2192 file, offset, size) is isolated within each data node\u2014no cross-node sharing needed. A centralized cluster would be harder to manage at scale. SQLite is a file-based relational database deployed locally on each node, providing B+ tree indexing for fast reads. Since the access pattern is write-once, read-many, SQLite's strong read performance (B+ tree) outperforms RocksDB's LSM-tree (optimized for writes).",
+    "diagram": null,
+    "source": "Vol2 Ch9 p269-270"
+  },
+  {
+    "id": "L4-038",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "Compare Two-Phase Commit (2PC) and Try-Confirm/Cancel (TC/C) for distributed wallet transactions.",
+    "back": "2PC: coordinator asks all DBs to prepare (locks held), then commit/abort. Locks held across phases, coordinator is SPOF. TC/C: phase 1 executes and commits local transactions; phase 2 is a NEW transaction to confirm or a compensating transaction to cancel. TC/C is database-agnostic (application-level), unlocks faster, but requires implementing undo logic in business code. TC/C handles the unbalanced intermediate state explicitly.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p346-351"
+  },
+  {
+    "id": "L4-039",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "What is event sourcing and why is it the de facto architecture for digital wallet systems?",
+    "back": "Event sourcing stores all state changes as an immutable, ordered sequence of events rather than just current state. Commands are validated by a state machine and produce deterministic events. State is derived by replaying events. This provides: (1) full audit trail for compliance, (2) reproducibility\u2014replay events to reconstruct any historical balance, (3) provability\u2014run different code versions against the same events to verify correctness. The event list is the source of truth.",
+    "diagram": "graph LR\n    A[Command Queue] --> B[State Machine: Validate]\n    B --> C[Event Queue]\n    C --> D[State Machine: Apply]\n    D --> E[State/Balance]",
+    "source": "Vol2 Ch12 p355-360"
+  },
+  {
+    "id": "L4-040",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "What is CQRS and how does it work with event sourcing in the digital wallet?",
+    "back": "Command-Query Responsibility Segregation separates the write path (one state machine processes commands \u2192 events \u2192 state) from the read path (multiple read-only state machines rebuild customized views from the event queue). Read-only machines can derive different representations: balance queries, audit trails, time-period reports. The read path is eventually consistent\u2014it lags behind but always catches up. This enables scaling reads independently of writes.",
+    "diagram": "graph TD\n    A[Client Command] --> B[Write: Command \u2192 Event \u2192 State]\n    B --> C[Event Queue]\n    C --> D[Read SM 1: Balance Query]\n    C --> E[Read SM 2: Audit Trail]\n    C --> F[Read SM 3: Analytics]",
+    "source": "Vol2 Ch12 p360-362"
+  },
+  {
+    "id": "L4-041",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "How does the high-performance event sourcing design achieve maximum I/O throughput?",
+    "back": "Three optimizations: (1) Replace Kafka with local file-based command and event lists using mmap, which maps disk files to memory arrays\u2014the OS caches recent data in memory while guaranteeing persistence via sequential writes. (2) Replace remote databases with local RocksDB (LSM-optimized) for state storage with in-memory caching. (3) Take periodic snapshots to avoid replaying from the beginning. Sequential disk I/O can outperform random memory access.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p362-365"
+  },
+  {
+    "id": "L4-042",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "How does the Raft consensus algorithm make file-based event sourcing reliable?",
+    "back": "A cluster of 3-5 event sourcing nodes uses Raft to replicate the event list. The leader receives commands, converts to events, appends locally, and Raft replicates to followers. All nodes (including followers) process the event list to update state independently. If the leader crashes, Raft auto-elects a new leader. Event sourcing guarantees identical states across nodes as long as event lists are identical\u2014which Raft ensures.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p366-368"
+  },
+  {
+    "id": "L4-043",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "What is the TC/C out-of-order execution problem and how is it solved?",
+    "back": "In TC/C, network issues can cause a Cancel instruction to arrive at a database before the corresponding Try instruction. Without handling, the Cancel does nothing, and the subsequent Try executes incorrectly. Solution: each node maintains an out-of-order flag in the phase status table. A Cancel without a preceding Try sets the flag. A Try operation checks for this flag and fails if present, preventing the stale operation from executing.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p352-354"
+  },
+  {
+    "id": "L4-044",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "Why must the TC/C Try phase always deduct money first (from the sender), never add to the receiver?",
+    "back": "If Try adds to receiver (C+$1) and Try on sender fails, Cancel must remove $1 from C. But between Try and Cancel, someone might spend that $1\u2014Cancel then finds insufficient balance, violating transactional guarantees. If Try deducts from sender (A-$1), money is 'locked' (temporarily missing). Cancel simply adds it back\u2014no one can spend money that's already deducted. Choice 3 (concurrent A-$1 and C+$1) creates complex partial-failure scenarios.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p352-353"
+  },
+  {
+    "id": "L4-045",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "Compare TC/C and Saga distributed transaction patterns for digital wallet systems.",
+    "back": "Both are application-level. TC/C: operations can execute in any order (parallel possible), uses Cancel phase for compensation. Saga: operations must execute in linear order (each triggers the next), rolls back in reverse order using compensating transactions. Saga requires 2n operations (n normal + n compensating). TC/C is better for latency-sensitive systems with many services (parallel execution). Saga is simpler and the de facto in microservices.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p353-355"
+  },
+  {
+    "id": "L4-046",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "What are the four key terms in event sourcing, and how do commands differ from events?",
+    "back": "Command: an intended action (may be invalid). Event: a validated, immutable historical fact that must be executed. State: the data changed when events are applied (e.g., account balances). State Machine: drives the process\u2014validates commands to generate events, then applies events to update state. Key differences: commands may fail validation, events cannot; commands may contain randomness/I/O, events must be deterministic; one command may generate zero or more events.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p356-358"
+  },
+  {
+    "id": "L4-047",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "How does the push model with a reverse proxy improve the CQRS read path for digital wallets?",
+    "back": "Naive pull: client periodically polls the read-only state machine\u2014not real-time, wastes resources. Improved: add a reverse proxy between client and event sourcing nodes. The proxy forwards commands and polls status. Best: modify the read-only state machine to push execution status to the reverse proxy immediately upon receiving events. The client gets near-real-time responses while the write path remains event-sourced and eventually consistent.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p368-372"
+  },
+  {
+    "id": "L4-048",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "How do snapshots optimize reproducibility in event sourcing for digital wallets?",
+    "back": "Without snapshots, rebuilding state requires replaying ALL events from the beginning\u2014impractical at scale. Snapshots periodically freeze current state to an immutable file (stored in HDFS/object storage). To rebuild state at time T, load the most recent snapshot before T, then replay only events after that snapshot. Financial teams require daily snapshots at 00:00 for transaction verification. Read-only state machines load one snapshot instead of replaying the entire history.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p364-365"
+  },
+  {
+    "id": "L4-049",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "What is the role of the sequencer in a stock exchange, and why is it critical for determinism?",
+    "back": "The sequencer stamps every incoming order and every outgoing execution with sequential IDs from two separate sequences (inbound and outbound). This guarantees: (1) timeliness/fairness\u2014orders processed in arrival order, (2) fast recovery\u2014replay sequenced events deterministically, (3) exactly-once semantics\u2014detect gaps via missing sequence numbers. The sequencer also functions as a message queue and event store, similar to Kafka but with lower, more predictable latency.",
+    "diagram": "graph LR\n    A[Order Manager] --> B[Inbound Sequencer]\n    B --> C[Matching Engine]\n    C --> D[Outbound Sequencer]\n    D --> E[Order Manager]",
+    "source": "Vol2 Ch13 p386-388"
+  },
+  {
+    "id": "L4-050",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "How does the order book data structure achieve O(1) time complexity for place, match, and cancel operations?",
+    "back": "The order book uses: a Map<Price, PriceLevel> for O(1) price lookup, where each PriceLevel contains a doubly-linked list of Orders. A helper Map<OrderID, Order> enables O(1) order lookup. Place: append to tail of PriceLevel's doubly-linked list. Match: remove from head. Cancel: find order via orderMap in O(1), then delete from doubly-linked list in O(1) using the previous pointer. A singly-linked list would require O(n) traversal for cancel.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p395-398"
+  },
+  {
+    "id": "L4-051",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "Describe the three flows in a stock exchange: trading, market data, and reporting.",
+    "back": "Trading (critical path): Client \u2192 Gateway \u2192 Order Manager \u2192 Risk Check \u2192 Wallet Check \u2192 Sequencer \u2192 Matching Engine \u2192 Executions back via Sequencer \u2192 Client. Strict latency requirements. Market data: Matching engine \u2192 Market Data Publisher (builds order books, candlestick charts) \u2192 Data Service \u2192 Brokers. Reporting: Orders + executions \u2192 Reporter \u2192 Database for tax reporting, compliance, settlements. Market data and reporting are not latency-critical.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p384-390"
+  },
+  {
+    "id": "L4-052",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "What is the matching engine's determinism requirement, and how does event sourcing enable it?",
+    "back": "Given the same sequence of orders as input, the matching engine must produce identical executions as output on replay. This is achieved by: (1) the sequencer assigns deterministic order to all inputs, (2) the matching engine has no external I/O or randomness, (3) event sourcing stores the ordered event stream. For recovery, a hot standby replays the same sequenced events to reach identical state. Functional determinism means actual timestamps don't matter\u2014only event order does.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p386-387, p408-409"
+  },
+  {
+    "id": "L4-053",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "How does a stock exchange achieve high availability with the primary-backup matching engine approach?",
+    "back": "The primary matching engine sequences and processes all orders. A warm standby receives the same sequenced event stream and processes it in parallel, maintaining identical state. On primary failure, the warm standby takes over with near-zero data loss (RPO \u2248 0) and second-level recovery time (RTO). Raft consensus ensures event stream consistency. The exchange uses mmap for local event storage and RUDP/Aeron for low-latency, reliable messaging between components.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p400-407"
+  },
+  {
+    "id": "L4-054",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "What is latency determinism in a stock exchange, and how is it measured and achieved?",
+    "back": "Latency determinism means near-identical latency for every trade (not just average). Measured by 99th or 99.99th percentile latency using HdrHistogram. Achieved by: avoiding garbage collection pauses (JVM safe points, Stop-the-World GC), using kernel bypass networking (DPDK/Solarflare), lock-free data structures (ring buffers with cache line padding), mmap for I/O, and single-threaded critical path to avoid context switches. Large latency spikes are investigated and eliminated.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p408-410"
+  },
+  {
+    "id": "L4-055",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "How does multicast ensure fair distribution of market data to all subscribers?",
+    "back": "If MDP sends data sequentially to a subscriber list, the first subscriber always gets data before the last\u2014creating unfair information advantage. Multicast (reliable UDP) broadcasts to a multicast group, so all receivers get data simultaneously. NACK-oriented reliable multicast handles retransmission for lost UDP datagrams. The MDP can also randomize subscriber order on connection to prevent 'first-connected' advantage.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p410-412"
+  },
+  {
+    "id": "L4-056",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "What optimizations does the Market Data Publisher use for memory and performance?",
+    "back": "Ring buffers (circular buffers): pre-allocated fixed-size queues with head connected to tail. No object creation/deallocation, lock-free, with cache line padding for efficiency. Candlestick charts use ring buffers to hold recent ticks (e.g., 100), persisting older data to disk. Market data is stored in columnar in-memory databases (e.g., KDB) for real-time analytics during trading hours, then archived to historical databases after market close.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p398-399, p409-410"
+  },
+  {
+    "id": "L4-057",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "What is colocation in stock exchange design, and how does it relate to fairness?",
+    "back": "Colocation places broker/hedge fund servers in the same data center as the exchange. Order latency becomes proportional to cable length between colocated and exchange servers\u2014nanosecond-level advantage. While it creates unequal access, it's considered a paid VIP service rather than unfair\u2014the exchange offers equal opportunity to colocate. It doesn't violate fairness norms because it's transparent and available to all willing participants.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p388-389, p412"
+  },
+  {
+    "id": "L4-058",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "Why does the exchange use mmap and local event storage instead of Kafka for the sequencer?",
+    "back": "The critical trading path requires microsecond-level latency. Kafka introduces network round-trips and unpredictable latency. Instead, the sequencer uses mmap to map local disk files to memory\u2014writes are sequential (OS-optimized), recently written data is guaranteed in memory cache. Combined with RUDP (like Aeron) for inter-component communication, this eliminates TCP overhead. The architecture can run everything in a single process on one machine for minimum latency.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p400-406"
+  },
+  {
+    "id": "L4-059",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "How does the order manager use event sourcing to handle complex state transitions?",
+    "back": "An order goes through many state transitions (new \u2192 partially filled \u2192 filled/cancelled, plus error states). With tens of thousands of edge cases in production, managing mutable state is error-prone. Event sourcing records every state change as an immutable event. The order manager's current state is derived from the event sequence. On failure, replay events to reconstruct exact state. This is the same pattern used in the Digital Wallet chapter, applied to order lifecycle management.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p387-388"
+  },
+  {
+    "id": "L4-060",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "What is the FIFO matching algorithm with Lead Market Maker (LMM) allocation?",
+    "back": "Basic FIFO: orders at a price level are matched in arrival order\u2014first in, first matched. FIFO with LMM: a predefined ratio of quantity at each price level is allocated to the Lead Market Maker (who provides liquidity) before the FIFO queue is processed. The LMM negotiates this privilege with the exchange. Variations exist for dark pools (anonymous matching) and futures exchanges. The matching algorithm choice significantly affects market microstructure and liquidity.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p407-408"
+  },
+  {
+    "id": "L4-061",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "Why is the message data structure key to high throughput, and what does zero-copy mean in this context?",
+    "back": "The message schema (key, value, topic, partition, offset, timestamp, size, CRC) is a contract between producers, brokers, and consumers. If any component disagrees, messages must be mutated (copied and transformed), which is extremely expensive at high volume. By keeping the same binary format end-to-end, messages pass through the system without modification\u2014enabling OS-level zero-copy transfers (sendfile) from disk to network socket, bypassing user-space copying entirely.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p100-101"
+  },
+  {
+    "id": "L4-062",
+    "level": 4,
+    "category": "Message Queue",
+    "type": "concept",
+    "front": "How does the coordination service (ZooKeeper/etcd) simplify distributed message queue design?",
+    "back": "ZooKeeper provides: (1) leader election\u2014one broker becomes the active controller responsible for partition assignment, (2) metadata storage\u2014topic configs, partition counts, retention policies with strong consistency, (3) state storage\u2014consumer group offsets and partition-consumer mappings, (4) service discovery\u2014tracking alive brokers. This offloads distributed coordination complexity from the broker, letting it focus purely on data storage and delivery.",
+    "diagram": null,
+    "source": "Vol2 Ch4 p111-112"
+  },
+  {
+    "id": "L4-063",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "Why is event reliability (not command reliability) the critical guarantee in event sourcing?",
+    "back": "State and snapshots can always be regenerated by replaying events, so they don't need independent reliability. Commands seem sufficient since events are generated from them, but event generation may contain randomness or external I/O\u2014the same command doesn't always produce the same events. Only events represent deterministic, immutable historical facts. Therefore, events are the sole data type requiring strong reliability guarantees (replicated via Raft consensus).",
+    "diagram": null,
+    "source": "Vol2 Ch12 p365-367"
+  },
+  {
+    "id": "L4-064",
+    "level": 4,
+    "category": "Ad Click Aggregation",
+    "type": "concept",
+    "front": "What is Real-Time Bidding (RTB) and why does ad click aggregation matter for it?",
+    "back": "RTB is the process where digital ad inventory is bought/sold in under a second. The supply side (publishers via SSP) offers ad slots; the demand side (advertisers via DSP) bids through an ad exchange. Click aggregation computes CTR (click-through rate) and CVR (conversion rate), which directly determine ad effectiveness and advertiser spend. Campaign managers use aggregated data to adjust budgets, bidding strategies, target audiences, and keywords in near-real-time.",
+    "diagram": null,
+    "source": "Vol2 Ch6 p159-160"
+  },
+  {
+    "id": "L4-065",
+    "level": 4,
+    "category": "Object Storage",
+    "type": "concept",
+    "front": "How does multipart upload optimize large file uploads in S3-like object storage?",
+    "back": "Large objects are split into parts uploaded independently and in parallel. Each part gets its own checksum and is stored as a separate object. On completion, the metadata store records the part-to-object mapping. Benefits: parallel upload speeds up transfers, failed parts can be retried individually without restarting the whole upload, and parts can come from different sources. The API provides initiate, upload-part, and complete-upload operations.",
+    "diagram": null,
+    "source": "Vol2 Ch9 p282-284"
+  },
+  {
+    "id": "L4-066",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "What is the difference between L1, L2, and L3 market data in a stock exchange?",
+    "back": "L1: best bid/ask price and quantity only\u2014simplest view. L2: shows price and aggregated quantity at multiple price levels (depth of book)\u2014reveals market depth. L3: shows individual orders at each price level\u2014the most detailed view, showing exactly who is bidding what. L3 data enables seeing the full order book microstructure. Higher levels are more expensive: retail clients typically see L2 with limited depth, while institutional clients pay for deeper L2 or full L3 access.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p382-384"
+  },
+  {
+    "id": "L4-067",
+    "level": 4,
+    "category": "Digital Wallet",
+    "type": "concept",
+    "front": "How does the distributed event sourcing architecture solve the single Raft group capacity limitation?",
+    "back": "A single Raft group has limited throughput for 1M TPS. Solution: shard accounts across multiple Raft groups. Each group handles a partition of accounts. Cross-partition transfers become distributed transactions across Raft groups. The TC/C or Saga pattern coordinates across partitions\u2014each partition's Raft group processes its local event independently. The phase status table tracks cross-partition transaction progress for recovery.",
+    "diagram": null,
+    "source": "Vol2 Ch12 p368-370"
+  },
+  {
+    "id": "L4-068",
+    "level": 4,
+    "category": "Stock Exchange",
+    "type": "concept",
+    "front": "What DDoS defense strategies does a stock exchange employ for its public interfaces?",
+    "back": "Five strategies: (1) Isolate public from private services so attacks don't reach critical trading infrastructure. (2) Cache infrequently-updated data to absorb query load. (3) Harden URLs\u2014use fixed paths like /data/recent instead of parameterized /data?from=X&to=Y that attackers can vary infinitely. (4) Maintain safelist/blocklist at the network gateway. (5) Rate limiting on all public endpoints. Public market data can have read-only replicas to isolate problems.",
+    "diagram": null,
+    "source": "Vol2 Ch13 p412"
+  }
+]

@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, user-scalable=yes">
+    <meta name="theme-color" content="#0f0f1a">
+    <meta name="apple-mobile-web-app-capable" content="yes">
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <meta name="apple-mobile-web-app-title" content="SysDesign">
+    <title>System Design Cards</title>
+    <link rel="manifest" href="manifest.json">
+    <link rel="apple-touch-icon" href="icon-192.png">
+    <link rel="stylesheet" href="styles.css?v=1">
+</head>
+<body class="theme-dark">
+    <!-- ── Loader ── -->
+    <div id="loader" class="loader">
+        <div class="loader-content">
+            <div class="loader-icon">🧠</div>
+            <div class="loader-text">Loading cards...</div>
+            <div class="loader-bar"><div class="loader-fill"></div></div>
+        </div>
+    </div>
+
+    <!-- ── Top bar ── -->
+    <header id="topbar" class="topbar">
+        <div class="topbar-left">
+            <span id="streak-badge" class="streak-badge">🔥 0</span>
+        </div>
+        <div class="topbar-center">
+            <span id="xp-badge" class="xp-badge">⚡ 0 XP</span>
+        </div>
+        <div class="topbar-right">
+            <button id="btn-stats" class="icon-btn" aria-label="Stats">📊</button>
+            <button id="btn-settings" class="icon-btn" aria-label="Settings">⚙️</button>
+        </div>
+    </header>
+
+    <!-- ── Mode tabs ── -->
+    <nav id="mode-tabs" class="mode-tabs">
+        <button class="mode-tab active" data-mode="study">🃏 Study</button>
+        <button class="mode-tab" data-mode="reels">🔀 Reels</button>
+    </nav>
+
+    <!-- ── Study mode ── -->
+    <main id="study-view" class="view">
+        <!-- Daily summary -->
+        <div id="study-summary" class="study-summary">
+            <div class="summary-ring">
+                <svg viewBox="0 0 120 120" class="progress-ring">
+                    <circle cx="60" cy="60" r="52" class="ring-bg"/>
+                    <circle id="ring-progress" cx="60" cy="60" r="52" class="ring-fill"/>
+                </svg>
+                <div class="ring-text">
+                    <span id="ring-pct">0%</span>
+                    <span class="ring-label">mastered</span>
+                </div>
+            </div>
+            <div class="summary-stats">
+                <div class="stat"><span id="stat-due" class="stat-num">0</span><span class="stat-label">Due today</span></div>
+                <div class="stat"><span id="stat-new" class="stat-num">0</span><span class="stat-label">New</span></div>
+                <div class="stat"><span id="stat-mastered" class="stat-num">0</span><span class="stat-label">Mastered</span></div>
+            </div>
+            <button id="btn-start-study" class="btn-primary">Start Studying</button>
+            <div id="level-selector" class="level-selector">
+                <button class="level-btn active" data-level="all">All</button>
+                <button class="level-btn" data-level="1">🟢 L1</button>
+                <button class="level-btn" data-level="2">🟡 L2</button>
+                <button class="level-btn locked" data-level="3">🟠 L3</button>
+                <button class="level-btn locked" data-level="4">🔴 L4</button>
+            </div>
+        </div>
+
+        <!-- Active card -->
+        <div id="card-area" class="card-area hidden">
+            <div class="card-progress-bar">
+                <div id="card-progress-fill" class="card-progress-fill"></div>
+                <span id="card-counter">1 / 15</span>
+            </div>
+            <div id="flashcard" class="flashcard">
+                <div class="card-inner">
+                    <div class="card-front">
+                        <div class="card-level-tag" id="card-level-tag">L1</div>
+                        <div class="card-category" id="card-category">Scaling</div>
+                        <div class="card-question" id="card-question">Question goes here</div>
+                        <div class="card-hint">Tap to reveal answer</div>
+                    </div>
+                    <div class="card-back">
+                        <div class="card-level-tag" id="card-level-tag-back">L1</div>
+                        <div class="card-answer" id="card-answer">Answer goes here</div>
+                        <div class="card-diagram" id="card-diagram"></div>
+                        <div class="card-source" id="card-source">Vol1 Ch1</div>
+                    </div>
+                </div>
+            </div>
+            <div id="rating-buttons" class="rating-buttons hidden">
+                <button class="rate-btn rate-again" data-rating="1">😫<br>Again</button>
+                <button class="rate-btn rate-hard" data-rating="2">😐<br>Hard</button>
+                <button class="rate-btn rate-good" data-rating="3">🙂<br>Good</button>
+                <button class="rate-btn rate-easy" data-rating="4">😎<br>Easy</button>
+            </div>
+        </div>
+
+        <!-- Session complete -->
+        <div id="session-complete" class="session-complete hidden">
+            <div class="complete-icon">🎉</div>
+            <div class="complete-title">Session Complete!</div>
+            <div id="session-stats" class="session-stats"></div>
+            <button id="btn-more-cards" class="btn-primary">Study More</button>
+            <button id="btn-back-home" class="btn-secondary">Back to Home</button>
+        </div>
+    </main>
+
+    <!-- ── Reels mode ── -->
+    <main id="reels-view" class="view hidden">
+        <div id="reels-container" class="reels-container">
+            <!-- Cards injected by JS -->
+        </div>
+    </main>
+
+    <!-- ── Stats panel ── -->
+    <div id="stats-panel" class="side-panel hidden">
+        <div class="panel-header">
+            <h2>Your Progress</h2>
+            <button class="icon-btn" id="close-stats">✕</button>
+        </div>
+        <div id="stats-body" class="panel-body"></div>
+    </div>
+
+    <!-- ── Settings panel ── -->
+    <div id="settings-panel" class="side-panel hidden">
+        <div class="panel-header">
+            <h2>Settings</h2>
+            <button class="icon-btn" id="close-settings">✕</button>
+        </div>
+        <div class="panel-body">
+            <label class="setting-row">
+                <span>Theme</span>
+                <select id="theme-select">
+                    <option value="dark">Dark</option>
+                    <option value="light">Light</option>
+                </select>
+            </label>
+            <label class="setting-row">
+                <span>New cards/day</span>
+                <select id="daily-new-select">
+                    <option value="5">5</option>
+                    <option value="10" selected>10</option>
+                    <option value="15">15</option>
+                    <option value="20">20</option>
+                </select>
+            </label>
+            <div class="setting-row">
+                <span>Total cards</span>
+                <span id="total-cards-count">0</span>
+            </div>
+            <button id="btn-reset" class="btn-danger">Reset All Progress</button>
+        </div>
+    </div>
+
+    <!-- ── Level unlock toast ── -->
+    <div id="level-toast" class="level-toast hidden">
+        <div class="toast-icon">🎉</div>
+        <div class="toast-text" id="toast-text">Level 2 Unlocked!</div>
+    </div>
+
+    <!-- ── XP popup ── -->
+    <div id="xp-popup" class="xp-popup hidden">+3 XP</div>
+
+    <!-- ── Overlay ── -->
+    <div id="overlay" class="overlay hidden"></div>
+
+    <script src="app.js?v=1"></script>
+    <script>
+        if ('serviceWorker' in navigator) {
+            navigator.serviceWorker.register('sw.js').catch(() => {});
+        }
+    </script>
+</body>
+</html>
