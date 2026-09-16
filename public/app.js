@@ -1007,6 +1007,18 @@ function updateQuizLevelButtons(){
     btns[i].classList.toggle("locked",gam.quizUnlockedLevels.indexOf(l)===-1);
     btns[i].classList.toggle("active",l===quizLevel&&gam.quizUnlockedLevels.indexOf(l)!==-1);
   }
+  // Show quiz unlock requirements
+  var qInfo="";
+  if(!gam.quizPassHistory)gam.quizPassHistory={};
+  for(var ql=1;ql<=3;ql++){
+    var nl=ql+1;
+    if(gam.quizUnlockedLevels.indexOf(nl)===-1){
+      var passes=gam.quizPassHistory["L"+ql]||0;
+      qInfo="🔒 Score 8+/10 on L"+ql+" quiz "+(3-passes)+" more time"+(3-passes>1?"s":"")+" to unlock L"+nl;
+      break;
+    }
+  }
+  if($("quiz-unlock-info"))$("quiz-unlock-info").textContent=qInfo;
 }
 function getKeySentence(text){
   if(!text)return"";
