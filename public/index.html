@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=8">
+    <link rel="stylesheet" href="styles.css?v=9">
 </head>
 <body class="theme-dark">
     <!-- Onboarding (first launch only) -->
@@ -207,23 +207,23 @@
     </div>
 
     <!-- Streak milestone toast -->
-    <div id="milestone-toast" class="milestone-toast hidden">
+    <div id="milestone-toast" class="milestone-toast dismissed">
         <div id="milestone-icon" class="milestone-icon">🏆</div>
         <div id="milestone-text" class="milestone-text"></div>
     </div>
 
     <!-- XP popup -->
-    <div id="xp-popup" class="xp-popup hidden">+3 XP</div>
+    <div id="xp-popup" class="xp-popup dismissed">+3 XP</div>
 
     <!-- Level unlock toast -->
-    <div id="level-toast" class="level-toast hidden">
+    <div id="level-toast" class="level-toast dismissed">
         <div class="toast-icon">🎉</div>
         <div class="toast-text" id="toast-text"></div>
     </div>
 
-    <div id="overlay" class="overlay hidden"></div>
+    <div id="overlay" class="overlay dismissed"></div>
 
-    <script src="app.js?v=8"></script>
+    <script src="app.js?v=9"></script>
     <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>

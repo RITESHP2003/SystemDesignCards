@@ -57,15 +57,15 @@ function showMilestone(days){
   const icons={7:"🔥",14:"⚡",30:"🏆",60:"💎",100:"👑",200:"🌟",365:"🎯"};
   $("milestone-icon").textContent=icons[days]||"🏆";
   $("milestone-text").textContent=`${days}-Day Streak!`;
-  $("milestone-toast").classList.remove("hidden");
+  $("milestone-toast").classList.remove("dismissed");
   if(navigator.vibrate)navigator.vibrate([100,50,100]);
-  setTimeout(()=>$("milestone-toast").classList.add("hidden"),3000);
+  setTimeout(()=>$("milestone-toast").classList.add("dismissed"),3000);
 }
 function addXP(rating){
   const xp=XP_MAP[rating]||0;if(!xp)return 0;
   gam.xp+=xp;save();
-  $("xp-popup").textContent=`+${xp} XP`;$("xp-popup").classList.remove("hidden");
-  setTimeout(()=>$("xp-popup").classList.add("hidden"),600);
+  $("xp-popup").textContent=`+${xp} XP`;$("xp-popup").classList.remove("dismissed");
+  setTimeout(()=>$("xp-popup").classList.add("dismissed"),600);
   return xp;
 }
 function checkLevelUnlock(){
@@ -76,8 +76,8 @@ function checkLevelUnlock(){
       gam.unlockedLevels.push(n);save();
       const names={2:"Core Patterns",3:"Real Systems",4:"Expert"};
       $("toast-text").textContent=`🎉 Level ${n}: ${names[n]}!`;
-      $("level-toast").classList.remove("hidden");
-      setTimeout(()=>$("level-toast").classList.add("hidden"),3000);
+      $("level-toast").classList.remove("dismissed");
+      setTimeout(()=>$("level-toast").classList.add("dismissed"),3000);
     }
   }
 }
@@ -107,7 +107,7 @@ function fireConfetti(){
 // ═══ ONBOARDING ═══
 function showOnboarding(){
   if(localStorage.getItem("sdc-onboarded"))return false;
-  $("onboarding").classList.remove("hidden");$("loader").classList.add("hidden");
+  $("onboarding").classList.remove("hidden");$("loader").style.opacity="0";$("loader").style.pointerEvents="none";
   let slide=0;
   function goSlide(n){
     document.querySelectorAll(".onboard-slide").forEach(s=>s.classList.add("hidden"));
@@ -123,7 +123,7 @@ function finishOnboarding(){localStorage.setItem("sdc-onboarded","1");$("onboard
 
 // ═══ DATA LOADING ═══
 async function loadCards(){
-  $("loader").classList.remove("hidden");
+  $("loader").style.opacity="1";$("loader").style.pointerEvents="auto";$("loader").style.display="flex";
   const fill=$("loader").querySelector(".loader-fill");fill.style.width="30%";
   try{const r=await fetch("cards.json");allCards=await r.json()}catch{allCards=[]}
   fill.style.width="70%";loadState();
@@ -302,7 +302,7 @@ function setupEvents(){
     if(m==="reels")initReels();if(m==="study")updateAll();if(m==="read")initRead();
   }));
   document.querySelectorAll(".level-btn").forEach(b=>b.addEventListener("click",()=>{if(b.classList.contains("locked"))return;document.querySelectorAll(".level-btn").forEach(x=>x.classList.remove("active"));b.classList.add("active");selectedLevel=b.dataset.level;updateSummary()}));
-  $("btn-profile").addEventListener("click",()=>{renderStats();$("profile-panel").classList.remove("hidden");$("overlay").classList.remove("hidden");$("theme-select").value=settings.theme;$("daily-new-select").value=settings.newPerDay});
+  $("btn-profile").addEventListener("click",()=>{renderStats();$("profile-panel").classList.remove("hidden");$("overlay").classList.remove("dismissed");$("theme-select").value=settings.theme;$("daily-new-select").value=settings.newPerDay});
   $("close-profile").addEventListener("click",closePanels);
   $("theme-select").addEventListener("change",()=>{settings.theme=$("theme-select").value;document.body.className=`theme-${settings.theme}`;save()});
   $("daily-new-select").addEventListener("change",()=>{settings.newPerDay=parseInt($("daily-new-select").value,10);save();updateAll()});
@@ -312,20 +312,20 @@ function setupEvents(){
   $("close-search").addEventListener("click",()=>$("search-panel").classList.add("hidden"));
   initSearch();
 }
-function closePanels(){$("profile-panel").classList.add("hidden");$("overlay").classList.add("hidden")}
+function closePanels(){$("profile-panel").classList.add("hidden");$("overlay").classList.add("dismissed")}
 function esc(s){const d=document.createElement("div");d.textContent=s;return d.innerHTML}
 
 // ═══ INIT ═══
 async function startApp(){
-  $("loader").classList.remove("hidden");await loadCards();
+  $("loader").style.opacity="1";$("loader").style.pointerEvents="auto";$("loader").style.display="flex";await loadCards();
   document.body.className=`theme-${settings.theme}`;updateAll();setupEvents();
-  setTimeout(()=>$("loader").classList.add("hidden"),300);
+  setTimeout(()=>{$("loader").style.opacity="0";$("loader").style.pointerEvents="none"},300);
 }
 async function init(){
   await loadCards();
   if(showOnboarding())return; // onboarding will call startApp when done
   document.body.className=`theme-${settings.theme}`;updateAll();setupEvents();
-  setTimeout(()=>$("loader").classList.add("hidden"),300);
+  setTimeout(()=>{$("loader").style.opacity="0";$("loader").style.pointerEvents="none"},300);
 }
 init();
 })();
