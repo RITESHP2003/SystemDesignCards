@@ -238,8 +238,13 @@
   }
 
   function flipCard() {
-    $("flashcard").classList.add("flipped");
-    $("rating-buttons").classList.remove("hidden");
+    const fc = $("flashcard");
+    fc.classList.toggle("flipped");
+    if (fc.classList.contains("flipped")) {
+      $("rating-buttons").classList.remove("hidden");
+    } else {
+      $("rating-buttons").classList.add("hidden");
+    }
   }
 
   function rateCard(rating) {
@@ -385,7 +390,7 @@
       </div>`;
     }
     html += "</div>";
-    $("stats-body").innerHTML = html;
+    $("stats-section").innerHTML = html;
   }
 
   // ═══════════════════════════
@@ -442,6 +447,18 @@
       $("read-next").addEventListener("click", () => { readPage++; showPage(); });
       slider.addEventListener("input", () => { pageNum.textContent = `${slider.value} / ${slider.max}`; });
       slider.addEventListener("change", () => { readPage = parseInt(slider.value, 10); showPage(); });
+
+      // Tap page number to enter a specific page
+      pageNum.addEventListener("click", async () => {
+        const m = await loadManifest(readBook);
+        const total = m ? m.total_pages : 999;
+        const input = prompt(`Go to page (1-${total}):`);
+        if (input) {
+          const p = parseInt(input, 10);
+          if (p >= 1 && p <= total) { readPage = p; showPage(); }
+        }
+      });
+
       document.addEventListener("keydown", (e) => {
         if ($("read-view").classList.contains("hidden")) return;
         if (e.key === "ArrowRight") { readPage++; showPage(); }
@@ -454,9 +471,25 @@
   }
 
   function setupEvents() {
-    // Flashcard tap to flip
-    $("flashcard").addEventListener("click", () => {
-      if (!$("flashcard").classList.contains("flipped")) flipCard();
+    // Flashcard tap to flip (toggle both ways)
+    $("flashcard").addEventListener("click", (e) => {
+      if (e.target.closest(".flip-back-btn")) return; // handled separately
+      flipCard();
+    });
+
+    // Flip back to question
+    $("btn-flip-back").addEventListener("click", (e) => {
+      e.stopPropagation();
+      $("flashcard").classList.remove("flipped");
+      $("rating-buttons").classList.add("hidden");
+    });
+
+    // Previous card in study
+    $("btn-prev-card").addEventListener("click", () => {
+      if (studyIndex > 0) {
+        studyIndex--;
+        showCard();
+      }
     });
 
     // Rating buttons
@@ -503,22 +536,15 @@
       });
     });
 
-    // Stats
-    $("btn-stats").addEventListener("click", () => {
+    // Profile panel (combined stats + settings)
+    $("btn-profile").addEventListener("click", () => {
       renderStats();
-      $("stats-panel").classList.remove("hidden");
-      $("overlay").classList.remove("hidden");
-    });
-    $("close-stats").addEventListener("click", closePanels);
-
-    // Settings
-    $("btn-settings").addEventListener("click", () => {
-      $("settings-panel").classList.remove("hidden");
+      $("profile-panel").classList.remove("hidden");
       $("overlay").classList.remove("hidden");
       $("theme-select").value = settings.theme;
       $("daily-new-select").value = settings.newPerDay;
     });
-    $("close-settings").addEventListener("click", closePanels);
+    $("close-profile").addEventListener("click", closePanels);
     $("theme-select").addEventListener("change", () => {
       settings.theme = $("theme-select").value;
       document.body.className = `theme-${settings.theme}`;
@@ -540,8 +566,7 @@
   }
 
   function closePanels() {
-    $("stats-panel").classList.add("hidden");
-    $("settings-panel").classList.add("hidden");
+    $("profile-panel").classList.add("hidden");
     $("overlay").classList.add("hidden");
   }
 

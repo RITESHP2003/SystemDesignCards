@@ -95,9 +95,15 @@ body { background: var(--bg); color: var(--text); }
   background: none; color: var(--red); font-size: 0.85rem; cursor: pointer; margin-top: 16px; }
 
 /* ── Card area ── */
-.card-area { display: flex; flex-direction: column; align-items: center; gap: 16px; height: 100%; }
-.card-progress-bar { width: 100%; max-width: 400px; display: flex; align-items: center; gap: 8px; }
-.card-progress-fill { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px; position: relative; overflow: hidden; }
+.card-area { display: flex; flex-direction: column; align-items: center; gap: 12px; height: 100%; }
+.card-nav-row { width: 100%; max-width: 400px; display: flex; align-items: center; gap: 8px; }
+.card-nav-btn { background: var(--surface); border: 1px solid var(--surface2); color: var(--text-muted);
+  border-radius: 8px; padding: 6px 12px; font-size: 0.75rem; cursor: pointer;
+  touch-action: manipulation; white-space: nowrap; }
+.card-nav-btn:active { background: var(--surface2); }
+.card-progress-bar { flex: 1; height: 4px; background: var(--surface2); border-radius: 2px;
+  position: relative; overflow: hidden; }
+.card-progress-fill { position: absolute; left: 0; top: 0; bottom: 0; /* removed ::after, use direct */ }
 .card-progress-fill::after { content: ''; position: absolute; left: 0; top: 0; bottom: 0;
   background: var(--accent); width: var(--progress, 0%); transition: width 0.3s; border-radius: 2px; }
 .card-counter { font-size: 0.75rem; color: var(--text-muted); white-space: nowrap; }
@@ -124,6 +130,9 @@ body { background: var(--bg); color: var(--text); }
   display: flex; align-items: center; }
 .card-hint { font-size: 0.75rem; color: var(--text-dim); text-align: center; margin-top: auto; }
 .card-answer { font-size: 0.95rem; line-height: 1.6; flex: 1; }
+.card-back-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 8px; }
+.flip-back-btn { background: var(--surface2); border: none; color: var(--text-muted); font-size: 0.7rem;
+  padding: 4px 10px; border-radius: 6px; cursor: pointer; touch-action: manipulation; }
 .card-diagram { margin-top: 12px; }
 .card-diagram svg { max-width: 100%; height: auto; border-radius: 8px; }
 .card-diagram .diagram-img { max-width: 100%; height: auto; border-radius: 8px;
@@ -133,12 +142,15 @@ body { background: var(--bg); color: var(--text); }
 .card-source { font-size: 0.65rem; color: var(--text-dim); margin-top: 8px; text-align: right; }
 
 /* ── Rating buttons ── */
-.rating-buttons { display: flex; gap: 8px; width: 100%; max-width: 400px; }
+.rating-buttons { width: 100%; max-width: 400px; }
 .rating-buttons.hidden { display: none; }
-.rate-btn { flex: 1; padding: 14px 4px; border: none; border-radius: 12px;
-  font-size: 0.8rem; font-weight: 600; cursor: pointer; text-align: center;
+.rating-label { text-align: center; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; }
+.rating-btn-row { display: flex; gap: 8px; }
+.rate-btn { flex: 1; padding: 10px 4px; border: none; border-radius: 12px;
+  font-size: 0.75rem; font-weight: 600; cursor: pointer; text-align: center;
   line-height: 1.3; transition: transform 0.1s; min-height: 56px;
   touch-action: manipulation; }
+.rate-hint { font-size: 0.6rem; font-weight: 400; opacity: 0.7; display: block; margin-top: 2px; }
 .rate-btn:active { transform: scale(0.93); }
 .rate-again { background: rgba(255,82,82,0.15); color: var(--red); }
 .rate-hard { background: rgba(255,140,66,0.15); color: var(--orange); }
@@ -223,7 +235,8 @@ body { background: var(--bg); color: var(--text); }
   border-radius: 8px; padding: 8px 12px; font-size: 0.85rem; flex: 1; min-width: 160px; }
 .read-nav { display: flex; align-items: center; gap: 8px; }
 .read-page-num { font-size: 0.8rem; color: var(--text-muted); min-width: 70px; text-align: center;
-  font-variant-numeric: tabular-nums; }
+  font-variant-numeric: tabular-nums; cursor: pointer; background: var(--surface);
+  padding: 4px 10px; border-radius: 6px; border: 1px solid var(--surface2); }
 .read-container { flex: 1; overflow: auto; -webkit-overflow-scrolling: touch;
   display: flex; justify-content: center; padding: 4px 0; touch-action: pan-x pan-y pinch-zoom; }
 .read-page-img { max-width: 100%; height: auto; border-radius: 4px;

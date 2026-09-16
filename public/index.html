@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=5">
+    <link rel="stylesheet" href="styles.css?v=6">
 </head>
 <body class="theme-dark">
     <!-- ── Loader ── -->
@@ -26,13 +26,10 @@
     <header id="topbar" class="topbar">
         <div class="topbar-left">
             <span id="streak-badge" class="streak-badge">🔥 0</span>
-        </div>
-        <div class="topbar-center">
             <span id="xp-badge" class="xp-badge">⚡ 0 XP</span>
         </div>
         <div class="topbar-right">
-            <button id="btn-stats" class="icon-btn" aria-label="Stats">📊</button>
-            <button id="btn-settings" class="icon-btn" aria-label="Settings">⚙️</button>
+            <button id="btn-profile" class="icon-btn" aria-label="Profile">👤</button>
         </div>
     </header>
 
@@ -74,9 +71,12 @@
 
         <!-- Active card -->
         <div id="card-area" class="card-area hidden">
-            <div class="card-progress-bar">
-                <div id="card-progress-fill" class="card-progress-fill"></div>
-                <span id="card-counter">1 / 15</span>
+            <div class="card-nav-row">
+                <button id="btn-prev-card" class="card-nav-btn" aria-label="Previous">◀ Prev</button>
+                <div class="card-progress-bar">
+                    <div id="card-progress-fill" class="card-progress-fill"></div>
+                </div>
+                <span id="card-counter" class="card-counter">1 / 15</span>
             </div>
             <div id="flashcard" class="flashcard">
                 <div class="card-inner">
@@ -87,7 +87,10 @@
                         <div class="card-hint">Tap to reveal answer</div>
                     </div>
                     <div class="card-back">
-                        <div class="card-level-tag" id="card-level-tag-back">L1</div>
+                        <div class="card-back-header">
+                            <div class="card-level-tag" id="card-level-tag-back">L1</div>
+                            <button id="btn-flip-back" class="flip-back-btn">👁 See question</button>
+                        </div>
                         <div class="card-answer" id="card-answer">Answer goes here</div>
                         <div class="card-diagram" id="card-diagram"></div>
                         <div class="card-source" id="card-source">Vol1 Ch1</div>
@@ -95,10 +98,13 @@
                 </div>
             </div>
             <div id="rating-buttons" class="rating-buttons hidden">
-                <button class="rate-btn rate-again" data-rating="1">😫<br>Again</button>
-                <button class="rate-btn rate-hard" data-rating="2">😐<br>Hard</button>
-                <button class="rate-btn rate-good" data-rating="3">🙂<br>Good</button>
-                <button class="rate-btn rate-easy" data-rating="4">😎<br>Easy</button>
+                <div class="rating-label">How well did you know this?</div>
+                <div class="rating-btn-row">
+                    <button class="rate-btn rate-again" data-rating="1">😫<br>Again<br><span class="rate-hint">Show soon</span></button>
+                    <button class="rate-btn rate-hard" data-rating="2">😐<br>Hard<br><span class="rate-hint">1 day</span></button>
+                    <button class="rate-btn rate-good" data-rating="3">🙂<br>Good<br><span class="rate-hint">3 days</span></button>
+                    <button class="rate-btn rate-easy" data-rating="4">😎<br>Easy<br><span class="rate-hint">7+ days</span></button>
+                </div>
             </div>
         </div>
 
@@ -128,7 +134,7 @@
             </select>
             <div class="read-nav">
                 <button id="read-prev" class="icon-btn">◀</button>
-                <span id="read-page-num" class="read-page-num">1 / 269</span>
+                <span id="read-page-num" class="read-page-num" title="Tap to enter page number">1 / 269</span>
                 <button id="read-next" class="icon-btn">▶</button>
             </div>
         </div>
@@ -140,22 +146,17 @@
         </div>
     </main>
 
-    <!-- ── Stats panel ── -->
-    <div id="stats-panel" class="side-panel hidden">
+    <!-- ── Profile panel (stats + settings combined) ── -->
+    <div id="profile-panel" class="side-panel hidden">
         <div class="panel-header">
-            <h2>Your Progress</h2>
-            <button class="icon-btn" id="close-stats">✕</button>
+            <h2>👤 Your Profile</h2>
+            <button class="icon-btn" id="close-profile">✕</button>
         </div>
-        <div id="stats-body" class="panel-body"></div>
-    </div>
-
-    <!-- ── Settings panel ── -->
-    <div id="settings-panel" class="side-panel hidden">
-        <div class="panel-header">
-            <h2>Settings</h2>
-            <button class="icon-btn" id="close-settings">✕</button>
-        </div>
-        <div class="panel-body">
+        <div id="profile-body" class="panel-body">
+            <!-- Stats section -->
+            <div id="stats-section"></div>
+            <!-- Settings section -->
+            <h3 style="margin:20px 0 8px;font-size:0.9rem;color:var(--text-muted)">⚙️ Settings</h3>
             <label class="setting-row">
                 <span>Theme</span>
                 <select id="theme-select">
@@ -192,7 +193,7 @@
     <!-- ── Overlay ── -->
     <div id="overlay" class="overlay hidden"></div>
 
-    <script src="app.js?v=5"></script>
+    <script src="app.js?v=6"></script>
     <script>
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.register('sw.js').catch(() => {});
