@@ -10,7 +10,7 @@
     <title>System Design Cards</title>
     <link rel="manifest" href="manifest.json">
     <link rel="apple-touch-icon" href="icon-192.png">
-    <link rel="stylesheet" href="styles.css?v=9">
+    <link rel="stylesheet" href="styles.css?v=10">
 </head>
 <body class="theme-dark">
     <!-- Onboarding (first launch only) -->
@@ -89,10 +89,13 @@
             </div>
             <div class="summary-stats">
                 <div class="stat"><span id="stat-due" class="stat-num">0</span><span class="stat-label">Due today</span></div>
+                <div class="stat"><span id="stat-learning" class="stat-num">0</span><span class="stat-label">Learning</span></div>
                 <div class="stat"><span id="stat-new" class="stat-num">0</span><span class="stat-label">New</span></div>
                 <div class="stat"><span id="stat-mastered" class="stat-num">0</span><span class="stat-label">Mastered</span></div>
             </div>
+            <div id="study-info" class="study-info"></div>
             <button id="btn-start-study" class="btn-primary">Start Studying</button>
+            <button id="btn-extra-study" class="btn-secondary hidden">Learn More Cards</button>
             <div id="level-selector" class="level-selector">
                 <button class="level-btn active" data-level="all">All</button>
                 <button class="level-btn" data-level="1">🟢 L1</button>
@@ -128,12 +131,12 @@
                 </div>
             </div>
             <div id="rating-buttons" class="rating-buttons hidden">
-                <div class="rating-label">How well did you know this?</div>
+                <div class="rating-label">How well did you know the answer?</div>
                 <div class="rating-btn-row">
-                    <button class="rate-btn rate-again" data-rating="1">😫<br>Again<br><span class="rate-hint">Now</span></button>
-                    <button class="rate-btn rate-hard" data-rating="2">😐<br>Hard<br><span class="rate-hint">1d</span></button>
-                    <button class="rate-btn rate-good" data-rating="3">🙂<br>Good<br><span class="rate-hint">3d</span></button>
-                    <button class="rate-btn rate-easy" data-rating="4">😎<br>Easy<br><span class="rate-hint">7d+</span></button>
+                    <button class="rate-btn rate-again" data-rating="1">😫<br>Forgot<br><span class="rate-hint">See again now</span></button>
+                    <button class="rate-btn rate-hard" data-rating="2">😐<br>Hard<br><span class="rate-hint">Review in 1 day</span></button>
+                    <button class="rate-btn rate-good" data-rating="3">🙂<br>Good<br><span class="rate-hint">Review in 3 days</span></button>
+                    <button class="rate-btn rate-easy" data-rating="4">😎<br>Easy<br><span class="rate-hint">Review in 7+ days</span></button>
                 </div>
             </div>
         </div>
@@ -223,7 +226,7 @@
 
     <div id="overlay" class="overlay dismissed"></div>
 
-    <script src="app.js?v=9"></script>
+    <script src="app.js?v=10"></script>
     <script>if('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});</script>
 </body>
 </html>

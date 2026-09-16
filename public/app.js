@@ -259,12 +259,30 @@ function updateAll(){updateSummary();updateTopBar();updateDailyGoal()}
 function updateSummary(){
   const total=allCards.filter(c=>gam.unlockedLevels.includes(c.level)).length;
   const mastered=Object.values(cardState).filter(s=>s.status==="mastered").length;
+  const learning=Object.values(cardState).filter(s=>s.status==="learning").length;
   const q=getStudyQueue(),newC=allCards.filter(c=>cardState[c.id]?.status==="new"&&gam.unlockedLevels.includes(c.level)).length;
-  const pct=total>0?Math.round(mastered/total*100):0;
+  const reviewed=getDailyCount();
+  const pct=total>0?Math.round((mastered+learning*.3)/total*100):0; // Learning cards count partially
   $("ring-pct").textContent=pct+"%";$("ring-progress").style.strokeDashoffset=327*(1-pct/100);
-  $("stat-due").textContent=q.length;$("stat-new").textContent=newC;$("stat-mastered").textContent=mastered;
+  $("stat-due").textContent=q.length;$("stat-learning").textContent=learning;$("stat-new").textContent=newC;$("stat-mastered").textContent=mastered;
   document.querySelectorAll(".level-btn[data-level]").forEach(b=>{const l=b.dataset.level;if(l==="all")return;b.classList.toggle("locked",!gam.unlockedLevels.includes(parseInt(l)))});
   $("total-cards-count").textContent=allCards.length;
+
+  // Contextual info message
+  const info=$("study-info");
+  if(reviewed>0&&q.length===0){
+    info.innerHTML=`✅ You reviewed <b>${reviewed} cards</b> today! Cards move to "Learning" and come back for review in 1-7 days. Master them by getting "Good" or "Easy" 3+ times.`;
+    $("btn-start-study").classList.add("hidden");
+    $("btn-extra-study").classList.remove("hidden");
+  }else if(q.length>0){
+    info.textContent=`${q.length} card${q.length>1?"s":""} ready to study`;
+    $("btn-start-study").classList.remove("hidden");
+    $("btn-extra-study").classList.add("hidden");
+  }else{
+    info.textContent="No cards due. Come back tomorrow for reviews!";
+    $("btn-start-study").classList.add("hidden");
+    $("btn-extra-study").classList.remove("hidden");
+  }
 }
 function updateTopBar(){
   $("streak-badge").textContent=`🔥 ${gam.streak}`;$("rank-badge").textContent=getRank().name;
@@ -295,7 +313,25 @@ function setupEvents(){
   document.querySelectorAll(".rate-btn").forEach(b=>b.addEventListener("click",e=>{e.stopPropagation();rateCard(parseInt(b.dataset.rating))}));
   $("btn-start-study").addEventListener("click",startStudy);
   $("btn-more-cards").addEventListener("click",startStudy);
+  $("btn-extra-study").addEventListener("click",()=>{
+    // Override daily limit for extra study
+    let eligible=selectedLevel==="all"?allCards:allCards.filter(c=>c.level===parseInt(selectedLevel));
+    eligible=eligible.filter(c=>gam.unlockedLevels.includes(c.level)&&cardState[c.id]?.status==="new");
+    studyQueue=eligible.slice(0,10);
+    if(!studyQueue.length){alert("No new cards available!");return}
+    studyIndex=0;sessionStats={reviewed:0,correct:0,xpEarned:0};
+    $("study-summary").classList.add("hidden");$("card-area").classList.remove("hidden");$("session-complete").classList.add("hidden");
+    showCard();
+  });
   $("btn-back-home").addEventListener("click",()=>{$("session-complete").classList.add("hidden");$("card-area").classList.add("hidden");$("study-summary").classList.remove("hidden");updateAll()});
+
+  // Tappable streak badge — explains what it means
+  $("streak-badge").addEventListener("click",()=>alert(`🔥 ${gam.streak}-Day Streak\n\nStudy at least 1 card every day to keep your streak. Miss a day and it resets to 0.\n\nMilestones: 7, 14, 30, 60, 100, 200, 365 days`));
+  // Tappable rank badge — explains XP system
+  $("rank-badge").addEventListener("click",()=>{
+    const ranks=XP_RANKS.map(r=>`${gam.xp>=r.min?"✅":"⬜"} ${r.name} (${r.min} XP)`).join("\n");
+    alert(`⚡ ${gam.xp} XP — ${getRank().name}\n\nEarn XP by rating cards:\n• Hard = 1 XP\n• Good = 2 XP\n• Easy = 3 XP\n• Forgot = 0 XP\n\nRanks:\n${ranks}`);
+  });
   document.querySelectorAll(".mode-tab").forEach(t=>t.addEventListener("click",()=>{
     document.querySelectorAll(".mode-tab").forEach(x=>x.classList.remove("active"));t.classList.add("active");
     const m=t.dataset.mode;$("study-view").classList.toggle("hidden",m!=="study");$("reels-view").classList.toggle("hidden",m!=="reels");$("read-view").classList.toggle("hidden",m!=="read");

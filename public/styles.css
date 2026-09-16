@@ -34,8 +34,8 @@ body{background:var(--bg);color:var(--text)}
 .topbar{position:fixed;top:0;left:0;right:0;z-index:30;height:48px;padding:0 10px;background:var(--bar-bg);backdrop-filter:blur(16px);-webkit-backdrop-filter:blur(16px);display:flex;align-items:center;justify-content:space-between;gap:8px;border-bottom:1px solid rgba(108,92,231,.1)}
 .topbar-left,.topbar-right{display:flex;gap:4px;align-items:center;flex-shrink:0}
 .topbar-center{flex:1;max-width:180px;margin:0 auto}
-.streak-badge{font-size:.8rem;font-weight:700;color:var(--yellow)}
-.rank-badge{font-size:.65rem;font-weight:600;color:var(--accent);background:var(--accent-glow);padding:2px 8px;border-radius:10px}
+.streak-badge{font-size:.8rem;font-weight:700;color:var(--yellow);cursor:pointer;touch-action:manipulation}
+.rank-badge{font-size:.65rem;font-weight:600;color:var(--accent);background:var(--accent-glow);padding:2px 8px;border-radius:10px;cursor:pointer;touch-action:manipulation}
 .icon-btn{background:none;border:none;color:var(--text);font-size:1.1rem;padding:10px;cursor:pointer;border-radius:8px;line-height:1;min-width:44px;min-height:44px;display:flex;align-items:center;justify-content:center;touch-action:manipulation}
 .icon-btn:active{background:rgba(108,92,231,.15)}
 
@@ -65,6 +65,7 @@ body{background:var(--bg);color:var(--text)}
 .summary-stats{display:flex;gap:20px}
 .stat{text-align:center}
 .stat-num{display:block;font-size:1.4rem;font-weight:700}
+.study-info{font-size:.78rem;color:var(--text-muted);text-align:center;line-height:1.5;max-width:320px;padding:4px 12px}
 .stat-label{font-size:.65rem;color:var(--text-muted)}
 
 /* Level selector */
