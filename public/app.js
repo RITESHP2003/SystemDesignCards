@@ -968,7 +968,7 @@ function updateQuizLevelButtons(){
     var nl=ql+1;
     if(gam.quizUnlockedLevels.indexOf(nl)===-1){
       var passes=gam.quizPassHistory["L"+ql]||0;
-      qInfo="🔒 Score 8+/10 on L"+ql+" quiz "+(3-passes)+" more time"+(3-passes>1?"s":"")+" to unlock L"+nl;
+      qInfo="🔒 Score 7+/10 on L"+ql+" quiz "+(2-passes)+" more time"+(2-passes>1?"s":"")+" to unlock L"+nl;
       break;
     }
   }
@@ -983,7 +983,14 @@ function generateQuizQuestions(level){
   // Prefer dedicated quiz bank if available
   var dedicated=quizBank.filter(function(q){return q.level===level});
   if(dedicated.length>=10){
-    var shuffled=dedicated.slice().sort(function(){return Math.random()-.5}).slice(0,10);
+    // Avoid recently seen questions — prefer unseen ones
+    if(!window._recentQuizIds)window._recentQuizIds=[];
+    var unseen=dedicated.filter(function(q){return window._recentQuizIds.indexOf(q.id)===-1});
+    var pool=unseen.length>=10?unseen:dedicated; // Fall back to all if not enough unseen
+    var shuffled=pool.slice().sort(function(){return Math.random()-.5}).slice(0,10);
+    // Track these as recently seen (keep last 30)
+    for(var ri=0;ri<shuffled.length;ri++)window._recentQuizIds.push(shuffled[ri].id);
+    if(window._recentQuizIds.length>30)window._recentQuizIds=window._recentQuizIds.slice(-30);
     return shuffled.map(function(q){return{card:{id:q.relatedCards&&q.relatedCards[0]||"",level:q.level,category:q.category||"",front:q.question,back:q.explanation},question:q.question,correct:q.options[q.correct],options:q.options.slice(),explanation:q.explanation,correctIndex:q.correct}});
   }
   // No auto-generation — all quizzes come from the dedicated bank
@@ -1159,20 +1166,22 @@ function finishQuiz(){
   $("quiz-wrong-list").innerHTML=wHtml;
   // Update streak and daily
   updateStreak();recordStudyDay();incDailyCount();updateDailyGoal();updateTopBar();
-  // Check quiz level unlock: 3 quizzes scoring 8+/10 unlocks next level
-  if(quizCorrect>=8){
-    if(!gam.quizPassHistory)gam.quizPassHistory={};
+  // Check quiz level unlock: 2 quizzes scoring 7+/10 unlocks next level
+  if(quizCorrect>=7){
+    if(!gam.quizPassHistory||typeof gam.quizPassHistory!=="object")gam.quizPassHistory={};
+    if(!Array.isArray(gam.quizUnlockedLevels))gam.quizUnlockedLevels=[1];
     var lk="L"+quizLevel;
     if(!gam.quizPassHistory[lk])gam.quizPassHistory[lk]=0;
-    gam.quizPassHistory[lk]++;save();
+    gam.quizPassHistory[lk]++;
     var nextLevel=quizLevel+1;
-    if(nextLevel<=4&&gam.quizUnlockedLevels.indexOf(nextLevel)===-1&&gam.quizPassHistory[lk]>=3){
-      gam.quizUnlockedLevels.push(nextLevel);save();
+    if(nextLevel<=4&&gam.quizUnlockedLevels.indexOf(nextLevel)===-1&&gam.quizPassHistory[lk]>=2){
+      gam.quizUnlockedLevels.push(nextLevel);
       var names={2:"Core Patterns",3:"Real Systems",4:"Expert"};
       $("toast-text").textContent="🧪 Quiz Level "+nextLevel+": "+names[nextLevel]+" Unlocked!";
       $("level-toast").classList.remove("dismissed");
       setTimeout(function(){$("level-toast").classList.add("dismissed")},3000);
     }
+    save();
   }
   if(pct>=70)fireConfetti();
   // Quiz complete notification
